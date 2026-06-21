@@ -2,18 +2,62 @@
 // Ported from the claude.ai/design "design comp" (which ran inside the proprietary
 // support.js React runtime). This version is dependency-free vanilla JS/DOM.
 //
-//   data.js        -> window.TMLB_DATA (the demo dataset, byte-identical to the design)
-//   this file      -> scoring/ranking logic + state store + renderer + event delegation
+// Data is loaded live from the TeleMLEBench REST API (base path /api/v1):
+//   GET /benchmarks            -> leaderboard cards (home + datasets grid)
+//   GET /benchmarks/{slug}     -> full benchmark detail (leaderboard + features)
+//   GET /stats                 -> hero counters
+// The API base URL comes from (in priority order):
+//   ?api=<url> query param  ->  window.TMLB_API_BASE  ->  <meta name="tmlb-api-base">
+//   ->  http://localhost:8080/api/v1 (default, matches `uvicorn api:app --port 8080`).
 //
 // Logic functions (fmtScore, fmtDelta, fmtDate, topVerified, displayRow, buildRows,
-// cards, categories, stats, renderVals) are faithful ports of the original component.
+// categories, renderVals) are faithful ports of the original component; the data layer
+// (API client + adapters + loading/error states) is the new part.
 
 (function () {
   "use strict";
 
-  var DATA = window.TMLB_DATA || [];
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var root = document.getElementById('app');
+
+  // ------------------------------------------------------------- API client
+  function getApiBase() {
+    var qp = null;
+    try { qp = new URLSearchParams(location.search).get('api'); } catch (e) {}
+    if (qp) return qp.replace(/\/+$/, '');
+    if (window.TMLB_API_BASE) return String(window.TMLB_API_BASE).replace(/\/+$/, '');
+    var meta = document.querySelector('meta[name="tmlb-api-base"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content').replace(/\/+$/, '');
+    return 'http://localhost:8080/api/v1';
+  }
+
+  // GET a path under the API base; resolves to parsed JSON, rejects with an Error
+  // carrying .status and .code (parsed from the API's { error: {...} } envelope).
+  function apiGet(path) {
+    var url = getApiBase() + path;
+    return fetch(url).then(function (res) {
+      return res.text().then(function (txt) {
+        var body = null;
+        if (txt) { try { body = JSON.parse(txt); } catch (e) { body = null; } }
+        if (!res.ok) {
+          var msg = (body && body.error && body.error.message) || ('HTTP ' + res.status);
+          var err = new Error(msg);
+          err.status = res.status;
+          err.code = body && body.error && body.error.code;
+          throw err;
+        }
+        return body;
+      });
+    });
+  }
+
+  function friendlyErr(err) {
+    var base = getApiBase();
+    if (err && err.status) {
+      return 'API responded ' + err.status + ' from ' + base + (err.message ? ' — ' + err.message : '') + '.';
+    }
+    return 'Could not reach the API at ' + base + '. Check that it is running and that CORS allows this origin.';
+  }
 
   // ------------------------------------------------------------------ state
   var state = {
@@ -24,7 +68,17 @@
     sortMode: 'reproduced',
     panelSubId: null,
     disputeOpen: false,
-    submitOpen: false
+    submitOpen: false,
+
+    // data + async status
+    cards: [],
+    cardsLoading: false,
+    cardsError: null,
+    statsData: null,
+    detailCache: {},
+    detailLoading: false,
+    detailError: null,
+    detailErrorStatus: null
   };
 
   var pendingFocus = null; // {id, caret} — restore caret into a search box after re-render
@@ -32,6 +86,151 @@
   function setState(patch) {
     Object.assign(state, patch);
     render();
+  }
+
+  // --------------------------------------------------------------- adapters
+  function numOrDash(v) { return (v === null || v === undefined) ? '—' : v; }
+
+  // Mirror the API's metric_meta display rule so Claimed/Verified/Δ stay consistent:
+  // fraction metrics (suffix "%") are shown ×100 when the stored value is a fraction
+  // (|v| <= 1.5). The API delivers `score`/`topScore` already display-normalized; this
+  // also normalizes any raw value (e.g. an un-scaled claimedScore) the same way.
+  function toDisplay(v, suffix) {
+    if (v === null || v === undefined) return null;
+    if (suffix === '%' && Math.abs(v) <= 1.5) return v * 100;
+    return v;
+  }
+
+  // /benchmarks card -> the view-model cardHTML/search expect.
+  function adaptCard(b) {
+    b = b || {};
+    var meta = { decimals: (b.decimals != null ? b.decimals : 3), suffix: (b.suffix != null ? b.suffix : '') };
+    return {
+      id: b.id,
+      name: b.name || b.id || 'Untitled',
+      category: b.category || '',
+      desc: b.description || '',           // /benchmarks cards may omit description
+      taskType: b.taskType || '',          // and taskType — used only for search text
+      metric: b.metric || '—',
+      subCount: (b.submissionCount != null ? b.submissionCount : 0),
+      paperCount: (b.paperCount != null ? b.paperCount : 0),
+      topScore: (b.topScore != null ? fmtScore(toDisplay(b.topScore, meta.suffix), meta) : '—')
+    };
+  }
+
+  // /benchmarks/{slug} submission -> row shape used by displayRow/buildRows.
+  function adaptSub(s, suffix) {
+    s = s || {};
+    return {
+      id: s.id,
+      source: s.source,
+      paperTitle: s.paperTitle || '',
+      authors: s.authors || '',
+      paperLink: s.paperLink || '#',
+      codeLink: s.codeLink || null,
+      claimedScore: toDisplay((s.claimedScore != null ? s.claimedScore : null), suffix),
+      score: toDisplay((s.score != null ? s.score : null), suffix),
+      reproStatus: s.reproStatus || 'n/a',
+      reproLink: s.reproLink || null,
+      date: s.date || '',
+      flag: s.flag || null,
+      note: s.note || ''
+    };
+  }
+
+  // /benchmarks/{slug} detail -> the dataset object the renderer expects, with safe
+  // defaults so null/missing fields (taskType, features.dist, …) never break rendering.
+  function adaptDetail(d) {
+    d = d || {};
+    var f = d.features || {};
+    var dist = f.dist || {};
+    var suffix = (d.suffix != null ? d.suffix : '');
+    function part(p) { p = p || {}; return { rows: numOrDash(p.rows), size: numOrDash(p.size) }; }
+    return {
+      id: d.id,
+      name: d.name || d.id || 'Untitled',
+      category: d.category || '',
+      taskType: d.taskType || '—',
+      mlType: d.mlType || '—',
+      description: d.description || '',
+      taskDef: d.taskDef || '—',
+      metric: d.metric || '—',
+      decimals: (d.decimals != null ? d.decimals : 3),
+      suffix: suffix,
+      higherIsBetter: d.higherIsBetter !== false,   // default true
+      accessLink: d.accessLink || '#',
+      features: {
+        samples: numOrDash(f.samples),
+        split: numOrDash(f.split),
+        format: numOrDash(f.format),
+        size: numOrDash(f.size),
+        columns: Array.isArray(f.columns) ? f.columns : [],
+        rows: Array.isArray(f.rows) ? f.rows : [],
+        dist: {
+          train: part(dist.train),
+          val: part(dist.val),
+          test: part(dist.test),
+          subFile: dist.subFile || 'submission.csv',
+          subLines: Array.isArray(dist.subLines) ? dist.subLines : []
+        }
+      },
+      submissions: Array.isArray(d.submissions) ? d.submissions.map(function (s) { return adaptSub(s, suffix); }) : []
+    };
+  }
+
+  function adaptStats(s, cards, total) {
+    s = s || {};
+    function pick(keys) { for (var i = 0; i < keys.length; i++) { if (s[keys[i]] != null) return s[keys[i]]; } return null; }
+    var benchmarks = pick(['live_benchmarks', 'benchmarks', 'benchmark_count']);
+    var submissions = pick(['submissions', 'submission_count']);
+    var reproductions = pick(['reproductions', 'reproduction_count']);
+    var papers = pick(['papers', 'paper_count', 'papers_tracked']);
+    // Best-effort fallbacks from the cards feed if /stats omits a counter.
+    if (benchmarks == null && total != null) benchmarks = total;
+    if (Array.isArray(cards)) {
+      if (submissions == null) submissions = cards.reduce(function (a, c) { return a + (c.subCount || 0); }, 0) || null;
+      if (papers == null) papers = cards.reduce(function (a, c) { return a + (c.paperCount || 0); }, 0) || null;
+    }
+    return {
+      benchmarks: numOrDash(benchmarks),
+      submissions: numOrDash(submissions),
+      papers: numOrDash(papers),
+      reproductions: numOrDash(reproductions)
+    };
+  }
+
+  // ----------------------------------------------------------- data loading
+  function loadCards() {
+    setState({ cardsLoading: true, cardsError: null });
+    Promise.all([
+      apiGet('/benchmarks?limit=200'),
+      apiGet('/stats').catch(function () { return null; })   // stats is non-critical
+    ]).then(function (res) {
+      var list = res[0] || {};
+      var statsRaw = res[1];
+      var items = Array.isArray(list.items) ? list.items : [];
+      var cards = items.map(adaptCard);
+      setState({
+        cards: cards,
+        statsData: adaptStats(statsRaw, cards, list.total),
+        cardsLoading: false,
+        cardsError: null
+      });
+    }).catch(function (err) {
+      setState({ cardsLoading: false, cardsError: friendlyErr(err) });
+    });
+  }
+
+  function loadDetail(slug) {
+    if (!slug) return;
+    setState({ detailLoading: true, detailError: null, detailErrorStatus: null });
+    apiGet('/benchmarks/' + encodeURIComponent(slug)).then(function (d) {
+      var cache = Object.assign({}, state.detailCache);
+      cache[slug] = adaptDetail(d);
+      setState({ detailCache: cache, detailLoading: false, detailError: null, detailErrorStatus: null });
+    }).catch(function (err) {
+      setState({ detailLoading: false, detailError: friendlyErr(err), detailErrorStatus: err && err.status });
+    });
   }
 
   // ------------------------------------------------------- text escaping
@@ -57,6 +256,7 @@
     if (!s) return '—';
     var p = s.split('-').map(Number);
     var mo = MONTHS[p[1] - 1];
+    if (!mo || isNaN(p[2]) || isNaN(p[0])) return s;
     return mo + ' ' + p[2] + ', ' + p[0];
   }
 
@@ -147,20 +347,9 @@
     return out;
   }
 
-  function cards() {
-    return DATA.map(function (d) {
-      var top = topVerified(d);
-      return {
-        id: d.id, name: d.name, desc: d.description, taskType: d.taskType, category: d.category,
-        metric: d.metric, subCount: d.submissions.length,
-        topScore: top ? fmtScore(top.score, d) : '—'
-      };
-    });
-  }
-
   function categories() {
     var set = ['All'];
-    DATA.forEach(function (d) { if (set.indexOf(d.category) === -1) set.push(d.category); });
+    (state.cards || []).forEach(function (c) { if (c.category && set.indexOf(c.category) === -1) set.push(c.category); });
     var active = state.catFilter;
     return set.map(function (c) {
       return {
@@ -173,29 +362,17 @@
     });
   }
 
-  function stats() {
-    var subs = 0, papers = 0, repro = 0;
-    DATA.forEach(function (d) {
-      d.submissions.forEach(function (s) {
-        subs++;
-        if (s.source !== 'baseline') papers++;
-        if (s.source === 'ai_reproduced') repro++;
-      });
-    });
-    return { benchmarks: DATA.length, submissions: subs, papers: papers, reproductions: repro };
-  }
-
   function renderVals() {
     var s = state;
-    var allCards = cards();
+    var cardsArr = s.cards || [];
     var q = s.query.trim().toLowerCase();
-    var filtered = allCards.filter(function (c) {
+    var filtered = cardsArr.filter(function (c) {
       var okCat = s.catFilter === 'All' || c.category === s.catFilter;
       var okQ = !q || (c.name + ' ' + c.desc + ' ' + c.taskType + ' ' + c.category).toLowerCase().indexOf(q) !== -1;
       return okCat && okQ;
     });
 
-    var ds = DATA.find(function (d) { return d.id === s.activeId; }) || null;
+    var ds = s.activeId ? (s.detailCache[s.activeId] || null) : null;
     var detail = null, rows = [], preview = null, splits = [], subFile = '', subLines = [];
     if (ds) {
       rows = buildRows(ds, s.sortMode);
@@ -223,16 +400,18 @@
       if (sub) panel = displayRow(sub, ds, {});
     }
 
-    var isDetail = s.route === 'dataset' && !!ds;
     return {
       isHome: s.route === 'home',
-      isDatasets: s.route === 'datasets' || (s.route === 'dataset' && !ds),
-      isDetail: isDetail,
+      isDatasets: s.route === 'datasets',
+      isDataset: s.route === 'dataset',
       routeDs: (s.route === 'datasets' || s.route === 'dataset'),
+      activeId: s.activeId,
       query: s.query,
-      stats: stats(),
-      featured: allCards, filtered: filtered, filteredCount: filtered.length, cats: categories(),
+      stats: s.statsData || { benchmarks: '—', submissions: '—', papers: '—', reproductions: '—' },
+      cardsLoading: s.cardsLoading, cardsError: s.cardsError,
+      featured: cardsArr.slice(0, 12), filtered: filtered, filteredCount: filtered.length, cats: categories(),
       detail: detail, rows: rows, preview: preview, splits: splits, subFile: subFile, subLines: subLines, sortMode: s.sortMode,
+      detailLoading: s.detailLoading, detailError: s.detailError, detailErrorStatus: s.detailErrorStatus,
       panel: panel, panelOpen: !!panel,
       disputeOpen: s.disputeOpen,
       submitOpen: s.submitOpen
@@ -264,6 +443,35 @@
   function iconSearch(size) {
     size = size || 18;
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="#8a8f9a" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+  }
+
+  // ------------------------------------------------------ loading / error UI
+  function loadingBlock(label) {
+    return '<div style="border:1px solid #e9eaee;background:#fff;border-radius:14px;padding:46px 28px;text-align:center;color:#6b7280;font-size:14px;">' +
+      '<span class="tml-spinner"></span>' +
+      '<div style="margin-top:13px;">' + esc(label || 'Loading…') + '</div>' +
+    '</div>';
+  }
+  function stateBlock(title, message, actLabel, act, tone) {
+    var isErr = tone === 'error';
+    var btn = act
+      ? '<button data-act="' + esc(act) + '" class="tml-primary" style="margin-top:16px;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;">' + esc(actLabel || 'Retry') + '</button>'
+      : '';
+    return '<div style="border:1px solid ' + (isErr ? '#fecaca' : '#e9eaee') + ';background:' + (isErr ? '#fef2f2' : '#fff') + ';border-radius:14px;padding:46px 28px;text-align:center;">' +
+      '<div style="font-size:15.5px;font-weight:600;color:' + (isErr ? '#b91c1c' : '#14161a') + ';">' + esc(title) + '</div>' +
+      (message ? '<div style="font-size:13.5px;color:' + (isErr ? '#b45309' : '#6b7280') + ';margin-top:8px;line-height:1.55;max-width:540px;margin-left:auto;margin-right:auto;">' + esc(message) + '</div>' : '') +
+      btn +
+    '</div>';
+  }
+
+  // cards grid, or the appropriate loading / error / empty state.
+  function cardsSection(v, list) {
+    if (v.cardsError) return stateBlock('Couldn’t reach the API', v.cardsError, 'Retry', 'retry-cards', 'error');
+    if (v.cardsLoading && !(list && list.length)) return loadingBlock('Loading benchmarks…');
+    if (!(list && list.length)) {
+      return stateBlock('No benchmarks found', v.query ? 'Try a different search or filter.' : 'The API returned no benchmarks yet.', null, null, 'neutral');
+    }
+    return '<div class="tml-cardgrid">' + list.map(cardHTML).join('') + '</div>';
   }
 
   // -------------------------------------------------------------- views
@@ -340,7 +548,7 @@
           '<h2 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">Featured benchmarks</h2>' +
           '<button data-act="datasets" class="tml-primary" style="background:none;border:none;color:#2563eb;font-size:14px;font-weight:600;cursor:pointer;padding:0;">Browse all →</button>' +
         '</div>' +
-        '<div class="tml-cardgrid">' + v.featured.map(cardHTML).join('') + '</div>' +
+        cardsSection(v, v.featured) +
       '</section>' +
     '</main>';
   }
@@ -349,6 +557,7 @@
     var chips = v.cats.map(function (c) {
       return '<button data-cat="' + esc(c.label) + '" style="' + c.style + '">' + esc(c.label) + '</button>';
     }).join('');
+    var countLine = (v.cardsLoading || v.cardsError) ? '' : (esc(v.filteredCount) + ' datasets');
     return '' +
     '<main style="max-width:1120px;margin:0 auto;padding:54px 28px 110px;">' +
       '<h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Datasets</h1>' +
@@ -358,8 +567,8 @@
         '<input id="ds-search" data-query value="' + esc(v.query) + '" placeholder="Filter datasets…" style="flex:1;border:none;outline:none;font-size:14.5px;background:transparent;padding:9px 0;" />' +
       '</div>' +
       '<div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;">' + chips + '</div>' +
-      '<div style="margin-top:26px;font-size:13px;color:#9aa0ab;">' + esc(v.filteredCount) + ' datasets</div>' +
-      '<div class="tml-cardgrid" style="margin-top:14px;">' + v.filtered.map(cardHTML).join('') + '</div>' +
+      '<div style="margin-top:26px;font-size:13px;color:#9aa0ab;">' + countLine + '</div>' +
+      '<div style="margin-top:14px;">' + cardsSection(v, v.filtered) + '</div>' +
     '</main>';
   }
 
@@ -425,9 +634,30 @@
     return '<th style="text-align:left;padding:13px 14px;font-size:11px;font-weight:600;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;' + (extra || '') + '">' + label + '</th>';
   }
 
+  function backBtn() {
+    return '<button data-act="datasets" class="tml-primary" style="background:none;border:none;color:#6b7280;font-size:13.5px;font-weight:500;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;">← All datasets</button>';
+  }
+
   function detailHTML(v) {
     var d = v.detail;
-    if (!d) return datasetsHTML(v);
+
+    // loading / error / not-found states (no detail loaded yet)
+    if (!d) {
+      var inner;
+      if (v.detailLoading) {
+        inner = loadingBlock('Loading benchmark…');
+      } else if (v.detailError) {
+        if (v.detailErrorStatus === 404) {
+          inner = stateBlock('Benchmark not found', 'No benchmark matches “' + (v.activeId || '') + '”.', 'Back to datasets', 'datasets', 'error');
+        } else {
+          inner = stateBlock('Couldn’t load this benchmark', v.detailError, 'Retry', 'retry-detail', 'error');
+        }
+      } else {
+        inner = loadingBlock('Loading benchmark…');
+      }
+      return '<main style="max-width:1120px;margin:0 auto;padding:34px 28px 120px;">' + backBtn() + inner + '</main>';
+    }
+
     var p = v.preview;
 
     var segBase = 'border:none;background:none;padding:8px 15px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;';
@@ -435,9 +665,6 @@
     var segIdle = 'color:#8a8f9a;';
     var sortReproStyle = segBase + (v.sortMode === 'reproduced' ? segActive : segIdle);
     var sortClaimStyle = segBase + (v.sortMode === 'claimed' ? segActive : segIdle);
-
-    var headRow = '<tr>' +
-      '<td class="mono" style="text-align:right;padding:12px 14px;border-bottom:1px solid #f1f2f4;font-size:12px;color:#c2c7d0;"></td>';
 
     var colHeads = p.columns.map(function (col) {
       return '<th class="mono" style="text-align:left;padding:11px 16px;font-size:12px;font-weight:600;color:#2563eb;white-space:nowrap;">' + esc(col) + '</th>';
@@ -453,9 +680,21 @@
       '</tr>';
     }).join('');
 
+    var previewTable = (p.columns.length || p.rows.length)
+      ? '<div style="margin-top:14px;border:1px solid #e9eaee;border-radius:13px;overflow:hidden;">' +
+          '<div style="overflow-x:auto;">' +
+          '<table style="width:100%;border-collapse:collapse;min-width:520px;">' +
+            '<thead><tr style="background:#fafbfc;border-bottom:1px solid #e9eaee;">' +
+              '<th style="text-align:right;padding:11px 14px;width:36px;"></th>' + colHeads +
+            '</tr></thead>' +
+            '<tbody>' + bodyRows + '</tbody>' +
+          '</table></div>' +
+        '</div>'
+      : '';
+
     return '' +
     '<main style="max-width:1120px;margin:0 auto;padding:34px 28px 120px;">' +
-      '<button data-act="datasets" class="tml-primary" style="background:none;border:none;color:#6b7280;font-size:13.5px;font-weight:500;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;">← All datasets</button>' +
+      backBtn() +
 
       '<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px;">' +
         '<div style="max-width:680px;">' +
@@ -493,15 +732,7 @@
           cell('Format', '<div class="mono" style="font-size:13px;font-weight:500;margin-top:5px;line-height:1.4;">' + esc(p.format) + '</div>', '15px 18px') +
           cell('Size', '<div class="mono" style="font-size:14.5px;font-weight:600;margin-top:5px;">' + esc(p.size) + '</div>', '15px 18px') +
         '</div>' +
-        '<div style="margin-top:14px;border:1px solid #e9eaee;border-radius:13px;overflow:hidden;">' +
-          '<div style="overflow-x:auto;">' +
-          '<table style="width:100%;border-collapse:collapse;min-width:520px;">' +
-            '<thead><tr style="background:#fafbfc;border-bottom:1px solid #e9eaee;">' +
-              '<th style="text-align:right;padding:11px 14px;width:36px;"></th>' + colHeads +
-            '</tr></thead>' +
-            '<tbody>' + bodyRows + '</tbody>' +
-          '</table></div>' +
-        '</div>' +
+        previewTable +
       '</div>' +
 
       // download splits
@@ -540,7 +771,7 @@
             '<th title="gap between reported and reproduced score" style="text-align:right;padding:13px 14px;font-size:11px;font-weight:600;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;width:96px;cursor:help;">Δ</th>' +
             th('Date', 'width:108px;') + th('Links', 'width:96px;') +
           '</tr></thead>' +
-          '<tbody>' + v.rows.map(rowHTML).join('') + '</tbody>' +
+          '<tbody>' + (v.rows.length ? v.rows.map(rowHTML).join('') : '<tr><td colspan="8" style="padding:34px 14px;text-align:center;color:#9aa0ab;font-size:13.5px;">No reproduced baselines or approved submissions yet.</td></tr>') + '</tbody>' +
         '</table></div>' +
       '</div>' +
 
@@ -627,14 +858,14 @@
         '</div>' +
         '<div style="margin-top:22px;">' +
           '<div style="font-size:11.5px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">How we reproduced this</div>' +
-          '<p style="margin:0;font-size:14px;line-height:1.62;color:#3d424c;">' + esc(pn.note) + '</p>' +
+          '<p style="margin:0;font-size:14px;line-height:1.62;color:#3d424c;">' + esc(pn.note || 'No reproduction note provided.') + '</p>' +
         '</div>' +
         '<div style="margin-top:22px;display:flex;flex-direction:column;gap:9px;">' +
-          '<a href="' + esc(pn.reproLink) + '" target="_blank" rel="noopener" data-stop class="tml-linkrow">' +
+          (pn.reproLink ? '<a href="' + esc(pn.reproLink) + '" target="_blank" rel="noopener" data-stop class="tml-linkrow">' +
             '<span style="display:inline-flex;align-items:center;gap:9px;">' + iconCode('#2563eb') + ' Reproduction code &amp; logs</span>' +
             '<span style="color:#9aa0ab;">↗</span>' +
-          '</a>' +
-          '<a href="' + esc(pn.codeLink) + '" target="_blank" rel="noopener" data-stop class="tml-linkrow">' +
+          '</a>' : '') +
+          '<a href="' + esc(pn.paperLink) + '" target="_blank" rel="noopener" data-stop class="tml-linkrow">' +
             '<span style="display:inline-flex;align-items:center;gap:9px;">' + iconFile('#5b616e') + ' Original paper</span>' +
             '<span style="color:#9aa0ab;">↗</span>' +
           '</a>' +
@@ -673,14 +904,14 @@
     return '' +
     '<footer style="border-top:1px solid #ececef;background:#fafbfc;">' +
       '<div style="max-width:1120px;margin:0 auto;padding:30px 28px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;">' +
-        '<div style="font-size:13px;color:#9aa0ab;">TeleMLEBench — verified telecom-ML baselines. Demo data.</div>' +
+        '<div style="font-size:13px;color:#9aa0ab;">TeleMLEBench — verified telecom-ML baselines.</div>' +
         '<div style="font-size:13px;color:#9aa0ab;">Claimed vs. independently reproduced.</div>' +
       '</div>' +
     '</footer>';
   }
 
   function appHTML(v) {
-    var body = v.isHome ? homeHTML(v) : (v.isDetail ? detailHTML(v) : datasetsHTML(v));
+    var body = v.isHome ? homeHTML(v) : (v.isDataset ? detailHTML(v) : datasetsHTML(v));
     var overlays = '';
     if (v.submitOpen && v.detail) overlays += submitModalHTML(v);
     if (v.panelOpen) overlays += panelHTML(v);
@@ -697,12 +928,18 @@
   function applyHash() {
     var h = (location.hash || '').replace(/^#\/?/, '');
     var parts = h.split('/').filter(Boolean);
-    if (parts[0] === 'dataset' && parts[1] && DATA.some(function (d) { return d.id === parts[1]; })) {
-      state.route = 'dataset'; state.activeId = parts[1];
+    if (parts[0] === 'dataset' && parts[1]) {
+      state.route = 'dataset'; state.activeId = decodeURIComponent(parts[1]);
     } else if (parts[0] === 'datasets') {
       state.route = 'datasets';
     } else {
       state.route = 'home';
+    }
+  }
+  // Fetch the active benchmark's detail if we're on a dataset route and don't have it.
+  function syncRouteData() {
+    if (state.route === 'dataset' && state.activeId && !state.detailCache[state.activeId]) {
+      loadDetail(state.activeId);
     }
   }
 
@@ -725,6 +962,12 @@
   }
 
   // ------------------------------------------------------------ actions
+  function goDataset(id) {
+    var cached = !!state.detailCache[id];
+    setState({ route: 'dataset', activeId: id, panelSubId: null, sortMode: 'reproduced', detailError: null, detailErrorStatus: null, detailLoading: !cached });
+    if (!cached) loadDetail(id);
+  }
+
   function handleAct(act) {
     switch (act) {
       case 'home': setState({ route: 'home', panelSubId: null, disputeOpen: false, submitOpen: false }); break;
@@ -735,6 +978,8 @@
       case 'close-panel': setState({ panelSubId: null, disputeOpen: false }); break;
       case 'open-dispute': setState({ disputeOpen: true }); break;
       case 'close-dispute': setState({ disputeOpen: false }); break;
+      case 'retry-cards': loadCards(); break;
+      case 'retry-detail': if (state.activeId) loadDetail(state.activeId); break;
     }
   }
 
@@ -752,7 +997,7 @@
         }
         if (el.hasAttribute('data-stop')) return; // swallow (e.g. modal body)
         if (el.hasAttribute('data-act')) { handleAct(el.getAttribute('data-act')); return; }
-        if (el.hasAttribute('data-open')) { setState({ route: 'dataset', activeId: el.getAttribute('data-open'), panelSubId: null, sortMode: 'reproduced' }); return; }
+        if (el.hasAttribute('data-open')) { goDataset(el.getAttribute('data-open')); return; }
         if (el.hasAttribute('data-cat')) { setState({ catFilter: el.getAttribute('data-cat') }); return; }
         if (el.hasAttribute('data-sort')) { setState({ sortMode: el.getAttribute('data-sort') }); return; }
         if (el.hasAttribute('data-panel')) { setState({ panelSubId: el.getAttribute('data-panel') }); return; }
@@ -783,9 +1028,11 @@
   });
 
   // Browser back/forward.
-  window.addEventListener('hashchange', function () { applyHash(); render(); });
+  window.addEventListener('hashchange', function () { applyHash(); syncRouteData(); render(); });
 
   // ---------------------------------------------------------------- boot
   applyHash();
+  loadCards();        // always need cards + stats for home / datasets / nav
+  syncRouteData();    // deep-linked dataset detail
   render();
 })();

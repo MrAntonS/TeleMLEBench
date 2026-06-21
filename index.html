@@ -76,6 +76,10 @@
   .tml-fab .tml-fab-label{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;transition:max-width .22s ease,opacity .18s ease;}
   .tml-fab:hover .tml-fab-label{max-width:90px;opacity:1;}
 
+  /* loading spinner (API fetch states) */
+  @keyframes tmlSpin{to{transform:rotate(360deg)}}
+  .tml-spinner{display:inline-block;width:20px;height:20px;border:2.5px solid #e3e5e9;border-top-color:#2563eb;border-radius:50%;animation:tmlSpin .7s linear infinite;vertical-align:middle;}
+
   @media (max-width:640px){
     .tml-hero{font-size:36px !important;}
   }
@@ -83,7 +87,19 @@
 </head>
 <body>
 <div id="app"></div>
-<script src="./data.js"></script>
+
+<!-- ───────────────────────── TeleMLEBench API configuration ─────────────────────────
+     The app loads all data live from the TeleMLEBench REST API (base path /api/v1).
+     Set the base URL of your running API below. The default talks to a local
+       uvicorn api:app --port 8080
+     Replace it with your deployed API when ready, e.g.
+       window.TMLB_API_BASE = "https://api.your-host.example/api/v1";
+     You can also override it per page-load with ?api=<url> in the address bar.
+     Note: an https:// page cannot call http://localhost (mixed content) — when this
+     site is served over https, point TMLB_API_BASE at an https API. -->
+<script>
+  window.TMLB_API_BASE = "http://localhost:8080/api/v1";
+</script>
 <script src="./app.js"></script>
 </body>
 </html>
