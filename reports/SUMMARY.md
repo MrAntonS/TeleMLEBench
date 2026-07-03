@@ -85,12 +85,25 @@ things, the ttrigs-only leakage boundary and padding invariance.
    scheme differences needs ≥100k events (stat err ~0.005 at 200k) —
    a 200k independent-sample run is in progress.
 
+10. **Per-class correction quality** (test split): the residual head
+    near-fully repairs BS_SAME_DET (−153 → +2.6 keV bias, RMS 200 → 75 —
+    the re-entry trigger makes the loss computable) and helps
+    BREMS/DEAD_LAYER means, but BS_LOST stays irreducible (−184 → −156)
+    — consistent with the cheat ceiling. Crucially, the ungated
+    correction *smears clean events* (RMS 1.4 → 6.4 keV).
+11. **Gated correction is the right scheme**: apply the correction only
+    when calibrated P(clean) < gate. At gate 0.30, 20% of events get
+    corrected, 59% of the energy bias is removed (−20.1 → −8.2 keV), TOF
+    bias drops −0.102 → +0.046 µs, and clean-event RMS stays at 2.0 keV
+    (vs 6.4 ungated). The gate is the knob trading bias removal against
+    clean-spectrum smearing — the working point should be chosen by its
+    effect on the physics fit, which the mock a-extraction can now test.
+
 ## Next queue
 
-- 200k-event extraction study (running): Δâ for raw / veto / corrected.
+- 200k-event extraction study (running): Δâ for raw / veto / corrected /
+  gated-corrected.
 - Randomized-strength augmentation; report as the Milestone-5 recipe.
-- Per-class residual-correction quality: which classes does the
-  correction head actually fix, which does it merely average over?
 - Scale test at 500k–1M events; GPU port is trivial (plain PyTorch).
 - First contact with real files: run `root_loader.py` against
   `100M_DecaySet1`, validate branch names/units, re-run the pipeline.
