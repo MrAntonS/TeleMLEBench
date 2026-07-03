@@ -111,11 +111,22 @@ things, the ttrigs-only leakage boundary and padding invariance.
     the oracle-veto floor (+0.0123) with zero sample loss**. Repairing
     detectable distortions beats discarding events, decisively.
 
+13. **Residual moments are the wrong loss — proven.** Subtracting the
+    MC-derived clean-sample mean offset (−1.0 keV) *worsens* Δâ
+    (+0.011 → +0.018): the cos θ inversion is nonlinear in Tₑ, so
+    mean-bias removal ≠ distribution repair. Working points must be
+    scored on the physics fit. Scanning the correction gate on Δâ
+    directly gives the optimum at gate 0.1: **Δâ = +0.0070 ± 0.0075 —
+    consistent with zero**, from correcting only the 20% of events the
+    calibrated classifier flags. This is the toy-phase closing argument
+    for Albert's "loss = physics impact" requirement.
+
 ## Next queue
 
-- Energy-scale scenario: subtract the simulation-derived clean-sample
-  offset (−1 keV) on top of the gated correction — does Δâ reach ~0?
+- Scale test: train GNN v3 on 150k fresh events, re-evaluate Δâ on the
+  200k sample — does the correction head sharpen with data?
 - Randomized-strength augmentation; report as the Milestone-5 recipe.
-- Scale test at 500k–1M events; GPU port is trivial (plain PyTorch).
+- Spectrum-aware fine-tuning of the residual head (differentiable Δâ
+  surrogate or reweighted loss) — the natural next methodology step.
 - First contact with real files: run `root_loader.py` against
   `100M_DecaySet1`, validate branch names/units, re-run the pipeline.

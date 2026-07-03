@@ -89,6 +89,15 @@ def main():
         a, err, n = fit(te, tof, mask)
         rows.append((name, a, err, n))
 
+    # simulation-derived clean-sample scale offsets, estimated from the
+    # TRAINING dataset (50k) -- what the real analysis would take from MC
+    sel50 = rec50.e_found & np.isfinite(rec50.e_eng) & np.isfinite(rec50.tof)
+    clean50 = ds50.event_class == CLASS_TO_IDX["CLEAN_COINC"]
+    de_scale = float(np.nanmean((rec50.e_eng - ds50.te_true)[sel50 & clean50]))
+    dt_scale = float(np.nanmean((rec50.tof - ds50.tof_true)[sel50 & clean50]))
+    print(f"MC-derived clean-sample scale: dE = {de_scale:+.3f} keV, "
+          f"dT = {dt_scale:+.5f} us")
+
     add("truth", ds.te_true, ds.tof_true, sel)
     add("clean-only recon (scale component)", e_rec, tof_rec, sel & truly_clean)
     add("oracle veto", e_rec, tof_rec, sel & truly_clean)
@@ -96,6 +105,8 @@ def main():
     add("ML veto 0.55", e_rec, tof_rec, sel & (p_clean > 0.55))
     add("gated corr 0.30", e_gated, tof_gated, sel)
     add("gated corr + ML veto", e_gated, tof_gated, sel & (p_clean > 0.55))
+    add("gated corr + MC scale calib",
+        e_gated - de_scale, tof_gated - dt_scale, sel)
 
     ref = rows[0][1]
     lines = [
@@ -117,6 +128,26 @@ def main():
         "that row is the energy-scale/resolution floor that NO veto can "
         "beat — only an energy calibration or unfolding can."
     )
+    # ---- gate-threshold scan, scored directly on Δâ ------------------
+    lines += [
+        "",
+        "## Gate-threshold scan (scored on Δâ itself)",
+        "",
+        "| gate | corrected frac | Δâ | stat err |",
+        "|---|---|---|---|",
+    ]
+    for g in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1.01]:
+        gm = p_clean < g
+        eg = np.where(gm, e_rec - pred_de, e_rec)
+        tg = np.where(gm, tof_rec - pred_dt, tof_rec)
+        a, err, _ = fit(eg, tg, sel)
+        name = "none" if g == 0 else ("all" if g > 1 else f"{g:.1f}")
+        lines.append(
+            f"| {name} | {float(gm[sel].mean()) * 100:.1f}% "
+            f"| {a - ref:+.5f} | {err:.5f} |"
+        )
+    lines.append("")
+
     md = "\n".join(lines)
     (ROOT / "reports" / "extraction_decomp.md").write_text(md)
     print(md)
