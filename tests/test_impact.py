@@ -36,10 +36,11 @@ def test_bias_table_and_summary():
 def test_veto_reduces_bias():
     cls, de, dt, sel, p = _fake()
     pts = ml_veto_scenario(cls, p, de, dt, sel)
-    loose, tight = pts[0], pts[-1]
+    loose, mid, tight = pts[0], pts[len(pts) // 2], pts[-1]
     assert abs(tight["bias_de"]) < abs(loose["bias_de"])
     assert tight["purity"] > loose["purity"]
-    assert tight["efficiency"] > 0.5  # good classifier keeps clean events
+    # a good classifier keeps most clean events at a moderate threshold
+    assert mid["efficiency"] > 0.9
 
 
 def test_correction_reduces_rms():
