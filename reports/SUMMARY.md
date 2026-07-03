@@ -71,11 +71,26 @@ things, the ttrigs-only leakage boundary and padding invariance.
    real threat: a +5 keV threshold shift costs 5 macro-F1 points →
    augmentation-in-training is the next experiment.
 
+8. **Augmented training helps, mildly but uniformly** (30k events):
+   the augmented model wins on all four test suites — nominal
+   0.706→0.709 mF1, +5 keV threshold 0.659→0.666, noise ×5
+   0.676→**0.696**, accidentals ×2 0.706→0.708. No nominal-performance
+   cost. Next iteration should *randomize* the augmentation strengths
+   (threshold ~U(10,16) keV) instead of a fixed 12.5 keV copy.
+9. **Spectrum-level extraction is wired up** (mock a-coefficient MLE on
+   kinematically-inverted cos θ_eν). Two lessons from the first 4k-event
+   pass: the 8–40 µs tcoinc window itself is a dominant *acceptance*
+   distortion (must be modeled in any real fit — Δâ vs a same-selection
+   truth reference isolates the reconstruction part), and resolving the
+   scheme differences needs ≥100k events (stat err ~0.005 at 200k) —
+   a 200k independent-sample run is in progress.
+
 ## Next queue
 
-- Augmented training (threshold jitter, noise, overlay) vs domain shift.
-- Spectrum-level impact: propagate veto/correction through the 1/t_p²
-  and E_e spectra to a mock λ / b extraction — the number Albert wants.
+- 200k-event extraction study (running): Δâ for raw / veto / corrected.
+- Randomized-strength augmentation; report as the Milestone-5 recipe.
+- Per-class residual-correction quality: which classes does the
+  correction head actually fix, which does it merely average over?
 - Scale test at 500k–1M events; GPU port is trivial (plain PyTorch).
 - First contact with real files: run `root_loader.py` against
   `100M_DecaySet1`, validate branch names/units, re-run the pipeline.
