@@ -1,6 +1,6 @@
 """Systematic-impact study using the trained GNN from run_experiment.py.
 
-Loads data/toy_v1.npz + data/gnn_v1.pt, evaluates on the test split, and
+Loads data/toy_v1.npz + data/gnn_v2.pt, evaluates on the test split, and
 writes reports/impact_study.md with:
   * per-class bias contributions,
   * ML-veto working-point scan,
@@ -49,7 +49,7 @@ def main():
     t_te = {k: v[ite] for k, v in tensors.items()}
 
     model = NabGNN(dim=96, n_layers=3)
-    model.load_state_dict(torch.load(ROOT / "data" / "gnn_v1.pt", weights_only=True))
+    model.load_state_dict(torch.load(ROOT / "data" / "gnn_v2.pt", weights_only=True))
     out = predict(model, t_te)
 
     probs = torch.softmax(out["event_logits"], dim=-1).numpy()
