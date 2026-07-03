@@ -88,6 +88,20 @@ def main():
     out_path = ROOT / "reports" / "impact_study.md"
     out_path.write_text(md)
     print(f"wrote {out_path}")
+
+    from nab_ml.eval import confusion
+    from nab_ml.plots import fig_confusion, fig_veto_scan
+    from nab_ml.taxonomy import CLASSES
+
+    figs = ROOT / "reports" / "figures"
+    figs.mkdir(exist_ok=True)
+    fig_veto_scan(veto, figs / "veto_scan.png")
+    yp = out["event_logits"].argmax(-1).numpy()
+    fig_confusion(
+        confusion(cls_true, yp, len(CLASSES)),
+        "NabGNN v2 confusion (row-normalized, test)",
+        figs / "gnn_v2_confusion.png",
+    )
     b, a = corr["before"], corr["after"]
     print(f"bias d_eEng {b['bias_de']:+.3f} -> {a['bias_de']:+.3f} keV")
     print(f"bias d_tof  {b['bias_dt']:+.4f} -> {a['bias_dt']:+.4f} us")
