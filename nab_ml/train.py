@@ -25,13 +25,23 @@ class TrainConfig:
     patience: int = 6
     seed: int = 0
     device: str = "cpu"
+    # class-imbalance handling: weight ~ (1/freq)^power.  power=1 chases
+    # rare classes at the cost of majority accuracy (v1 pathology: clean
+    # recall collapsed to 0.43); power~0.5 is the sane default.
+    weight_power: float = 0.5
+    weight_clamp: float = 10.0
+    # model selection: "macro_f1" (default) or "loss"
+    select_by: str = "macro_f1"
 
 
-def class_weights(y: torch.Tensor, n_classes: int) -> torch.Tensor:
-    """Inverse-frequency weights, clipped so rare classes don't explode."""
+def class_weights(
+    y: torch.Tensor, n_classes: int, power: float = 0.5, clamp: float = 10.0
+) -> torch.Tensor:
+    """(1/frequency)^power weights, normalized to mean 1, clipped."""
     counts = torch.bincount(y, minlength=n_classes).float().clamp(min=1.0)
-    w = counts.sum() / (n_classes * counts)
-    return w.clamp(max=20.0)
+    w = (counts.sum() / (n_classes * counts)) ** power
+    w = w / w.mean()
+    return w.clamp(max=clamp)
 
 
 def _batches(n: int, bs: int, rng: np.random.Generator | None):
@@ -86,9 +96,13 @@ def train_gnn(
 
     from .taxonomy import N_CLASSES, N_TRIGGER_LABELS
 
-    ev_w = class_weights(tensors_train["y_event"], N_CLASSES).to(dev)
+    ev_w = class_weights(
+        tensors_train["y_event"], N_CLASSES, cfg.weight_power, cfg.weight_clamp
+    ).to(dev)
     node_y = tensors_train["y_node"]
-    node_w = class_weights(node_y[node_y >= 0], N_TRIGGER_LABELS).to(dev)
+    node_w = class_weights(
+        node_y[node_y >= 0], N_TRIGGER_LABELS, cfg.weight_power, cfg.weight_clamp
+    ).to(dev)
 
     n = tensors_train["y_event"].shape[0]
     rng = np.random.default_rng(cfg.seed)
@@ -114,7 +128,8 @@ def train_gnn(
 
         # validation
         model.eval()
-        va_loss, va_nb, correct, total = 0.0, 0, 0, 0
+        va_loss, va_nb = 0.0, 0
+        preds, trues = [], []
         with torch.no_grad():
             for bidx in _batches(tensors_val["y_event"].shape[0], 1024, None):
                 batch = {k: tensors_val[k][bidx].to(dev) for k in keys}
@@ -122,23 +137,31 @@ def train_gnn(
                 loss, _ = multitask_loss(out, batch, ev_w, node_w, cfg)
                 va_loss += float(loss)
                 va_nb += 1
-                pred = out["event_logits"].argmax(dim=-1)
-                correct += int((pred == batch["y_event"]).sum())
-                total += len(bidx)
+                preds.append(out["event_logits"].argmax(dim=-1).cpu())
+                trues.append(batch["y_event"].cpu())
         va_loss /= max(va_nb, 1)
-        acc = correct / max(total, 1)
+        yp = torch.cat(preds).numpy()
+        yt = torch.cat(trues).numpy()
+        acc = float((yp == yt).mean())
+
+        from .eval import confusion, per_class_metrics
+
+        f1 = per_class_metrics(confusion(yt, yp, N_CLASSES))["macro_f1"]
         history.append(
             {"epoch": epoch, "train_loss": tr_loss / max(nb, 1),
-             "val_loss": va_loss, "val_acc": acc, "sec": time.time() - t0}
+             "val_loss": va_loss, "val_acc": acc, "val_macro_f1": float(f1),
+             "sec": time.time() - t0}
         )
         if verbose:
             h = history[-1]
             print(
                 f"epoch {epoch:3d}  train {h['train_loss']:.4f}  "
-                f"val {h['val_loss']:.4f}  acc {h['val_acc']:.4f}  {h['sec']:.1f}s"
+                f"val {h['val_loss']:.4f}  acc {h['val_acc']:.4f}  "
+                f"mF1 {h['val_macro_f1']:.4f}  {h['sec']:.1f}s"
             )
-        if va_loss < best_val - 1e-4:
-            best_val, bad = va_loss, 0
+        score = -f1 if cfg.select_by == "macro_f1" else va_loss
+        if score < best_val - 1e-4:
+            best_val, bad = score, 0
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         else:
             bad += 1
