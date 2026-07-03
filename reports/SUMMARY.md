@@ -99,10 +99,22 @@ things, the ttrigs-only leakage boundary and padding invariance.
     clean-spectrum smearing — the working point should be chosen by its
     effect on the physics fit, which the mock a-extraction can now test.
 
+12. **Spectrum-level decomposition (200k independent events)** — the
+    headline physics result of the toy phase. The raw tcoinc systematic
+    on the mock a-extraction is Δâ = +0.0291 ± 0.008 (vs a
+    same-selection truth reference). It decomposes into an
+    energy-scale/resolution floor from clean events alone (+0.0123 —
+    untouchable by any veto; a calibration/unfolding problem) plus
+    contamination (+0.0168). The plain ML veto barely helps (+0.0278):
+    the invisible-loss events it cannot see are the most biasing per
+    event. But the **gated ML correction reaches Δâ = +0.0111 — below
+    the oracle-veto floor (+0.0123) with zero sample loss**. Repairing
+    detectable distortions beats discarding events, decisively.
+
 ## Next queue
 
-- 200k-event extraction study (running): Δâ for raw / veto / corrected /
-  gated-corrected.
+- Energy-scale scenario: subtract the simulation-derived clean-sample
+  offset (−1 keV) on top of the gated correction — does Δâ reach ~0?
 - Randomized-strength augmentation; report as the Milestone-5 recipe.
 - Scale test at 500k–1M events; GPU port is trivial (plain PyTorch).
 - First contact with real files: run `root_loader.py` against
