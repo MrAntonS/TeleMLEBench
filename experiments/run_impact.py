@@ -45,14 +45,27 @@ def main():
     res = residuals(ds, rec)
     tensors = dataset_to_tensors(ds, res)
 
-    _, _, ite = split_idx(ds.n_events)
+    _, iva, ite = split_idx(ds.n_events)
+    t_va = {k: v[iva] for k, v in tensors.items()}
     t_te = {k: v[ite] for k, v in tensors.items()}
 
     model = NabGNN(dim=96, n_layers=3)
     model.load_state_dict(torch.load(ROOT / "data" / "gnn_v2.pt", weights_only=True))
-    out = predict(model, t_te)
 
-    probs = torch.softmax(out["event_logits"], dim=-1).numpy()
+    # calibrate on the validation split (temperature scaling)
+    from nab_ml.calibrate import apply_temperature, ece, fit_temperature
+
+    out_va = predict(model, t_va)
+    temp = fit_temperature(out_va["event_logits"], t_va["y_event"])
+
+    out = predict(model, t_te)
+    correct = (out["event_logits"].argmax(-1) == t_te["y_event"]).numpy()
+    ece_raw = ece(torch.softmax(out["event_logits"], -1).numpy(), correct)
+    probs_t = apply_temperature(out["event_logits"], temp)
+    ece_cal = ece(probs_t.numpy(), correct)
+    print(f"temperature {temp:.3f}; ECE {ece_raw:.4f} -> {ece_cal:.4f}")
+
+    probs = probs_t.numpy()
     p_clean = probs[:, CLASS_TO_IDX["CLEAN_COINC"]]
     pred_de = out["res_pred"][:, 0].numpy() * 100.0  # unscale keV
     pred_dt = out["res_pred"][:, 1].numpy() * 5.0    # unscale us
@@ -66,7 +79,12 @@ def main():
     veto = ml_veto_scenario(cls_true, p_clean, d_eeng, d_tof, selected)
     corr = ml_correction_scenario(d_eeng, d_tof, pred_de, pred_dt, selected)
 
-    md = "# Nab toy systematic-impact study\n\n" + impact_report_md(rows, veto, corr)
+    md = (
+        "# Nab toy systematic-impact study\n\n"
+        f"P(clean) calibrated by temperature scaling on the validation split "
+        f"(T = {temp:.3f}; test ECE {ece_raw:.4f} → {ece_cal:.4f}).\n\n"
+        + impact_report_md(rows, veto, corr)
+    )
     out_path = ROOT / "reports" / "impact_study.md"
     out_path.write_text(md)
     print(f"wrote {out_path}")
