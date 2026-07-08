@@ -361,6 +361,7 @@
       else if (sub.reproStatus === 'failed') { statusLabel = 'failed'; statusStyle = 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;'; }
       else if (sub.reproStatus === 'queued') { statusLabel = 'queued'; statusStyle = 'background:#f5f8ff;color:#2563eb;border:1px solid #dbe6fd;'; }
       else if (sub.reproStatus === 'running') { statusLabel = 'reproducing'; statusStyle = 'background:#eef4ff;color:#2563eb;border:1px solid #b9ccf7;'; }
+      else if (sub.reproStatus === 'blocked') { statusLabel = 'cannot reproduce'; statusStyle = 'background:#f1f2f4;color:#5b616e;border:1px solid #e3e5e9;'; }
     }
 
     var rankLabel = opts.isBaseline ? 'base' : ((opts.failed || opts.queued) ? '—' : String(opts.rank));
@@ -389,9 +390,12 @@
     var subs = ds.submissions;
     var baseline = subs.find(function (s) { return s.source === 'baseline'; });
     var failed = subs.filter(function (s) { return s.reproStatus === 'failed'; });
-    var queued = subs.filter(function (s) { return s.reproStatus === 'queued' || s.reproStatus === 'running'; });
-    queued.sort(function (a, b) { return (b.reproStatus === 'running') - (a.reproStatus === 'running'); });
-    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && s.reproStatus !== 'queued' && s.reproStatus !== 'running' && s.score != null; });
+    var UNRANKED = { queued: 1, running: 1, blocked: 1 };
+    var queued = subs.filter(function (s) { return UNRANKED[s.reproStatus]; });
+    // running first, then queued, blocked last
+    var qOrder = { running: 0, queued: 1, blocked: 2 };
+    queued.sort(function (a, b) { return qOrder[a.reproStatus] - qOrder[b.reproStatus]; });
+    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && !UNRANKED[s.reproStatus] && s.score != null; });
     var key = sortMode === 'claimed' ? 'claimedScore' : 'score';
     ranked.sort(function (a, b) {
       var av = (a[key] != null ? a[key] : a.score), bv = (b[key] != null ? b[key] : b.score);
