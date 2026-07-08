@@ -307,9 +307,10 @@
       else if (sub.reproStatus === 'success') { statusLabel = 'reproduced'; statusStyle = 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;'; }
       else if (sub.reproStatus === 'partial') { statusLabel = 'partial'; statusStyle = 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;'; }
       else if (sub.reproStatus === 'failed') { statusLabel = 'failed'; statusStyle = 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;'; }
+      else if (sub.reproStatus === 'queued') { statusLabel = 'queued'; statusStyle = 'background:#f5f8ff;color:#2563eb;border:1px solid #dbe6fd;'; }
     }
 
-    var rankLabel = opts.isBaseline ? 'base' : (opts.failed ? '—' : String(opts.rank));
+    var rankLabel = opts.isBaseline ? 'base' : ((opts.failed || opts.queued) ? '—' : String(opts.rank));
 
     var rowStyle = 'background:#fff;';
     if (opts.isBaseline) rowStyle = 'background:#fafbfc;box-shadow:inset 3px 0 0 #d4d7dd;';
@@ -334,7 +335,8 @@
     var subs = ds.submissions;
     var baseline = subs.find(function (s) { return s.source === 'baseline'; });
     var failed = subs.filter(function (s) { return s.reproStatus === 'failed'; });
-    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && s.score != null; });
+    var queued = subs.filter(function (s) { return s.reproStatus === 'queued'; });
+    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && s.reproStatus !== 'queued' && s.score != null; });
     var key = sortMode === 'claimed' ? 'claimedScore' : 'score';
     ranked.sort(function (a, b) {
       var av = (a[key] != null ? a[key] : a.score), bv = (b[key] != null ? b[key] : b.score);
@@ -343,6 +345,7 @@
     var out = [];
     if (baseline) out.push(displayRow(baseline, ds, { isBaseline: true }));
     ranked.forEach(function (s, i) { out.push(displayRow(s, ds, { rank: i + 1 })); });
+    queued.forEach(function (s) { out.push(displayRow(s, ds, { queued: true })); });
     failed.forEach(function (s) { out.push(displayRow(s, ds, { failed: true })); });
     return out;
   }
