@@ -78,7 +78,18 @@
     detailCache: {},
     detailLoading: false,
     detailError: null,
-    detailErrorStatus: null
+    detailErrorStatus: null,
+
+    // live runs
+    runSlug: null,
+    runsList: [],
+    runsLoading: false,
+    runsError: null,
+    runDetail: null,
+    runLoading: false,
+    runError: null,
+    runSel: null,      // selected attempt number (defaults to latest)
+    runDiff: false
   };
 
   var pendingFocus = null; // {id, caret} — restore caret into a search box after re-render
@@ -233,6 +244,38 @@
       setState({ detailLoading: false, detailError: friendlyErr(err), detailErrorStatus: err && err.status });
     });
   }
+
+  // ------------------------------------------------------------ live runs
+  function loadRuns(silent) {
+    if (!silent) setState({ runsLoading: true, runsError: null });
+    apiGet('/runs').then(function (d) {
+      setState({ runsList: (d && d.items) || [], runsLoading: false, runsError: null });
+    }).catch(function (err) {
+      setState({ runsLoading: false, runsError: silent ? state.runsError : friendlyErr(err) });
+    });
+  }
+
+  function loadRun(slug, silent) {
+    if (!slug) return;
+    if (!silent) setState({ runLoading: true, runError: null });
+    apiGet('/runs/' + encodeURIComponent(slug)).then(function (d) {
+      var sel = state.runSel;
+      var atts = (d && d.attempts) || [];
+      if (!sel || !atts.some(function (a) { return a.n === sel; })) {
+        sel = atts.length ? atts[atts.length - 1].n : null;
+      }
+      setState({ runDetail: d, runLoading: false, runError: null, runSel: sel });
+    }).catch(function (err) {
+      setState({ runLoading: false, runError: silent ? state.runError : friendlyErr(err) });
+    });
+  }
+
+  // Poll while a live-runs page is visible: silent refreshes keep the epoch bar,
+  // console line and attempt list moving without flickering the whole page.
+  setInterval(function () {
+    if (state.route === 'run' && state.runSlug) loadRun(state.runSlug, true);
+    else if (state.route === 'runs') loadRuns(true);
+  }, 4000);
 
   // ------------------------------------------------------- text escaping
   function esc(s) {
@@ -407,11 +450,12 @@
       if (sub) panel = displayRow(sub, ds, {});
     }
 
-    return {
+    return Object.assign(runVals(s), {
       isHome: s.route === 'home',
       isDatasets: s.route === 'datasets',
       isDataset: s.route === 'dataset',
       routeDs: (s.route === 'datasets' || s.route === 'dataset'),
+      routeRuns: (s.route === 'runs' || s.route === 'run'),
       activeId: s.activeId,
       query: s.query,
       stats: s.statsData || { benchmarks: '—', submissions: '—', papers: '—', reproductions: '—' },
@@ -422,7 +466,7 @@
       panel: panel, panelOpen: !!panel,
       disputeOpen: s.disputeOpen,
       submitOpen: s.submitOpen
-    };
+    });
   }
 
   // -------------------------------------------------------------- icons
@@ -486,6 +530,7 @@
     var navBase = 'font-size:14px;font-weight:500;padding:7px 13px;border-radius:7px;border:none;background:none;cursor:pointer;';
     var homeStyle = navBase + (v.isHome ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var dsStyle = navBase + (v.routeDs ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
+    var runsStyle = navBase + (v.routeRuns ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     return '' +
     '<header style="position:sticky;top:0;z-index:30;background:rgba(255,255,255,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #ececef;">' +
       '<div style="max-width:1120px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;">' +
@@ -500,6 +545,7 @@
         '<nav style="display:flex;gap:4px;align-items:center;">' +
           '<button data-act="home" style="' + homeStyle + '">Home</button>' +
           '<button data-act="datasets" style="' + dsStyle + '">Datasets</button>' +
+          '<button data-act="runs" style="' + runsStyle + '">Live runs</button>' +
           '<a href="#" data-stop style="font-size:14px;font-weight:500;color:#5b616e;padding:7px 13px;border-radius:7px;text-decoration:none;">About</a>' +
         '</nav>' +
       '</div>' +
@@ -920,8 +966,331 @@
     '</footer>';
   }
 
+  // ------------------------------------------------------ live runs pages
+  function diffLines(a, b) {
+    var n = a.length, m = b.length, i, j;
+    var dp = [];
+    for (i = 0; i <= n; i++) { dp.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--)
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    var out = []; i = 0; j = 0;
+    while (i < n && j < m) {
+      if (a[i] === b[j]) { out.push({ sign: ' ', text: a[i] }); i++; j++; }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) { out.push({ sign: '-', text: a[i] }); i++; }
+      else { out.push({ sign: '+', text: b[j] }); j++; }
+    }
+    while (i < n) out.push({ sign: '-', text: a[i++] });
+    while (j < m) out.push({ sign: '+', text: b[j++] });
+    return out;
+  }
+
+  var RUN_CHIPS = {
+    scored: 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;',
+    compile_failed: 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;',
+    runtime_error: 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;',
+    failed: 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;',
+    running: 'background:#f5f8ff;color:#2563eb;border:1px solid #b9ccf7;'
+  };
+  function attemptChip(a) {
+    if (a.status === 'scored') return { label: a.score != null ? ('scored ' + a.score) : 'scored', style: RUN_CHIPS.scored };
+    if (a.status === 'running') return { label: 'running', style: RUN_CHIPS.running };
+    if (a.status === 'compile_failed') return { label: 'compile failed', style: RUN_CHIPS.compile_failed };
+    if (a.status === 'runtime_error') return { label: 'runtime error', style: RUN_CHIPS.runtime_error };
+    return { label: a.status || '—', style: RUN_CHIPS.failed };
+  }
+  function fmtTime(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    return isNaN(d) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function runVals(s) {
+    var r = s.runDetail;
+    var out = {
+      isRuns: s.route === 'runs', isRun: s.route === 'run',
+      runsList: (s.runsList || []).map(function (x) {
+        var chip = x.state === 'running'
+          ? { label: (x.step || 'running') + ' · attempt ' + (x.attempt || 1) + '/' + (x.budget || '?'), style: RUN_CHIPS.running }
+          : (x.state === 'succeeded' ? { label: 'succeeded', style: RUN_CHIPS.scored }
+                                     : { label: 'failed', style: RUN_CHIPS.failed });
+        return {
+          slug: x.slug, name: x.name || x.slug, category: x.category || '',
+          paperTitle: x.paperTitle || '(no confirmed paper)',
+          running: x.state === 'running',
+          chipLabel: chip.label, chipStyle: chip.style,
+          started: fmtTime(x.startedAt)
+        };
+      }),
+      runsLoading: s.runsLoading, runsError: s.runsError,
+      runLoading: s.runLoading, runError: s.runError,
+      run: null
+    };
+    if (!r || s.route !== 'run') return out;
+
+    var atts = r.attempts || [];
+    var sel = s.runSel || (atts.length ? atts[atts.length - 1].n : 1);
+    var selAtt = atts.find(function (a) { return a.n === sel; }) || null;
+    var prevAtt = atts.find(function (a) { return a.n === sel - 1; }) || null;
+
+    // code panel (plain or diff vs previous attempt)
+    var codeLines = [], added = 0, removed = 0;
+    var codeSubtitle = 'attempt ' + sel;
+    var selCode = (selAtt && selAtt.code) ? selAtt.code.replace(/\r/g, '').split('\n') : [];
+    if (s.runDiff && prevAtt && prevAtt.code) {
+      var d = diffLines(prevAtt.code.replace(/\r/g, '').split('\n'), selCode);
+      var num = 0;
+      codeLines = d.map(function (ln) {
+        if (ln.sign !== '-') num++;
+        if (ln.sign === '+') added++;
+        if (ln.sign === '-') removed++;
+        return {
+          num: ln.sign === '-' ? '' : String(num),
+          sign: ln.sign === '-' ? '−' : (ln.sign === '+' ? '+' : ''),
+          signStyle: ln.sign === '+' ? 'color:#15803d;font-weight:600;' : (ln.sign === '-' ? 'color:#dc2626;font-weight:600;' : 'color:transparent;'),
+          bg: ln.sign === '+' ? 'background:#ecfdf3;' : (ln.sign === '-' ? 'background:#fef2f2;' : ''),
+          text: ln.text || ' '
+        };
+      });
+      codeSubtitle = 'attempt ' + sel + ' · diff vs attempt ' + (sel - 1);
+    } else {
+      codeLines = selCode.map(function (t, i) {
+        return { num: String(i + 1), sign: '', signStyle: 'color:transparent;', bg: '', text: t || ' ' };
+      });
+      if (s.runDiff) codeSubtitle = 'attempt ' + sel + ' · no previous attempt to diff';
+    }
+    if (!codeLines.length) codeLines = [{ num: '', sign: '', signStyle: 'color:transparent;', bg: '', text: '(code not captured yet)' }];
+
+    // header chip
+    var chipBase = 'flex:none;display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;padding:9px 15px;border-radius:99px;letter-spacing:0.02em;';
+    var dotBase = 'width:8px;height:8px;border-radius:50%;';
+    var head;
+    if (r.state === 'running') {
+      head = { label: 'RUNNING — ' + (r.step || '…').toUpperCase() + ' · ATTEMPT ' + (r.attempt || 1) + ' OF ' + (r.budget || '?'),
+               style: chipBase + 'background:#f5f8ff;color:#2563eb;border:1px solid #b9ccf7;',
+               dot: dotBase + 'background:#2563eb;animation:tmlPulse 1.6s ease-out infinite;' };
+    } else if (r.state === 'succeeded') {
+      head = { label: 'REPRODUCED' + (r.score != null ? ' — ' + r.score + (r.metric ? ' ' + r.metric : '') : ''),
+               style: chipBase + 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;',
+               dot: dotBase + 'background:#15803d;' };
+    } else if (r.state === 'failed') {
+      head = { label: 'FAILED — BUDGET EXHAUSTED',
+               style: chipBase + 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;',
+               dot: dotBase + 'background:#dc2626;' };
+    } else {
+      head = { label: 'NO RUN YET', style: chipBase + 'background:#f1f2f4;color:#5b616e;border:1px solid #e3e5e9;', dot: dotBase + 'background:#9aa0ab;' };
+    }
+
+    // steps
+    var steps = (r.steps || []).map(function (st, i, arr) {
+      var dotBase2 = "flex:none;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',ui-monospace,monospace;";
+      var mark = String(i + 1), dotStyle;
+      if (st.state === 'failed') { dotStyle = dotBase2 + 'background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;'; mark = '✕'; }
+      else if (st.state === 'done') { dotStyle = dotBase2 + 'background:#2563eb;color:#fff;border:1.5px solid #2563eb;'; mark = '✓'; }
+      else if (st.state === 'current') { dotStyle = dotBase2 + 'background:#f5f8ff;color:#2563eb;border:1.5px solid #2563eb;animation:tmlPulse 1.6s ease-out infinite;'; }
+      else { dotStyle = dotBase2 + 'background:#fff;color:#9aa0ab;border:1.5px solid #e3e5e9;'; }
+      return {
+        mark: mark, dotStyle: dotStyle, hasLine: i < arr.length - 1,
+        title: st.title, desc: st.desc,
+        titleStyle: 'font-size:13.5px;font-weight:600;line-height:1.4;' + (st.state === 'current' ? 'color:#2563eb;' : (st.state === 'pending' ? 'color:#9aa0ab;' : 'color:#14161a;'))
+      };
+    });
+
+    // progress + console
+    var prog = r.progress || {};
+    var pct = r.state === 'succeeded' ? 100 : (prog.pct != null ? prog.pct : (r.state === 'running' ? 4 : 0));
+    var progressLabel = prog.line || (r.state === 'running' ? 'waiting for container output…' : '');
+    var currentStep = r.state === 'running'
+      ? ((r.steps || []).filter(function (x) { return x.state === 'current'; }).map(function (x) { return x.title; })[0] || r.step || '…')
+        + (prog.epoch != null ? ' — epoch ' + prog.epoch + '/' + prog.epochs : '')
+      : (r.state === 'succeeded' ? 'Complete — scored ' + (r.score != null ? r.score : '') + ' ' + (r.metric || '')
+        : (r.state === 'failed' ? 'Stopped — no attempt produced a score' : 'Idle'));
+    var consoleDot = r.state === 'running' ? 'background:#4ade80;animation:tmlPulse 1.6s ease-out infinite;'
+      : (r.state === 'failed' ? 'background:#f87171;' : 'background:#4ade80;');
+
+    var lastFinished = atts.filter(function (a) { return a.status !== 'running'; }).slice(-1)[0];
+    out.run = {
+      name: r.name, category: r.category || 'Uncategorized', slug: r.slug,
+      paperTitle: r.paperTitle || '(no confirmed paper)', arxivId: r.arxivId,
+      paperLink: r.arxivId ? 'https://arxiv.org/abs/' + r.arxivId : null,
+      headLabel: head.label, headStyle: head.style, headDot: head.dot,
+      codeLines: codeLines, codeSubtitle: codeSubtitle, added: added, removed: removed,
+      diffOn: s.runDiff,
+      diffTrack: s.runDiff ? 'background:#2563eb;' : 'background:#d4d7dd;',
+      diffKnob: s.runDiff ? 'left:16px;' : 'left:2px;',
+      diffLabel: s.runDiff ? 'color:#2563eb;' : 'color:#9aa0ab;',
+      showDiffCounts: s.runDiff && (added + removed) > 0,
+      steps: steps,
+      currentStep: currentStep,
+      progressStyle: 'width:' + pct + '%;',
+      progressLabel: progressLabel,
+      consoleLine: prog.line || currentStep, consoleDot: consoleDot,
+      budget: r.budget != null ? String(r.budget) : '—',
+      attemptsLeft: r.state === 'running' ? Math.max(0, (r.budget || 0) - (r.attempt || 0)) + ' of ' + (r.budget || '—') : '0 of ' + (r.budget || '—'),
+      compiledLabel: lastFinished ? (lastFinished.status === 'compile_failed' ? '✕ No — attempt ' + lastFinished.n : '✓ Yes — attempt ' + lastFinished.n) : '—',
+      compiledStyle: lastFinished && lastFinished.status === 'compile_failed' ? 'color:#dc2626;' : 'color:#15803d;',
+      attempts: atts.map(function (a) {
+        var chip = attemptChip(a);
+        var isSel = a.n === sel;
+        return {
+          n: a.n, numLabel: '#' + a.n,
+          title: 'Attempt ' + a.n + (a.started_at ? ' · ' + fmtTime(a.started_at) : ''),
+          detail: a.detail || (a.status === 'running' ? 'in progress…' : (a.status === 'scored' ? 'produced a score' : '')),
+          chipLabel: chip.label, chipStyle: chip.style,
+          rowStyle: 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;'
+            + (isSel ? 'border:1.5px solid #2563eb;background:#f5f8ff;' : 'border:1.5px solid #eef0f2;background:#fff;')
+        };
+      })
+    };
+    return out;
+  }
+
+  function runsHTML(v) {
+    var body;
+    if (v.runsLoading) body = loadingBlock('Loading runs…');
+    else if (v.runsError) body = stateBlock('Couldn’t load runs', v.runsError, 'Retry', 'retry-runs', 'error');
+    else if (!v.runsList.length) body = '<div style="border:1px solid #e9eaee;background:#fff;border-radius:14px;padding:46px 28px;text-align:center;color:#6b7280;font-size:14px;">No reproductions running right now. Runs appear here the moment the engine starts one.</div>';
+    else body = '<div style="display:flex;flex-direction:column;gap:12px;">' + v.runsList.map(function (x) {
+      return '<div data-runopen="' + esc(x.slug) + '" class="' + (x.running ? 'tml-running' : '') + '" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;cursor:pointer;">' +
+        '<div style="min-width:0;">' +
+          '<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">' +
+            '<span style="font-size:15.5px;font-weight:600;">' + esc(x.name) + '</span>' +
+            '<span style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:2px 7px;border-radius:5px;">' + esc(x.category) + '</span>' +
+          '</div>' +
+          '<div style="font-size:12.5px;color:#9aa0ab;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:640px;">' + esc(x.paperTitle) + (x.started ? ' · started ' + esc(x.started) : '') + '</div>' +
+        '</div>' +
+        '<span style="flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:99px;' + x.chipStyle + '">' + (x.running ? '<span class="tml-spinner-xs"></span>' : '') + esc(x.chipLabel) + '</span>' +
+      '</div>';
+    }).join('') + '</div>';
+    return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
+      '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Live runs</h1>' +
+      '<p style="margin:0 0 24px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
+      body + '</main>';
+  }
+
+  function runHTML(v) {
+    if (v.runLoading) return '<main style="max-width:1280px;width:100%;margin:0 auto;padding:28px;flex:1;">' + loadingBlock('Loading run…') + '</main>';
+    if (v.runError) return '<main style="max-width:1280px;width:100%;margin:0 auto;padding:28px;flex:1;">' + stateBlock('Couldn’t load this run', v.runError, 'Retry', 'retry-run', 'error') + '</main>';
+    var r = v.run;
+    if (!r) return '<main style="max-width:1280px;width:100%;margin:0 auto;padding:28px;flex:1;"></main>';
+    var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
+    return '' +
+    '<main style="max-width:1280px;width:100%;margin:0 auto;padding:28px 28px 80px;flex:1;">' +
+      '<button data-act="runs" class="tml-primary" style="background:none;border:none;color:#6b7280;font-size:13.5px;font-weight:500;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;">← All live runs</button>' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px;">' +
+        '<div>' +
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+            '<span style="display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:4px 9px;border-radius:6px;">' + esc(r.category) + '</span>' +
+            '<span data-open="' + esc(r.slug) + '" style="font-size:12.5px;color:#9aa0ab;cursor:pointer;' + mono + '">' + esc(r.name) + '</span>' +
+          '</div>' +
+          '<h1 style="margin:12px 0 0;font-size:27px;font-weight:600;letter-spacing:-0.025em;line-height:1.2;">Live reproduction — ' + esc(r.paperTitle) + '</h1>' +
+          (r.paperLink ? '<div style="font-size:13.5px;color:#9aa0ab;margin-top:6px;"><a href="' + esc(r.paperLink) + '" target="_blank" rel="noopener" style="' + mono + 'color:#5b616e;">arXiv:' + esc(r.arxivId) + '</a></div>' : '') +
+        '</div>' +
+        '<div style="' + r.headStyle + '"><span style="' + r.headDot + '"></span><span>' + esc(r.headLabel) + '</span></div>' +
+      '</div>' +
+      '<div class="tml-rungrid" style="display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px;align-items:start;">' +
+        // left: code
+        '<div style="border:1px solid #e9eaee;border-radius:14px;overflow:hidden;background:#fff;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px solid #ececef;background:#fafbfc;flex-wrap:wrap;">' +
+            '<div style="display:flex;align-items:center;gap:10px;">' + iconCode('#6b7280') +
+              '<span style="' + mono + 'font-size:13px;font-weight:600;color:#14161a;">train.py</span>' +
+              '<span style="font-size:12px;color:#9aa0ab;">' + esc(r.codeSubtitle) + '</span>' +
+            '</div>' +
+            (r.showDiffCounts ? '<div style="display:flex;align-items:center;gap:12px;font-size:12px;' + mono + '">' +
+              '<span style="color:#15803d;">+' + r.added + '</span><span style="color:#dc2626;">−' + r.removed + '</span></div>' : '') +
+          '</div>' +
+          '<div style="padding:14px 0;overflow-x:auto;background:#fff;">' +
+            r.codeLines.map(function (ln) {
+              return '<div style="display:flex;' + mono + 'font-size:12.5px;line-height:1.85;' + ln.bg + '">' +
+                '<span style="flex:none;width:46px;text-align:right;padding-right:14px;color:#c2c7d0;user-select:none;">' + esc(ln.num) + '</span>' +
+                '<span style="flex:none;width:16px;' + ln.signStyle + '">' + esc(ln.sign) + '</span>' +
+                '<span style="white-space:pre;padding-right:20px;color:#3d424c;">' + esc(ln.text) + '</span>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+          '<div style="border-top:1px solid #ececef;background:#14161a;padding:11px 18px;display:flex;align-items:center;gap:12px;">' +
+            '<span style="flex:none;width:7px;height:7px;border-radius:50%;' + r.consoleDot + '"></span>' +
+            '<span style="' + mono + 'font-size:12px;color:#a8b0bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.consoleLine || '') + '</span>' +
+          '</div>' +
+        '</div>' +
+        // right column
+        '<div style="display:flex;flex-direction:column;gap:18px;">' +
+          '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:20px 22px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+              '<h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.015em;">Methodology</h2>' +
+              '<span style="font-size:11px;color:#9aa0ab;' + mono + '">spec-only · no author code</span>' +
+            '</div>' +
+            '<div style="display:flex;flex-direction:column;">' +
+              r.steps.map(function (st) {
+                return '<div style="display:flex;gap:12px;">' +
+                  '<div style="flex:none;display:flex;flex-direction:column;align-items:center;">' +
+                    '<span style="' + st.dotStyle + '">' + esc(st.mark) + '</span>' +
+                    (st.hasLine ? '<span style="width:1.5px;flex:1;min-height:14px;background:#ececef;"></span>' : '') +
+                  '</div>' +
+                  '<div style="padding-bottom:14px;min-width:0;">' +
+                    '<div style="' + st.titleStyle + '">' + esc(st.title) + '</div>' +
+                    '<div style="font-size:12px;color:#9aa0ab;margin-top:2px;line-height:1.5;">' + esc(st.desc) + '</div>' +
+                  '</div>' +
+                '</div>';
+              }).join('') +
+            '</div>' +
+            '<div style="margin-top:4px;background:#fafbfc;border:1px solid #eef0f2;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.55;color:#6b7280;">Budget: <strong style="color:#14161a;font-weight:600;">' + esc(r.budget) + ' attempts</strong>. Test labels are never accessible to the agent; scoring runs server-side on the held-out split.</div>' +
+          '</div>' +
+          '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:20px 22px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+              '<h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.015em;">Run status</h2>' +
+              '<span style="font-size:11px;color:#9aa0ab;' + mono + '">' + esc(r.slug) + '</span>' +
+            '</div>' +
+            '<div style="background:#fafbfc;border:1px solid #eef0f2;border-radius:11px;padding:13px 15px;">' +
+              '<div style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Current step</div>' +
+              '<div style="font-size:14px;font-weight:600;margin-top:4px;line-height:1.4;">' + esc(r.currentStep) + '</div>' +
+              '<div style="margin-top:10px;height:5px;border-radius:99px;background:#ececef;overflow:hidden;">' +
+                '<div style="height:100%;border-radius:99px;background:#2563eb;transition:width .8s ease;' + r.progressStyle + '"></div>' +
+              '</div>' +
+              '<div style="margin-top:6px;font-size:11.5px;color:#9aa0ab;' + mono + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.progressLabel || '') + '</div>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#ececef;border:1px solid #ececef;border-radius:11px;overflow:hidden;margin-top:12px;">' +
+              '<div style="background:#fff;padding:12px 15px;">' +
+                '<div style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Last attempt compiled</div>' +
+                '<div style="font-size:13.5px;font-weight:600;margin-top:4px;' + r.compiledStyle + '">' + esc(r.compiledLabel) + '</div>' +
+              '</div>' +
+              '<div style="background:#fff;padding:12px 15px;">' +
+                '<div style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Attempts left</div>' +
+                '<div style="font-size:13.5px;font-weight:600;margin-top:4px;' + mono + '">' + esc(r.attemptsLeft) + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+              '<div style="font-size:11.5px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Attempt history</div>' +
+              '<button data-act="toggle-rundiff" style="display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:0;cursor:pointer;font-size:12.5px;font-weight:600;' + r.diffLabel + '">' +
+                '<span style="position:relative;width:32px;height:18px;border-radius:99px;transition:background .18s ease;' + r.diffTrack + '">' +
+                  '<span style="position:absolute;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,22,26,0.25);transition:left .18s ease;' + r.diffKnob + '"></span>' +
+                '</span>Diff</button>' +
+            '</div>' +
+            '<div style="margin-top:10px;display:flex;flex-direction:column;gap:7px;">' +
+              (r.attempts.length ? r.attempts.map(function (at) {
+                return '<div data-runattempt="' + at.n + '" style="' + at.rowStyle + '">' +
+                  '<div style="display:flex;align-items:center;gap:11px;min-width:0;">' +
+                    '<span style="flex:none;' + mono + 'font-size:12px;font-weight:600;color:#6b7280;width:20px;">' + esc(at.numLabel) + '</span>' +
+                    '<div style="min-width:0;">' +
+                      '<div style="font-size:13px;font-weight:600;color:#14161a;">' + esc(at.title) + '</div>' +
+                      '<div style="font-size:11.5px;color:#9aa0ab;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(at.detail) + '</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<span style="flex:none;display:inline-block;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap;' + at.chipStyle + '">' + esc(at.chipLabel) + '</span>' +
+                '</div>';
+              }).join('') : '<div style="font-size:12.5px;color:#9aa0ab;">No attempts yet — code generation in progress.</div>') +
+            '</div>' +
+            '<div style="margin-top:10px;font-size:11.5px;color:#9aa0ab;line-height:1.5;">Select an attempt to view its code. Diff shows changes vs. the previous attempt.</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</main>';
+  }
+
   function appHTML(v) {
-    var body = v.isHome ? homeHTML(v) : (v.isDataset ? detailHTML(v) : datasetsHTML(v));
+    var body = v.isHome ? homeHTML(v)
+      : (v.isDataset ? detailHTML(v)
+      : (v.isRuns ? runsHTML(v)
+      : (v.isRun ? runHTML(v) : datasetsHTML(v))));
     var overlays = '';
     if (v.submitOpen && v.detail) overlays += submitModalHTML(v);
     if (v.panelOpen) overlays += panelHTML(v);
@@ -933,6 +1302,8 @@
   function hashFor(s) {
     if (s.route === 'dataset' && s.activeId) return '#/dataset/' + s.activeId;
     if (s.route === 'datasets') return '#/datasets';
+    if (s.route === 'run' && s.runSlug) return '#/run/' + s.runSlug;
+    if (s.route === 'runs') return '#/runs';
     return '#/';
   }
   function applyHash() {
@@ -942,6 +1313,10 @@
       state.route = 'dataset'; state.activeId = decodeURIComponent(parts[1]);
     } else if (parts[0] === 'datasets') {
       state.route = 'datasets';
+    } else if (parts[0] === 'run' && parts[1]) {
+      state.route = 'run'; state.runSlug = decodeURIComponent(parts[1]);
+    } else if (parts[0] === 'runs') {
+      state.route = 'runs';
     } else {
       state.route = 'home';
     }
@@ -951,6 +1326,8 @@
     if (state.route === 'dataset' && state.activeId && !state.detailCache[state.activeId]) {
       loadDetail(state.activeId);
     }
+    if (state.route === 'runs') loadRuns();
+    if (state.route === 'run' && state.runSlug) loadRun(state.runSlug);
   }
 
   // ------------------------------------------------------------- render
@@ -990,7 +1367,16 @@
       case 'close-dispute': setState({ disputeOpen: false }); break;
       case 'retry-cards': loadCards(); break;
       case 'retry-detail': if (state.activeId) loadDetail(state.activeId); break;
+      case 'runs': setState({ route: 'runs', panelSubId: null, disputeOpen: false, submitOpen: false }); loadRuns(); break;
+      case 'retry-runs': loadRuns(); break;
+      case 'retry-run': if (state.runSlug) loadRun(state.runSlug); break;
+      case 'toggle-rundiff': setState({ runDiff: !state.runDiff }); break;
     }
+  }
+
+  function goRun(slug) {
+    setState({ route: 'run', runSlug: slug, runDetail: null, runSel: null, runDiff: false, runLoading: true, runError: null });
+    loadRun(slug);
   }
 
   // Single delegated click handler. Walk from the clicked node up to the root and
@@ -1008,6 +1394,8 @@
         if (el.hasAttribute('data-stop')) return; // swallow (e.g. modal body)
         if (el.hasAttribute('data-act')) { handleAct(el.getAttribute('data-act')); return; }
         if (el.hasAttribute('data-open')) { goDataset(el.getAttribute('data-open')); return; }
+        if (el.hasAttribute('data-runopen')) { goRun(el.getAttribute('data-runopen')); return; }
+        if (el.hasAttribute('data-runattempt')) { setState({ runSel: parseInt(el.getAttribute('data-runattempt'), 10) }); return; }
         if (el.hasAttribute('data-cat')) { setState({ catFilter: el.getAttribute('data-cat') }); return; }
         if (el.hasAttribute('data-sort')) { setState({ sortMode: el.getAttribute('data-sort') }); return; }
         if (el.hasAttribute('data-panel')) { setState({ panelSubId: el.getAttribute('data-panel') }); return; }
