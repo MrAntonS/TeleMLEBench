@@ -1107,8 +1107,37 @@
     var consoleDot = r.state === 'running' ? 'background:#4ade80;animation:tmlPulse 1.6s ease-out infinite;'
       : (r.state === 'failed' ? 'background:#f87171;' : 'background:#4ade80;');
 
+    // extracted methodology (method_spec.json) — known sections in order, then
+    // any extra keys, each rendered as a labelled value / pretty-JSON block
+    var specSections = [];
+    var specConfidence = null;
+    if (r.methodSpec && typeof r.methodSpec === 'object') {
+      var SPEC_LABELS = [
+        ['task_type', 'Task type'],
+        ['model_architecture', 'Model architecture'],
+        ['training_procedure', 'Training procedure'],
+        ['preprocessing', 'Preprocessing'],
+        ['reported_metric', 'Reported metric'],
+        ['reported_metrics', 'Reported metrics']
+      ];
+      var seenKeys = { arxiv_id: 1, extraction_confidence: 1 };
+      SPEC_LABELS.forEach(function (kv) { seenKeys[kv[0]] = 1; });
+      var specKeys = SPEC_LABELS.concat(
+        Object.keys(r.methodSpec).filter(function (k) { return !seenKeys[k]; })
+          .map(function (k) { return [k, k.replace(/_/g, ' ')]; }));
+      specKeys.forEach(function (kv) {
+        var val = r.methodSpec[kv[0]];
+        if (val === null || val === undefined) return;
+        if (Array.isArray(val) && !val.length) return;
+        var isScalar = (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean');
+        specSections.push({ label: kv[1], body: isScalar ? String(val) : JSON.stringify(val, null, 2), scalar: isScalar });
+      });
+      if (r.methodSpec.extraction_confidence != null) specConfidence = r.methodSpec.extraction_confidence;
+    }
+
     var lastFinished = atts.filter(function (a) { return a.status !== 'running'; }).slice(-1)[0];
     out.run = {
+      specSections: specSections, specConfidence: specConfidence,
       name: r.name, category: r.category || 'Uncategorized', slug: r.slug,
       paperTitle: r.paperTitle || '(no confirmed paper)', arxivId: r.arxivId,
       paperLink: r.arxivId ? 'https://arxiv.org/abs/' + r.arxivId : null,
@@ -1235,6 +1264,25 @@
             '</div>' +
             '<div style="margin-top:4px;background:#fafbfc;border:1px solid #eef0f2;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.55;color:#6b7280;">Budget: <strong style="color:#14161a;font-weight:600;">' + esc(r.budget) + ' attempts</strong>. Test labels are never accessible to the agent; scoring runs server-side on the held-out split.</div>' +
           '</div>' +
+          // extracted method spec (what the LLM pulled out of the paper)
+          (r.specSections.length ?
+          '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:20px 22px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+              '<h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.015em;">Extracted methodology</h2>' +
+              '<span style="font-size:11px;color:#9aa0ab;' + mono + '">' + (r.specConfidence != null ? 'confidence ' + esc(r.specConfidence) : 'method_spec.json') + '</span>' +
+            '</div>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;">' +
+              r.specSections.map(function (sx) {
+                return '<div>' +
+                  '<div style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">' + esc(sx.label) + '</div>' +
+                  (sx.scalar
+                    ? '<div style="font-size:13px;font-weight:600;color:#14161a;">' + esc(sx.body) + '</div>'
+                    : '<pre style="margin:0;background:#fafbfc;border:1px solid #eef0f2;border-radius:9px;padding:10px 12px;' + mono + 'font-size:11.5px;line-height:1.6;color:#3d424c;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow-y:auto;">' + esc(sx.body) + '</pre>') +
+                '</div>';
+              }).join('') +
+            '</div>' +
+            '<div style="margin-top:12px;font-size:11.5px;color:#9aa0ab;line-height:1.5;">Extracted by the LLM from the paper text — this spec (not author code) is what train.py is generated from.</div>' +
+          '</div>' : '') +
           '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:20px 22px;">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
               '<h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.015em;">Run status</h2>' +
