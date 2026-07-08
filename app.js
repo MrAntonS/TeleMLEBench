@@ -114,6 +114,7 @@
       metric: b.metric || '—',
       subCount: (b.submissionCount != null ? b.submissionCount : 0),
       paperCount: (b.paperCount != null ? b.paperCount : 0),
+      reproRunning: !!b.reproRunning,
       topScore: (b.topScore != null ? fmtScore(toDisplay(b.topScore, meta.suffix), meta) : '—')
     };
   }
@@ -308,6 +309,7 @@
       else if (sub.reproStatus === 'partial') { statusLabel = 'partial'; statusStyle = 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;'; }
       else if (sub.reproStatus === 'failed') { statusLabel = 'failed'; statusStyle = 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;'; }
       else if (sub.reproStatus === 'queued') { statusLabel = 'queued'; statusStyle = 'background:#f5f8ff;color:#2563eb;border:1px solid #dbe6fd;'; }
+      else if (sub.reproStatus === 'running') { statusLabel = 'reproducing'; statusStyle = 'background:#eef4ff;color:#2563eb;border:1px solid #b9ccf7;'; }
     }
 
     var rankLabel = opts.isBaseline ? 'base' : ((opts.failed || opts.queued) ? '—' : String(opts.rank));
@@ -323,6 +325,7 @@
       paperTitle: sub.paperTitle, authors: sub.authors, paperLink: sub.paperLink, codeLink: sub.codeLink, hasCode: !!sub.codeLink,
       badgeLabel: badgeLabel, badgeStyle: badgeStyle, claimedDisp: claimedDisp, verifiedDisp: verifiedDisp, deltaDisp: deltaDisp, deltaStyle: deltaStyle,
       statusLabel: statusLabel, statusStyle: statusStyle, hasStatus: !!statusLabel, isAI: isAI,
+      running: sub.reproStatus === 'running',
       date: fmtDate(sub.date), reproLink: sub.reproLink, hasRepro: isAI && !!sub.reproLink,
       dateRepro: fmtDate(sub.date), note: sub.note,
       rowStyle: rowStyle,
@@ -335,8 +338,9 @@
     var subs = ds.submissions;
     var baseline = subs.find(function (s) { return s.source === 'baseline'; });
     var failed = subs.filter(function (s) { return s.reproStatus === 'failed'; });
-    var queued = subs.filter(function (s) { return s.reproStatus === 'queued'; });
-    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && s.reproStatus !== 'queued' && s.score != null; });
+    var queued = subs.filter(function (s) { return s.reproStatus === 'queued' || s.reproStatus === 'running'; });
+    queued.sort(function (a, b) { return (b.reproStatus === 'running') - (a.reproStatus === 'running'); });
+    var ranked = subs.filter(function (s) { return s.source !== 'baseline' && s.reproStatus !== 'failed' && s.reproStatus !== 'queued' && s.reproStatus !== 'running' && s.score != null; });
     var key = sortMode === 'claimed' ? 'claimedScore' : 'score';
     ranked.sort(function (a, b) {
       var av = (a[key] != null ? a[key] : a.score), bv = (b[key] != null ? b[key] : b.score);
@@ -510,9 +514,12 @@
   }
 
   function cardHTML(card) {
+    var runningChip = card.reproRunning
+      ? '<span style="display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:#2563eb;background:#eef4ff;border:1px solid #b9ccf7;padding:4px 9px;border-radius:6px;margin-left:7px;"><span class="tml-spinner-xs"></span>reproducing</span>'
+      : '';
     return '' +
-    '<div data-open="' + esc(card.id) + '" class="tml-card">' +
-      '<div style="display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:4px 9px;border-radius:6px;">' + esc(card.category) + '</div>' +
+    '<div data-open="' + esc(card.id) + '" class="tml-card' + (card.reproRunning ? ' tml-running' : '') + '">' +
+      '<div style="display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:4px 9px;border-radius:6px;">' + esc(card.category) + '</div>' + runningChip +
       '<h3 style="margin:13px 0 8px;font-size:18px;font-weight:600;letter-spacing:-0.015em;line-height:1.25;">' + esc(card.name) + '</h3>' +
       '<p class="tml-clamp2" style="margin:0;font-size:13.5px;line-height:1.5;color:#6b7280;">' + esc(card.desc) + '</p>' +
       '<div style="margin:18px 0 0;padding-top:15px;border-top:1px solid #f1f2f4;display:flex;align-items:flex-end;justify-content:space-between;">' +
@@ -597,10 +604,10 @@
   }
 
   function rowHTML(r) {
-    var cls = r.openPanelId ? 'tml-row-ai' : '';
+    var cls = (r.openPanelId ? 'tml-row-ai' : '') + (r.running ? ' tml-running-row' : '');
     var panelAttr = r.openPanelId ? ' data-panel="' + esc(r.openPanelId) + '"' : '';
     var statusHTML = r.hasStatus
-      ? '<span style="display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:5px;margin-top:6px;' + r.statusStyle + '">' + esc(r.statusLabel) + '</span>'
+      ? '<span style="display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:5px;margin-top:6px;' + r.statusStyle + '">' + (r.running ? '<span class="tml-spinner-xs"></span>' : '') + esc(r.statusLabel) + '</span>'
       : '';
     var codeHTML = r.hasCode
       ? '<a href="' + esc(r.codeLink) + '" target="_blank" rel="noopener" data-stop title="Code" class="tml-iconlink">' + iconCode() + '</a>'

@@ -80,6 +80,13 @@
   @keyframes tmlSpin{to{transform:rotate(360deg)}}
   .tml-spinner{display:inline-block;width:20px;height:20px;border:2.5px solid #e3e5e9;border-top-color:#2563eb;border-radius:50%;animation:tmlSpin .7s linear infinite;vertical-align:middle;}
 
+  /* reproduction-in-progress pulse (dataset cards + leaderboard rows) */
+  @keyframes tmlPulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.35);border-color:#2563eb;}50%{box-shadow:0 0 0 8px rgba(37,99,235,0);border-color:#93b4f8;}}
+  .tml-running{animation:tmlPulse 1.6s ease-in-out infinite;border-color:#2563eb !important;}
+  @keyframes tmlPulseRow{0%,100%{background-color:#e8f0fe;}50%{background-color:#f8faff;}}
+  .tml-running-row{animation:tmlPulseRow 1.6s ease-in-out infinite;box-shadow:inset 3px 0 0 #2563eb;}
+  .tml-spinner-xs{display:inline-block;width:10px;height:10px;border:2px solid #b9ccf7;border-top-color:#2563eb;border-radius:50%;animation:tmlSpin .7s linear infinite;vertical-align:-1px;margin-right:5px;}
+
   @media (max-width:640px){
     .tml-hero{font-size:36px !important;}
   }
