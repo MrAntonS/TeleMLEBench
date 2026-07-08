@@ -83,6 +83,7 @@
     // live runs
     runSlug: null,
     workers: [],
+    download: null,
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -256,6 +257,7 @@
       setState({
         runsList: (res[0] && res[0].items) || [],
         workers: (res[1] && res[1].items) || state.workers,
+        download: res[1] ? (res[1].download || null) : state.download,
         runsLoading: false, runsError: null
       });
     }).catch(function (err) {
@@ -1048,6 +1050,16 @@
           chipStyle: 'background:' + bg + ';color:' + color + ';border:1px solid ' + border + ';'
         };
       }),
+      download: (function (d) {
+        if (!d) return null;
+        var mb = function (b) { return b == null ? '?' : (b / 1e6 >= 1000 ? (b / 1e9).toFixed(2) + ' GB' : Math.round(b / 1e6) + ' MB'); };
+        return {
+          name: d.name || d.slug,
+          pct: d.pct,
+          barStyle: 'width:' + (d.pct != null ? d.pct : 4) + '%;' + (d.pct == null ? 'animation:tmlPulse 1.6s ease-out infinite;' : ''),
+          label: mb(d.doneBytes) + (d.totalBytes ? ' of ' + mb(d.totalBytes) : '') + (d.pct != null ? ' · ' + d.pct + '%' : '')
+        };
+      })(s.download),
       run: null
     };
     if (!r || s.route !== 'run') return out;
@@ -1224,10 +1236,21 @@
           '</span>';
         }).join('') + '</div>'
       : '';
+    var downloadBar = v.download
+      ? '<div style="margin:0 0 22px;border:1px solid #dbe6fd;background:#f5f8ff;border-radius:12px;padding:13px 16px;max-width:560px;">' +
+          '<div style="display:flex;justify-content:space-between;gap:12px;font-size:12.5px;font-weight:600;color:#2563eb;">' +
+            '<span><span class="tml-spinner-xs"></span>Downloading ' + esc(v.download.name) + '</span>' +
+            '<span style="font-weight:500;color:#5b616e;">' + esc(v.download.label) + '</span>' +
+          '</div>' +
+          '<div style="margin-top:9px;height:5px;border-radius:99px;background:#dbe6fd;overflow:hidden;">' +
+            '<div style="height:100%;border-radius:99px;background:#2563eb;transition:width .8s ease;' + v.download.barStyle + '"></div>' +
+          '</div>' +
+        '</div>'
+      : '';
     return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Live runs</h1>' +
       '<p style="margin:0 0 14px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
-      workerStrip +
+      workerStrip + downloadBar +
       body + '</main>';
   }
 
