@@ -82,6 +82,7 @@
 
     // live runs
     runSlug: null,
+    workers: [],
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -248,8 +249,15 @@
   // ------------------------------------------------------------ live runs
   function loadRuns(silent) {
     if (!silent) setState({ runsLoading: true, runsError: null });
-    apiGet('/runs').then(function (d) {
-      setState({ runsList: (d && d.items) || [], runsLoading: false, runsError: null });
+    Promise.all([
+      apiGet('/runs'),
+      apiGet('/workers').catch(function () { return null; })  // status strip is best-effort
+    ]).then(function (res) {
+      setState({
+        runsList: (res[0] && res[0].items) || [],
+        workers: (res[1] && res[1].items) || state.workers,
+        runsLoading: false, runsError: null
+      });
     }).catch(function (err) {
       setState({ runsLoading: false, runsError: silent ? state.runsError : friendlyErr(err) });
     });
@@ -1023,6 +1031,19 @@
       }),
       runsLoading: s.runsLoading, runsError: s.runsError,
       runLoading: s.runLoading, runError: s.runError,
+      workers: (s.workers || []).map(function (w) {
+        // green = doing something now, blue = live & idle, red = down
+        var color = !w.live ? '#dc2626' : (w.busy ? '#15803d' : '#2563eb');
+        var bg = !w.live ? '#fef2f2' : (w.busy ? '#ecfdf3' : '#f5f8ff');
+        var border = !w.live ? '#fecaca' : (w.busy ? '#bbf7d0' : '#b9ccf7');
+        return {
+          name: w.name,
+          label: !w.live ? 'down' : (w.busy ? (w.task || 'working') : 'idle'),
+          dotStyle: 'width:8px;height:8px;border-radius:50%;background:' + color + ';'
+            + (w.busy && w.live ? 'animation:tmlPulse 1.6s ease-out infinite;' : ''),
+          chipStyle: 'background:' + bg + ';color:' + color + ';border:1px solid ' + border + ';'
+        };
+      }),
       run: null
     };
     if (!r || s.route !== 'run') return out;
@@ -1190,9 +1211,19 @@
         '<span style="flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:99px;' + x.chipStyle + '">' + (x.running ? '<span class="tml-spinner-xs"></span>' : '') + esc(x.chipLabel) + '</span>' +
       '</div>';
     }).join('') + '</div>';
+    var workerStrip = v.workers.length
+      ? '<div style="display:flex;flex-wrap:wrap;gap:10px;margin:0 0 22px;">' +
+        v.workers.map(function (w) {
+          return '<span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:99px;' + w.chipStyle + '">' +
+            '<span style="' + w.dotStyle + '"></span>' + esc(w.name) +
+            '<span style="font-weight:500;opacity:.85;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">· ' + esc(w.label) + '</span>' +
+          '</span>';
+        }).join('') + '</div>'
+      : '';
     return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Live runs</h1>' +
-      '<p style="margin:0 0 24px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
+      '<p style="margin:0 0 14px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
+      workerStrip +
       body + '</main>';
   }
 
