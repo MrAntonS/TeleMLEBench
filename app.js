@@ -1261,19 +1261,19 @@
     else {
       var curList = Array.isArray(j.current) ? j.current : (j.current ? [j.current] : []);
       var curHTML = curList.length
-        ? curList.map(function (cur) { return '<div class="tml-running" style="border:1px solid #dbe6fd;border-radius:14px;background:#f5f8ff;padding:18px 20px;margin-bottom:12px;">' +
+        ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:22px;">' + curList.map(function (cur) { return '<div class="tml-running" style="border:1px solid #dbe6fd;border-radius:14px;background:#f5f8ff;padding:16px 18px;min-width:0;">' +
             '<div style="display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#2563eb;"><span class="tml-spinner-xs"></span>Judging now' + (cur.keywordPrior != null ? '<span style="font-weight:500;text-transform:none;letter-spacing:0;color:#5b616e;">· keyword prior: ' + (cur.keywordPrior ? 'telecom' : 'not telecom') + '</span>' : '') + '</div>' +
             '<div style="margin-top:8px;font-size:17px;font-weight:600;">' + esc(cur.name || cur.slug) + '</div>' +
             (cur.hfId ? '<div style="font-size:12px;color:#9aa0ab;' + mono + 'margin-top:2px;">' + esc(cur.hfId) + '</div>' : '') +
             '<div style="margin-top:10px;font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">What the AI sees</div>' +
-            '<p style="margin:5px 0 0;font-size:13px;line-height:1.55;color:#3d424c;max-height:120px;overflow-y:auto;">' + esc(cur.description || '(no description)') + '</p>' +
+            '<p style="margin:5px 0 0;font-size:13px;line-height:1.55;color:#3d424c;max-height:120px;overflow-y:auto;">' + esc(cur.description || ((cur.fields && cur.fields.length) ? '(no description — judging from the data schema and tags below)' : '(no description)')) + '</p>' +
             (cur.tags && cur.tags.length ? '<div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:5px;">' + cur.tags.slice(0, 18).map(function (t) {
               return '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e2ebfd;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(t) + '</span>';
             }).join('') + '</div>' : '') +
             (cur.fields && cur.fields.length ? '<div style="margin-top:9px;"><span style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Schema</span><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:5px;">' + cur.fields.slice(0, 20).map(function (f) {
               return '<span style="font-size:10.5px;' + mono + 'background:#eef4ff;border:1px solid #b9ccf7;color:#2563eb;padding:2px 7px;border-radius:5px;">' + esc(f) + '</span>';
             }).join('') + '</div></div>' : '') +
-          '</div>'; }).join('')
+          '</div>'; }).join('') + '</div>'
         : '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:#6b7280;">No dataset under judgment right now — the feed below is the full history (' + (j.total || 0) + ' judged).</div>';
       var rows = (j.items || []).map(function (it, idx) {
         var kept = !!it.verdict;
