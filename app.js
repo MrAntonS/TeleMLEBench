@@ -1364,13 +1364,14 @@
     var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
     var rows = v.catalogItems.map(function (d) {
       var href = d.url || (d.hf_id ? 'https://huggingface.co/datasets/' + d.hf_id : null);
+      var cardStyle = 'text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:9px;min-width:0;';
       var tagOpen = href
-        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener" class="tml-row-ai" style="text-decoration:none;color:inherit;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;cursor:pointer;">'
-        : '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;">';
+        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener" class="tml-card" style="' + cardStyle + '">'
+        : '<div class="tml-card" style="' + cardStyle + '">';
       return tagOpen +
         '<div style="min-width:0;">' +
-          '<div style="font-size:13.5px;font-weight:600;">' + esc(d.name || d.slug) +
-            (d.hf_id ? ' <span style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;">' + esc(d.hf_id) + ' ↗</span>' : '') + '</div>' +
+          '<div style="font-size:14px;font-weight:600;line-height:1.35;word-break:break-word;">' + esc(d.name || d.slug) + '</div>' +
+          (d.hf_id ? '<div style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;margin-top:2px;word-break:break-all;">' + esc(d.hf_id) + ' ↗</div>' : '') +
           '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">' +
             (d.domain ? '<span style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:2px 7px;border-radius:5px;">' + esc(d.domain) + '</span>' : '') +
             (d.task ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(d.task) + '</span>' : '') +
@@ -1378,19 +1379,19 @@
             (d.expected_metric ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">metric: ' + esc(d.expected_metric) + '</span>' : '') +
           '</div>' +
         '</div>' +
-        '<span style="flex:none;font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
+        '<span style="margin-top:auto;font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
       (href ? '</a>' : '</div>');
     }).join('');
     var more = v.catalogDone ? '' :
       '<div style="text-align:center;margin-top:14px;"><button data-act="catalog-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.catalogLoading ? 'Loading…' : 'Load 30 more') + '</button></div>';
-    return '<main style="max-width:900px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
+    return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Approved catalog</h1>' +
       '<p style="margin:0 0 18px;font-size:14px;color:#6b7280;">Every dataset the AI judged telecom-relevant — including ones without papers yet. Benchmarks with confirmed papers also appear under Datasets.</p>' +
       '<div style="display:flex;gap:10px;margin-bottom:18px;max-width:440px;">' +
         '<input id="catalog-search" data-catalogquery value="' + esc(v.catalogQuery) + '" placeholder="Filter by name…" style="flex:1;border:1.5px solid #e3e5e9;border-radius:9px;padding:9px 13px;font-size:13.5px;outline:none;" />' +
       '</div>' +
       (v.catalogError ? stateBlock('Couldn’t load the catalog', v.catalogError, 'Retry', 'catalog-retry', 'error')
-        : '<div style="display:flex;flex-direction:column;gap:7px;">' + (rows || (v.catalogLoading ? loadingBlock('Loading catalog…') : '<div style="font-size:13px;color:#9aa0ab;">No approved datasets match.</div>')) + '</div>' + more) +
+        : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">' + (rows || (v.catalogLoading ? loadingBlock('Loading catalog…') : '<div style="font-size:13px;color:#9aa0ab;">No approved datasets match.</div>')) + '</div>' + more) +
       '</main>';
   }
 
