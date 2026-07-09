@@ -84,6 +84,11 @@
     runSlug: null,
     workers: [],
     download: null,
+
+    // AI relevance judgments
+    judgments: null,
+    judgLoading: false,
+    judgError: null,
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -280,11 +285,28 @@
     });
   }
 
+  function loadJudgments(silent) {
+    if (!silent) setState({ judgLoading: true, judgError: null });
+    Promise.all([
+      apiGet('/judgments?limit=200'),
+      apiGet('/workers').catch(function () { return null; })
+    ]).then(function (res) {
+      setState({
+        judgments: res[0],
+        workers: (res[1] && res[1].items) || state.workers,
+        judgLoading: false, judgError: null
+      });
+    }).catch(function (err) {
+      setState({ judgLoading: false, judgError: silent ? state.judgError : friendlyErr(err) });
+    });
+  }
+
   // Poll while a live-runs page is visible: silent refreshes keep the epoch bar,
   // console line and attempt list moving without flickering the whole page.
   setInterval(function () {
     if (state.route === 'run' && state.runSlug) loadRun(state.runSlug, true);
     else if (state.route === 'runs') loadRuns(true);
+    else if (state.route === 'judgments') loadJudgments(true);
   }, 4000);
 
   // ------------------------------------------------------- text escaping
@@ -545,6 +567,7 @@
     var homeStyle = navBase + (v.isHome ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var dsStyle = navBase + (v.routeDs ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var runsStyle = navBase + (v.routeRuns ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
+    var judgStyle = navBase + (v.isJudgments ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     return '' +
     '<header style="position:sticky;top:0;z-index:30;background:rgba(255,255,255,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #ececef;">' +
       '<div style="max-width:1120px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;">' +
@@ -560,6 +583,7 @@
           '<button data-act="home" style="' + homeStyle + '">Home</button>' +
           '<button data-act="datasets" style="' + dsStyle + '">Datasets</button>' +
           '<button data-act="runs" style="' + runsStyle + '">Live runs</button>' +
+          '<button data-act="judgments" style="' + judgStyle + '">Judgments</button>' +
           '<a href="#" data-stop style="font-size:14px;font-weight:500;color:#5b616e;padding:7px 13px;border-radius:7px;text-decoration:none;">About</a>' +
         '</nav>' +
       '</div>' +
@@ -1050,6 +1074,8 @@
           chipStyle: 'background:' + bg + ';color:' + color + ';border:1px solid ' + border + ';'
         };
       }),
+      isJudgments: s.route === 'judgments',
+      judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
       download: (function (d) {
         if (!d) return null;
         var mb = function (b) { return b == null ? '?' : (b / 1e6 >= 1000 ? (b / 1e9).toFixed(2) + ' GB' : Math.round(b / 1e6) + ' MB'); };
@@ -1208,6 +1234,52 @@
       })
     };
     return out;
+  }
+
+  function judgmentsHTML(v) {
+    var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
+    var j = v.judgmentsData;
+    var body;
+    if (v.judgLoading && !j) body = loadingBlock('Loading judgments…');
+    else if (v.judgError) body = stateBlock('Couldn’t load judgments', v.judgError, 'Retry', 'retry-judgments', 'error');
+    else if (!j) body = '';
+    else {
+      var cur = j.current;
+      var curHTML = cur
+        ? '<div class="tml-running" style="border:1px solid #dbe6fd;border-radius:14px;background:#f5f8ff;padding:18px 20px;margin-bottom:22px;">' +
+            '<div style="display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#2563eb;"><span class="tml-spinner-xs"></span>Judging now' + (cur.keywordPrior != null ? '<span style="font-weight:500;text-transform:none;letter-spacing:0;color:#5b616e;">· keyword prior: ' + (cur.keywordPrior ? 'telecom' : 'not telecom') + '</span>' : '') + '</div>' +
+            '<div style="margin-top:8px;font-size:17px;font-weight:600;">' + esc(cur.name || cur.slug) + '</div>' +
+            (cur.hfId ? '<div style="font-size:12px;color:#9aa0ab;' + mono + 'margin-top:2px;">' + esc(cur.hfId) + '</div>' : '') +
+            '<div style="margin-top:10px;font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">What the AI sees</div>' +
+            '<p style="margin:5px 0 0;font-size:13px;line-height:1.55;color:#3d424c;max-height:120px;overflow-y:auto;">' + esc(cur.description || '(no description)') + '</p>' +
+            (cur.tags && cur.tags.length ? '<div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:5px;">' + cur.tags.slice(0, 18).map(function (t) {
+              return '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e2ebfd;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(t) + '</span>';
+            }).join('') + '</div>' : '') +
+          '</div>'
+        : '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:#6b7280;">No dataset under judgment right now — the feed below is the full history (' + (j.total || 0) + ' judged).</div>';
+      var rows = (j.items || []).map(function (it) {
+        var kept = !!it.verdict;
+        var chip = kept ? 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;' : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;';
+        return '<div style="display:flex;gap:14px;align-items:flex-start;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:13px 16px;">' +
+          '<span style="flex:none;display:inline-block;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:5px;white-space:nowrap;margin-top:2px;' + chip + '">' + (kept ? 'telecom ✓' : 'rejected ✕') + '</span>' +
+          '<div style="min-width:0;">' +
+            '<div style="font-size:13.5px;font-weight:600;">' + esc(it.name || it.slug) + (it.hfId ? ' <span style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;">' + esc(it.hfId) + '</span>' : '') + '</div>' +
+            '<div style="font-size:12.5px;color:#5b616e;margin-top:3px;line-height:1.5;">' + esc(it.reason || '') + '</div>' +
+            '<div style="font-size:11px;color:#c2c7d0;' + mono + 'margin-top:4px;">' + esc((it.at || '').replace('T', ' ').slice(0, 19)) + (it.keywordPrior != null && it.keywordPrior !== it.verdict ? ' · overruled keyword filter' : '') + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      body = curHTML +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">' +
+          '<h2 style="margin:0;font-size:17px;font-weight:600;">Judgment history</h2>' +
+          '<span style="font-size:12.5px;color:#9aa0ab;">' + (j.total || 0) + ' total · newest first</span>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>';
+    }
+    return '<main style="max-width:900px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
+      '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">AI relevance judgments</h1>' +
+      '<p style="margin:0 0 22px;font-size:14px;color:#6b7280;">What the harvest AI is looking at in real time — the evidence it sees and the verdict it gives. Updates live.</p>' +
+      body + '</main>';
   }
 
   function runsHTML(v) {
@@ -1396,7 +1468,8 @@
     var body = v.isHome ? homeHTML(v)
       : (v.isDataset ? detailHTML(v)
       : (v.isRuns ? runsHTML(v)
-      : (v.isRun ? runHTML(v) : datasetsHTML(v))));
+      : (v.isRun ? runHTML(v)
+      : (v.isJudgments ? judgmentsHTML(v) : datasetsHTML(v)))));
     var overlays = '';
     if (v.submitOpen && v.detail) overlays += submitModalHTML(v);
     if (v.panelOpen) overlays += panelHTML(v);
@@ -1410,6 +1483,7 @@
     if (s.route === 'datasets') return '#/datasets';
     if (s.route === 'run' && s.runSlug) return '#/run/' + s.runSlug;
     if (s.route === 'runs') return '#/runs';
+    if (s.route === 'judgments') return '#/judgments';
     return '#/';
   }
   function applyHash() {
@@ -1423,6 +1497,8 @@
       state.route = 'run'; state.runSlug = decodeURIComponent(parts[1]);
     } else if (parts[0] === 'runs') {
       state.route = 'runs';
+    } else if (parts[0] === 'judgments') {
+      state.route = 'judgments';
     } else {
       state.route = 'home';
     }
@@ -1434,6 +1510,7 @@
     }
     if (state.route === 'runs') loadRuns();
     if (state.route === 'run' && state.runSlug) loadRun(state.runSlug);
+    if (state.route === 'judgments') loadJudgments();
   }
 
   // ------------------------------------------------------------- render
@@ -1475,6 +1552,8 @@
       case 'retry-detail': if (state.activeId) loadDetail(state.activeId); break;
       case 'runs': setState({ route: 'runs', panelSubId: null, disputeOpen: false, submitOpen: false }); loadRuns(); break;
       case 'retry-runs': loadRuns(); break;
+      case 'judgments': setState({ route: 'judgments', panelSubId: null, disputeOpen: false, submitOpen: false }); loadJudgments(); break;
+      case 'retry-judgments': loadJudgments(); break;
       case 'retry-run': if (state.runSlug) loadRun(state.runSlug); break;
       case 'toggle-rundiff': setState({ runDiff: !state.runDiff }); break;
     }
