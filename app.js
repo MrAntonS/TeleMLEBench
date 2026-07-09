@@ -101,6 +101,8 @@
     catalogError: null,
     catalogDone: false,
     catalogQuery: '',
+    catalogTotal: null,
+    catalogWhyIdx: null,
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -324,6 +326,7 @@
       var items = (d && d.items) || [];
       setState({
         catalogItems: (reset ? [] : state.catalogItems).concat(items),
+        catalogTotal: (d && d.total != null) ? d.total : state.catalogTotal,
         catalogDone: items.length < 30,
         catalogLoading: false
       });
@@ -1115,6 +1118,7 @@
       catalogItems: s.catalogItems, catalogLoading: s.catalogLoading,
       catalogError: s.catalogError, catalogDone: s.catalogDone,
       catalogQuery: s.catalogQuery,
+      catalogTotal: s.catalogTotal, catalogWhyIdx: s.catalogWhyIdx,
       scan: (function (sc) {
         if (!sc) return null;
         return {
@@ -1362,7 +1366,8 @@
 
   function catalogHTML(v) {
     var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
-    var rows = v.catalogItems.map(function (d) {
+    var rows = v.catalogItems.map(function (d, ci) {
+      var whyOpen = v.catalogWhyIdx === ci;
       var href = d.url || (d.hf_id ? 'https://huggingface.co/datasets/' + d.hf_id : null);
       var cardStyle = 'text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:9px;min-width:0;';
       var tagOpen = href
@@ -1379,13 +1384,19 @@
             (d.expected_metric ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">metric: ' + esc(d.expected_metric) + '</span>' : '') +
           '</div>' +
         '</div>' +
-        '<span style="margin-top:auto;font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
+        (whyOpen && d.relevance_reason
+          ? '<div style="background:#f5f8ff;border:1px solid #dbe6fd;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.5;color:#3d424c;"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:#2563eb;">AI verdict</span><br>' + esc(d.relevance_reason) + (d.relevance_at ? '<div style="margin-top:4px;font-size:10px;color:#9aa0ab;' + mono + '">' + esc(String(d.relevance_at).replace('T', ' ').slice(0, 19)) + '</div>' : '') + '</div>'
+          : '') +
+        '<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+          '<span style="font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
+          (d.relevance_reason ? '<button data-catalogwhy="' + ci + '" style="background:none;border:1px solid #dbe6fd;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;color:#2563eb;cursor:pointer;">' + (whyOpen ? 'hide' : 'why?') + '</button>' : '') +
+        '</div>' +
       (href ? '</a>' : '</div>');
     }).join('');
     var more = v.catalogDone ? '' :
       '<div style="text-align:center;margin-top:14px;"><button data-act="catalog-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.catalogLoading ? 'Loading…' : 'Load 30 more') + '</button></div>';
     return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
-      '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Approved catalog</h1>' +
+      '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Approved catalog' + (v.catalogTotal != null ? ' <span style="font-size:16px;font-weight:500;color:#9aa0ab;">· ' + v.catalogTotal + ' datasets</span>' : '') + '</h1>' +
       '<p style="margin:0 0 18px;font-size:14px;color:#6b7280;">Every dataset the AI judged telecom-relevant — including ones without papers yet. Benchmarks with confirmed papers also appear under Datasets.</p>' +
       '<div style="display:flex;gap:10px;margin-bottom:18px;max-width:440px;">' +
         '<input id="catalog-search" data-catalogquery value="' + esc(v.catalogQuery) + '" placeholder="Filter by name…" style="flex:1;border:1.5px solid #e3e5e9;border-radius:9px;padding:9px 13px;font-size:13.5px;outline:none;" />' +
@@ -1724,6 +1735,7 @@
         if (el.hasAttribute('data-runopen')) { goRun(el.getAttribute('data-runopen')); return; }
         if (el.hasAttribute('data-runattempt')) { setState({ runSel: parseInt(el.getAttribute('data-runattempt'), 10) }); return; }
         if (el.hasAttribute('data-judgrow')) { var ji = parseInt(el.getAttribute('data-judgrow'), 10); setState({ judgOpenIdx: state.judgOpenIdx === ji ? null : ji }); return; }
+        if (el.hasAttribute('data-catalogwhy')) { e.preventDefault(); var ci = parseInt(el.getAttribute('data-catalogwhy'), 10); setState({ catalogWhyIdx: state.catalogWhyIdx === ci ? null : ci }); return; }
         if (el.hasAttribute('data-cat')) { setState({ catFilter: el.getAttribute('data-cat') }); return; }
         if (el.hasAttribute('data-sort')) { setState({ sortMode: el.getAttribute('data-sort') }); return; }
         if (el.hasAttribute('data-panel')) { setState({ panelSubId: el.getAttribute('data-panel') }); return; }
