@@ -1363,10 +1363,14 @@
   function catalogHTML(v) {
     var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
     var rows = v.catalogItems.map(function (d) {
-      return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;">' +
+      var href = d.url || (d.hf_id ? 'https://huggingface.co/datasets/' + d.hf_id : null);
+      var tagOpen = href
+        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener" class="tml-row-ai" style="text-decoration:none;color:inherit;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;cursor:pointer;">'
+        : '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;">';
+      return tagOpen +
         '<div style="min-width:0;">' +
           '<div style="font-size:13.5px;font-weight:600;">' + esc(d.name || d.slug) +
-            (d.hf_id ? ' <a href="' + esc(d.url || '#') + '" target="_blank" rel="noopener" style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;text-decoration:none;">' + esc(d.hf_id) + '</a>' : '') + '</div>' +
+            (d.hf_id ? ' <span style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;">' + esc(d.hf_id) + ' ↗</span>' : '') + '</div>' +
           '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">' +
             (d.domain ? '<span style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:2px 7px;border-radius:5px;">' + esc(d.domain) + '</span>' : '') +
             (d.task ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(d.task) + '</span>' : '') +
@@ -1375,7 +1379,7 @@
           '</div>' +
         '</div>' +
         '<span style="flex:none;font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
-      '</div>';
+      (href ? '</a>' : '</div>');
     }).join('');
     var more = v.catalogDone ? '' :
       '<div style="text-align:center;margin-top:14px;"><button data-act="catalog-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.catalogLoading ? 'Loading…' : 'Load 30 more') + '</button></div>';
