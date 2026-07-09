@@ -92,6 +92,8 @@
     judgError: null,
     judgFold: false,
     judgOpenIdx: null,
+    judgMore: [],
+    judgMoreLoading: false,
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -292,7 +294,7 @@
   function loadJudgments(silent) {
     if (!silent) setState({ judgLoading: true, judgError: null });
     Promise.all([
-      apiGet('/judgments?limit=200'),
+      apiGet('/judgments?limit=10'),
       apiGet('/workers').catch(function () { return null; })
     ]).then(function (res) {
       setState({
@@ -1082,6 +1084,7 @@
       isJudgments: s.route === 'judgments',
       judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
       judgFold: s.judgFold, judgOpenIdx: s.judgOpenIdx,
+      judgMore: s.judgMore, judgMoreLoading: s.judgMoreLoading,
       scan: (function (sc) {
         if (!sc) return null;
         return {
@@ -1275,7 +1278,14 @@
             }).join('') + '</div></div>' : '') +
           '</div>'; }).join('') + '</div>'
         : '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:#6b7280;">No dataset under judgment right now — the feed below is the full history (' + (j.total || 0) + ' judged).</div>';
-      var rows = (j.items || []).map(function (it, idx) {
+      var seenKeys = {};
+      var allItems = (j.items || []).concat(v.judgMore).filter(function (it) {
+        var k = (it.slug || '') + '|' + (it.at || '');
+        if (seenKeys[k]) return false;
+        seenKeys[k] = 1;
+        return true;
+      });
+      var rows = allItems.map(function (it, idx) {
         var kept = !!it.verdict;
         var open = v.judgOpenIdx === idx;
         var chip = kept ? 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;' : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;';
@@ -1305,7 +1315,10 @@
             '<button data-act="toggle-judgfold" style="background:none;border:1px solid #e3e5e9;border-radius:7px;padding:4px 11px;font-size:12px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.judgFold ? '▸ Unfold' : '▾ Fold') + '</button>' +
           '</div>' +
         '</div>' +
-        (v.judgFold ? '' : '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>');
+        (v.judgFold ? '' : '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>' +
+          (allItems.length < (j.total || 0)
+            ? '<div style="text-align:center;margin-top:14px;"><button data-act="judg-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.judgMoreLoading ? 'Loading…' : 'Load 10 more (' + ((j.total || 0) - allItems.length) + ' older)') + '</button></div>'
+            : ''));
     }
     var scanNote = v.scan
       ? '<div style="margin:0 0 18px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:11px 15px;font-size:12.5px;color:#5b616e;"><span class="tml-spinner-xs"></span><strong style="color:#14161a;">Metadata scan in progress</strong> — ' + esc(v.scan.label) + ' · judging starts when the scan finishes.' +
@@ -1602,6 +1615,14 @@
       case 'judgments': setState({ route: 'judgments', panelSubId: null, disputeOpen: false, submitOpen: false }); loadJudgments(); break;
       case 'retry-judgments': loadJudgments(); break;
       case 'toggle-judgfold': setState({ judgFold: !state.judgFold }); break;
+      case 'judg-more': {
+        var loaded = ((state.judgments && state.judgments.items) || []).length + state.judgMore.length;
+        setState({ judgMoreLoading: true });
+        apiGet('/judgments?limit=10&offset=' + loaded).then(function (d) {
+          setState({ judgMore: state.judgMore.concat((d && d.items) || []), judgMoreLoading: false });
+        }).catch(function () { setState({ judgMoreLoading: false }); });
+        break;
+      }
       case 'retry-run': if (state.runSlug) loadRun(state.runSlug); break;
       case 'toggle-rundiff': setState({ runDiff: !state.runDiff }); break;
     }
