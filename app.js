@@ -90,6 +90,8 @@
     judgments: null,
     judgLoading: false,
     judgError: null,
+    judgFold: false,
+    judgOpenIdx: null,
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -1079,6 +1081,7 @@
       }),
       isJudgments: s.route === 'judgments',
       judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
+      judgFold: s.judgFold, judgOpenIdx: s.judgOpenIdx,
       scan: (function (sc) {
         if (!sc) return null;
         return {
@@ -1272,24 +1275,37 @@
             }).join('') + '</div></div>' : '') +
           '</div>'
         : '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:#6b7280;">No dataset under judgment right now — the feed below is the full history (' + (j.total || 0) + ' judged).</div>';
-      var rows = (j.items || []).map(function (it) {
+      var rows = (j.items || []).map(function (it, idx) {
         var kept = !!it.verdict;
+        var open = v.judgOpenIdx === idx;
         var chip = kept ? 'background:#ecfdf3;color:#15803d;border:1px solid #bbf7d0;' : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;';
-        return '<div style="display:flex;gap:14px;align-items:flex-start;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:13px 16px;">' +
+        var evidence = !open ? '' :
+          '<div style="margin-top:9px;background:#fafbfc;border:1px solid #eef0f2;border-radius:9px;padding:10px 12px;">' +
+            '<div style="font-size:10.5px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Evidence the AI saw</div>' +
+            '<p style="margin:5px 0 0;font-size:12px;line-height:1.55;color:#3d424c;max-height:130px;overflow-y:auto;">' + esc(it.description || '(no description)') + '</p>' +
+            ((it.fields && it.fields.length) ? '<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px;">' + it.fields.slice(0, 20).map(function (f) { return '<span style="font-size:10px;' + mono + 'background:#eef4ff;border:1px solid #b9ccf7;color:#2563eb;padding:1px 6px;border-radius:4px;">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+            ((it.tags && it.tags.length) ? '<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px;">' + it.tags.slice(0, 18).map(function (t) { return '<span style="font-size:10px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#8a8f9a;padding:1px 6px;border-radius:4px;">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+          '</div>';
+        return '<div data-judgrow="' + idx + '" style="display:flex;gap:14px;align-items:flex-start;border:1px solid ' + (open ? '#b9ccf7' : '#eef0f2') + ';border-radius:12px;background:#fff;padding:13px 16px;cursor:pointer;">' +
           '<span style="flex:none;display:inline-block;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:5px;white-space:nowrap;margin-top:2px;' + chip + '">' + (kept ? 'telecom ✓' : 'rejected ✕') + '</span>' +
-          '<div style="min-width:0;">' +
+          '<div style="min-width:0;flex:1;">' +
             '<div style="font-size:13.5px;font-weight:600;">' + esc(it.name || it.slug) + (it.hfId ? ' <span style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;">' + esc(it.hfId) + '</span>' : '') + '</div>' +
             '<div style="font-size:12.5px;color:#5b616e;margin-top:3px;line-height:1.5;">' + esc(it.reason || '') + '</div>' +
             '<div style="font-size:11px;color:#c2c7d0;' + mono + 'margin-top:4px;">' + esc((it.at || '').replace('T', ' ').slice(0, 19)) + (it.keywordPrior != null && it.keywordPrior !== it.verdict ? ' · overruled keyword filter' : '') + '</div>' +
+            evidence +
           '</div>' +
+          '<span style="flex:none;color:#c2c7d0;font-size:11px;margin-top:3px;">' + (open ? '▲' : '▼') + '</span>' +
         '</div>';
       }).join('');
       body = curHTML +
         '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">' +
           '<h2 style="margin:0;font-size:17px;font-weight:600;">Judgment history</h2>' +
-          '<span style="font-size:12.5px;color:#9aa0ab;">' + (j.total || 0) + ' total · newest first</span>' +
+          '<div style="display:flex;align-items:baseline;gap:14px;">' +
+            '<span style="font-size:12.5px;color:#9aa0ab;">' + (j.total || 0) + ' total · newest first</span>' +
+            '<button data-act="toggle-judgfold" style="background:none;border:1px solid #e3e5e9;border-radius:7px;padding:4px 11px;font-size:12px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.judgFold ? '▸ Unfold' : '▾ Fold') + '</button>' +
+          '</div>' +
         '</div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>';
+        (v.judgFold ? '' : '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>');
     }
     var scanNote = v.scan
       ? '<div style="margin:0 0 18px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:11px 15px;font-size:12.5px;color:#5b616e;"><span class="tml-spinner-xs"></span><strong style="color:#14161a;">Metadata scan in progress</strong> — ' + esc(v.scan.label) + ' · judging starts when the scan finishes.' +
@@ -1585,6 +1601,7 @@
       case 'retry-runs': loadRuns(); break;
       case 'judgments': setState({ route: 'judgments', panelSubId: null, disputeOpen: false, submitOpen: false }); loadJudgments(); break;
       case 'retry-judgments': loadJudgments(); break;
+      case 'toggle-judgfold': setState({ judgFold: !state.judgFold }); break;
       case 'retry-run': if (state.runSlug) loadRun(state.runSlug); break;
       case 'toggle-rundiff': setState({ runDiff: !state.runDiff }); break;
     }
@@ -1612,6 +1629,7 @@
         if (el.hasAttribute('data-open')) { goDataset(el.getAttribute('data-open')); return; }
         if (el.hasAttribute('data-runopen')) { goRun(el.getAttribute('data-runopen')); return; }
         if (el.hasAttribute('data-runattempt')) { setState({ runSel: parseInt(el.getAttribute('data-runattempt'), 10) }); return; }
+        if (el.hasAttribute('data-judgrow')) { var ji = parseInt(el.getAttribute('data-judgrow'), 10); setState({ judgOpenIdx: state.judgOpenIdx === ji ? null : ji }); return; }
         if (el.hasAttribute('data-cat')) { setState({ catFilter: el.getAttribute('data-cat') }); return; }
         if (el.hasAttribute('data-sort')) { setState({ sortMode: el.getAttribute('data-sort') }); return; }
         if (el.hasAttribute('data-panel')) { setState({ panelSubId: el.getAttribute('data-panel') }); return; }
