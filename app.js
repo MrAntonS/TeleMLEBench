@@ -84,6 +84,7 @@
     runSlug: null,
     workers: [],
     download: null,
+    scan: null,
 
     // AI relevance judgments
     judgments: null,
@@ -263,6 +264,7 @@
         runsList: (res[0] && res[0].items) || [],
         workers: (res[1] && res[1].items) || state.workers,
         download: res[1] ? (res[1].download || null) : state.download,
+        scan: res[1] ? (res[1].scan || null) : state.scan,
         runsLoading: false, runsError: null
       });
     }).catch(function (err) {
@@ -294,6 +296,7 @@
       setState({
         judgments: res[0],
         workers: (res[1] && res[1].items) || state.workers,
+        scan: res[1] ? (res[1].scan || null) : state.scan,
         judgLoading: false, judgError: null
       });
     }).catch(function (err) {
@@ -1076,6 +1079,15 @@
       }),
       isJudgments: s.route === 'judgments',
       judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
+      scan: (function (sc) {
+        if (!sc) return null;
+        return {
+          pct: sc.pct,
+          barStyle: 'width:' + (sc.pct != null ? sc.pct : 4) + '%;',
+          label: sc.done + ' of ' + sc.total + (sc.pct != null ? ' · ' + sc.pct + '%' : ''),
+          current: sc.current || ''
+        };
+      })(s.scan),
       download: (function (d) {
         if (!d) return null;
         var mb = function (b) { return b == null ? '?' : (b / 1e6 >= 1000 ? (b / 1e9).toFixed(2) + ' GB' : Math.round(b / 1e6) + ' MB'); };
@@ -1276,10 +1288,14 @@
         '</div>' +
         '<div style="display:flex;flex-direction:column;gap:8px;">' + (rows || '<div style="font-size:13px;color:#9aa0ab;">Nothing judged yet.</div>') + '</div>';
     }
+    var scanNote = v.scan
+      ? '<div style="margin:0 0 18px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:11px 15px;font-size:12.5px;color:#5b616e;"><span class="tml-spinner-xs"></span><strong style="color:#14161a;">Metadata scan in progress</strong> — ' + esc(v.scan.label) + ' · judging starts when the scan finishes.' +
+          '<div style="margin-top:8px;height:4px;border-radius:99px;background:#ececef;overflow:hidden;"><div style="height:100%;background:#2563eb;transition:width .8s ease;' + v.scan.barStyle + '"></div></div></div>'
+      : '';
     return '<main style="max-width:900px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">AI relevance judgments</h1>' +
       '<p style="margin:0 0 22px;font-size:14px;color:#6b7280;">What the harvest AI is looking at in real time — the evidence it sees and the verdict it gives. Updates live.</p>' +
-      body + '</main>';
+      scanNote + body + '</main>';
   }
 
   function runsHTML(v) {
@@ -1308,6 +1324,18 @@
           '</span>';
         }).join('') + '</div>'
       : '';
+    var scanBar = v.scan
+      ? '<div style="margin:0 0 22px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:13px 16px;max-width:560px;">' +
+          '<div style="display:flex;justify-content:space-between;gap:12px;font-size:12.5px;font-weight:600;color:#14161a;">' +
+            '<span><span class="tml-spinner-xs"></span>Scanning metadata</span>' +
+            '<span style="font-weight:500;color:#5b616e;">' + esc(v.scan.label) + '</span>' +
+          '</div>' +
+          '<div style="margin-top:9px;height:5px;border-radius:99px;background:#ececef;overflow:hidden;">' +
+            '<div style="height:100%;border-radius:99px;background:#2563eb;transition:width .8s ease;' + v.scan.barStyle + '"></div>' +
+          '</div>' +
+          '<div style="margin-top:7px;font-size:11.5px;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="mono">' + esc(v.scan.current) + '</div>' +
+        '</div>'
+      : '';
     var downloadBar = v.download
       ? '<div style="margin:0 0 22px;border:1px solid #dbe6fd;background:#f5f8ff;border-radius:12px;padding:13px 16px;max-width:560px;">' +
           '<div style="display:flex;justify-content:space-between;gap:12px;font-size:12.5px;font-weight:600;color:#2563eb;">' +
@@ -1322,7 +1350,7 @@
     return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Live runs</h1>' +
       '<p style="margin:0 0 14px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
-      workerStrip + downloadBar +
+      workerStrip + scanBar + downloadBar +
       body + '</main>';
   }
 
