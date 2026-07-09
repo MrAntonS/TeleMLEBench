@@ -85,6 +85,7 @@
     workers: [],
     download: null,
     scan: null,
+    judgeProg: null,
 
     // AI relevance judgments
     judgments: null,
@@ -278,6 +279,7 @@
         workers: (res[1] && res[1].items) || state.workers,
         download: res[1] ? (res[1].download || null) : state.download,
         scan: res[1] ? (res[1].scan || null) : state.scan,
+        judgeProg: res[1] ? (res[1].judgeProgress || null) : state.judgeProg,
         runsLoading: false, runsError: null
       });
     }).catch(function (err) {
@@ -310,6 +312,7 @@
         judgments: res[0],
         workers: (res[1] && res[1].items) || state.workers,
         scan: res[1] ? (res[1].scan || null) : state.scan,
+        judgeProg: res[1] ? (res[1].judgeProgress || null) : state.judgeProg,
         judgLoading: false, judgError: null
       });
     }).catch(function (err) {
@@ -1119,6 +1122,13 @@
       catalogError: s.catalogError, catalogDone: s.catalogDone,
       catalogQuery: s.catalogQuery,
       catalogTotal: s.catalogTotal, catalogWhyIdx: s.catalogWhyIdx,
+      judgeProg: (function (jp) {
+        if (!jp || !jp.total) return null;
+        return {
+          label: jp.done + ' of ' + jp.total + (jp.pct != null ? ' · ' + jp.pct + '%' : '') + ' · ' + (jp.total - jp.done) + ' left' + (jp.inFlight ? ' · ' + jp.inFlight + ' in flight' : ''),
+          barStyle: 'width:' + (jp.pct != null ? jp.pct : 4) + '%;'
+        };
+      })(s.judgeProg),
       scan: (function (sc) {
         if (!sc) return null;
         return {
@@ -1354,6 +1364,10 @@
             ? '<div style="text-align:center;margin-top:14px;"><button data-act="judg-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.judgMoreLoading ? 'Loading…' : 'Load 10 more (' + ((j.total || 0) - allItems.length) + ' older)') + '</button></div>'
             : ''));
     }
+    var judgeBar = v.judgeProg
+      ? '<div style="margin:0 0 18px;border:1px solid #dbe6fd;background:#f5f8ff;border-radius:12px;padding:11px 15px;font-size:12.5px;color:#5b616e;"><span class="tml-spinner-xs"></span><strong style="color:#14161a;">Judging progress</strong> — ' + esc(v.judgeProg.label) +
+          '<div style="margin-top:8px;height:4px;border-radius:99px;background:#dbe6fd;overflow:hidden;"><div style="height:100%;background:#2563eb;transition:width .8s ease;' + v.judgeProg.barStyle + '"></div></div></div>'
+      : '';
     var scanNote = v.scan
       ? '<div style="margin:0 0 18px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:11px 15px;font-size:12.5px;color:#5b616e;"><span class="tml-spinner-xs"></span><strong style="color:#14161a;">Metadata scan in progress</strong> — ' + esc(v.scan.label) + ' · judging starts when the scan finishes.' +
           '<div style="margin-top:8px;height:4px;border-radius:99px;background:#ececef;overflow:hidden;"><div style="height:100%;background:#2563eb;transition:width .8s ease;' + v.scan.barStyle + '"></div></div></div>'
@@ -1361,7 +1375,7 @@
     return '<main style="max-width:900px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">AI relevance judgments</h1>' +
       '<p style="margin:0 0 22px;font-size:14px;color:#6b7280;">What the harvest AI is looking at in real time — the evidence it sees and the verdict it gives. Updates live.</p>' +
-      scanNote + body + '</main>';
+      judgeBar + scanNote + body + '</main>';
   }
 
   function catalogHTML(v) {
