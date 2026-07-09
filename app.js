@@ -1306,7 +1306,9 @@
     else if (v.judgError) body = stateBlock('Couldn’t load judgments', v.judgError, 'Retry', 'retry-judgments', 'error');
     else if (!j) body = '';
     else {
-      var curList = Array.isArray(j.current) ? j.current : (j.current ? [j.current] : []);
+      var curListAll = Array.isArray(j.current) ? j.current : (j.current ? [j.current] : []);
+      var curList = curListAll.slice(0, 2);   // show just the first 2 of the batch
+      var curExtra = curListAll.length - curList.length;
       var curHTML = curList.length
         ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:22px;">' + curList.map(function (cur) { return '<div class="tml-running" style="border:1px solid #dbe6fd;border-radius:14px;background:#f5f8ff;padding:16px 18px;min-width:0;">' +
             '<div style="display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#2563eb;"><span class="tml-spinner-xs"></span>Judging now' + (cur.keywordPrior != null ? '<span style="font-weight:500;text-transform:none;letter-spacing:0;color:#5b616e;">· keyword prior: ' + (cur.keywordPrior ? 'telecom' : 'not telecom') + '</span>' : '') + '</div>' +
@@ -1320,7 +1322,8 @@
             (cur.fields && cur.fields.length ? '<div style="margin-top:9px;"><span style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Schema</span><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:5px;">' + cur.fields.slice(0, 20).map(function (f) {
               return '<span style="font-size:10.5px;' + mono + 'background:#eef4ff;border:1px solid #b9ccf7;color:#2563eb;padding:2px 7px;border-radius:5px;">' + esc(f) + '</span>';
             }).join('') + '</div></div>' : '') +
-          '</div>'; }).join('') + '</div>'
+          '</div>'; }).join('') + '</div>' +
+          (curExtra > 0 ? '<div style="margin:-12px 0 22px;font-size:12px;color:#9aa0ab;"><span class="tml-spinner-xs"></span>+ ' + curExtra + ' more being judged in parallel</div>' : '')
         : '<div style="border:1px solid #e9eaee;border-radius:14px;background:#fff;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:#6b7280;">No dataset under judgment right now — the feed below is the full history (' + (j.total || 0) + ' judged).</div>';
       var seenKeys = {};
       var allItems = (j.items || []).concat(v.judgMore).filter(function (it) {
