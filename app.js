@@ -94,6 +94,13 @@
     judgOpenIdx: null,
     judgMore: [],
     judgMoreLoading: false,
+
+    // full approved catalog (all is_telecom datasets, papers or not)
+    catalogItems: [],
+    catalogLoading: false,
+    catalogError: null,
+    catalogDone: false,
+    catalogQuery: '',
     runsList: [],
     runsLoading: false,
     runsError: null,
@@ -305,6 +312,23 @@
       });
     }).catch(function (err) {
       setState({ judgLoading: false, judgError: silent ? state.judgError : friendlyErr(err) });
+    });
+  }
+
+  function loadCatalog(reset) {
+    if (reset) setState({ catalogItems: [], catalogDone: false });
+    var offset = reset ? 0 : state.catalogItems.length;
+    setState({ catalogLoading: true, catalogError: null });
+    var q = state.catalogQuery ? '&q=' + encodeURIComponent(state.catalogQuery) : '';
+    apiGet('/datasets?limit=30&offset=' + offset + q).then(function (d) {
+      var items = (d && d.items) || [];
+      setState({
+        catalogItems: (reset ? [] : state.catalogItems).concat(items),
+        catalogDone: items.length < 30,
+        catalogLoading: false
+      });
+    }).catch(function (err) {
+      setState({ catalogLoading: false, catalogError: friendlyErr(err) });
     });
   }
 
@@ -575,6 +599,7 @@
     var dsStyle = navBase + (v.routeDs ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var runsStyle = navBase + (v.routeRuns ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var judgStyle = navBase + (v.isJudgments ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
+    var catStyle = navBase + (v.isCatalog ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     return '' +
     '<header style="position:sticky;top:0;z-index:30;background:rgba(255,255,255,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #ececef;">' +
       '<div style="max-width:1120px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;">' +
@@ -591,6 +616,7 @@
           '<button data-act="datasets" style="' + dsStyle + '">Datasets</button>' +
           '<button data-act="runs" style="' + runsStyle + '">Live runs</button>' +
           '<button data-act="judgments" style="' + judgStyle + '">Judgments</button>' +
+          '<button data-act="catalog" style="' + catStyle + '">Catalog</button>' +
           '<a href="#" data-stop style="font-size:14px;font-weight:500;color:#5b616e;padding:7px 13px;border-radius:7px;text-decoration:none;">About</a>' +
         '</nav>' +
       '</div>' +
@@ -1085,6 +1111,10 @@
       judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
       judgFold: s.judgFold, judgOpenIdx: s.judgOpenIdx,
       judgMore: s.judgMore, judgMoreLoading: s.judgMoreLoading,
+      isCatalog: s.route === 'catalog',
+      catalogItems: s.catalogItems, catalogLoading: s.catalogLoading,
+      catalogError: s.catalogError, catalogDone: s.catalogDone,
+      catalogQuery: s.catalogQuery,
       scan: (function (sc) {
         if (!sc) return null;
         return {
@@ -1330,6 +1360,36 @@
       scanNote + body + '</main>';
   }
 
+  function catalogHTML(v) {
+    var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
+    var rows = v.catalogItems.map(function (d) {
+      return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid #eef0f2;border-radius:12px;background:#fff;padding:12px 16px;">' +
+        '<div style="min-width:0;">' +
+          '<div style="font-size:13.5px;font-weight:600;">' + esc(d.name || d.slug) +
+            (d.hf_id ? ' <a href="' + esc(d.url || '#') + '" target="_blank" rel="noopener" style="font-weight:400;color:#9aa0ab;' + mono + 'font-size:11px;text-decoration:none;">' + esc(d.hf_id) + '</a>' : '') + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">' +
+            (d.domain ? '<span style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:2px 7px;border-radius:5px;">' + esc(d.domain) + '</span>' : '') +
+            (d.task ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(d.task) + '</span>' : '') +
+            (d.kind ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">' + esc(d.kind) + '</span>' : '') +
+            (d.expected_metric ? '<span style="font-size:10.5px;' + mono + 'background:#fff;border:1px solid #e3e5e9;color:#5b616e;padding:2px 7px;border-radius:5px;">metric: ' + esc(d.expected_metric) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<span style="flex:none;font-size:11px;color:#9aa0ab;' + mono + '">' + esc(d.download_status || 'not downloaded') + '</span>' +
+      '</div>';
+    }).join('');
+    var more = v.catalogDone ? '' :
+      '<div style="text-align:center;margin-top:14px;"><button data-act="catalog-more" style="background:#fff;border:1px solid #e3e5e9;border-radius:9px;padding:9px 22px;font-size:13px;font-weight:600;color:#5b616e;cursor:pointer;">' + (v.catalogLoading ? 'Loading…' : 'Load 30 more') + '</button></div>';
+    return '<main style="max-width:900px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
+      '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Approved catalog</h1>' +
+      '<p style="margin:0 0 18px;font-size:14px;color:#6b7280;">Every dataset the AI judged telecom-relevant — including ones without papers yet. Benchmarks with confirmed papers also appear under Datasets.</p>' +
+      '<div style="display:flex;gap:10px;margin-bottom:18px;max-width:440px;">' +
+        '<input id="catalog-search" data-catalogquery value="' + esc(v.catalogQuery) + '" placeholder="Filter by name…" style="flex:1;border:1.5px solid #e3e5e9;border-radius:9px;padding:9px 13px;font-size:13.5px;outline:none;" />' +
+      '</div>' +
+      (v.catalogError ? stateBlock('Couldn’t load the catalog', v.catalogError, 'Retry', 'catalog-retry', 'error')
+        : '<div style="display:flex;flex-direction:column;gap:7px;">' + (rows || (v.catalogLoading ? loadingBlock('Loading catalog…') : '<div style="font-size:13px;color:#9aa0ab;">No approved datasets match.</div>')) + '</div>' + more) +
+      '</main>';
+  }
+
   function runsHTML(v) {
     var body;
     if (v.runsLoading) body = loadingBlock('Loading runs…');
@@ -1529,7 +1589,8 @@
       : (v.isDataset ? detailHTML(v)
       : (v.isRuns ? runsHTML(v)
       : (v.isRun ? runHTML(v)
-      : (v.isJudgments ? judgmentsHTML(v) : datasetsHTML(v)))));
+      : (v.isJudgments ? judgmentsHTML(v)
+      : (v.isCatalog ? catalogHTML(v) : datasetsHTML(v))))));
     var overlays = '';
     if (v.submitOpen && v.detail) overlays += submitModalHTML(v);
     if (v.panelOpen) overlays += panelHTML(v);
@@ -1544,6 +1605,7 @@
     if (s.route === 'run' && s.runSlug) return '#/run/' + s.runSlug;
     if (s.route === 'runs') return '#/runs';
     if (s.route === 'judgments') return '#/judgments';
+    if (s.route === 'catalog') return '#/catalog';
     return '#/';
   }
   function applyHash() {
@@ -1559,6 +1621,8 @@
       state.route = 'runs';
     } else if (parts[0] === 'judgments') {
       state.route = 'judgments';
+    } else if (parts[0] === 'catalog') {
+      state.route = 'catalog';
     } else {
       state.route = 'home';
     }
@@ -1571,6 +1635,7 @@
     if (state.route === 'runs') loadRuns();
     if (state.route === 'run' && state.runSlug) loadRun(state.runSlug);
     if (state.route === 'judgments') loadJudgments();
+    if (state.route === 'catalog' && !state.catalogItems.length) loadCatalog(true);
   }
 
   // ------------------------------------------------------------- render
@@ -1615,6 +1680,9 @@
       case 'judgments': setState({ route: 'judgments', panelSubId: null, disputeOpen: false, submitOpen: false }); loadJudgments(); break;
       case 'retry-judgments': loadJudgments(); break;
       case 'toggle-judgfold': setState({ judgFold: !state.judgFold }); break;
+      case 'catalog': setState({ route: 'catalog', panelSubId: null, disputeOpen: false, submitOpen: false }); if (!state.catalogItems.length) loadCatalog(true); break;
+      case 'catalog-more': loadCatalog(false); break;
+      case 'catalog-retry': loadCatalog(true); break;
       case 'judg-more': {
         var loaded = ((state.judgments && state.judgments.items) || []).length + state.judgMore.length;
         setState({ judgMoreLoading: true });
@@ -1659,11 +1727,19 @@
     }
   });
 
+  var catalogSearchTimer = null;
   root.addEventListener('input', function (e) {
     var t = e.target;
     if (t && t.hasAttribute && t.hasAttribute('data-query')) {
       pendingFocus = { id: t.id, caret: t.selectionStart };
       setState({ query: t.value });
+    }
+    if (t && t.hasAttribute && t.hasAttribute('data-catalogquery')) {
+      pendingFocus = { id: t.id, caret: t.selectionStart };
+      state.catalogQuery = t.value;
+      clearTimeout(catalogSearchTimer);
+      catalogSearchTimer = setTimeout(function () { loadCatalog(true); }, 350);
+      render();
     }
   });
 
