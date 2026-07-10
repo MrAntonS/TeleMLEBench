@@ -658,7 +658,7 @@
         '</div>' +
         '<div style="text-align:right;">' +
           '<div style="font-size:12.5px;color:#6b7280;font-weight:500;">' + esc(card.metric) + '</div>' +
-          '<div style="font-size:12px;color:#9aa0ab;margin-top:2px;">' + esc(card.subCount) + ' submissions</div>' +
+          '<div style="font-size:12px;color:#9aa0ab;margin-top:2px;">' + esc(card.paperCount) + ' paper' + (card.paperCount === 1 ? '' : 's') + ' · ' + esc(card.subCount) + ' submissions</div>' +
         '</div>' +
       '</div>' +
     '</div>';
