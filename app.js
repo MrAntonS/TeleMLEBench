@@ -151,6 +151,10 @@
       subCount: (b.submissionCount != null ? b.submissionCount : 0),
       paperCount: (b.paperCount != null ? b.paperCount : 0),
       reproRunning: !!b.reproRunning,
+      author: (function (u) {
+        var m = /huggingface\.co\/datasets\/([^\/]+)\//.exec((u || '') + '/');
+        return m ? m[1] : '(unknown)';
+      })(b.accessLink),
       topScore: (b.topScore != null ? fmtScore(toDisplay(b.topScore, meta.suffix), meta) : '—')
     };
   }
@@ -594,14 +598,40 @@
     '</div>';
   }
 
-  // cards grid, or the appropriate loading / error / empty state.
+  // benchmark cards grouped by author (same layout as the Catalog page):
+  // biggest datasets (by confirmed papers) first inside each card.
   function cardsSection(v, list) {
     if (v.cardsError) return stateBlock('Couldn’t reach the API', v.cardsError, 'Retry', 'retry-cards', 'error');
     if (v.cardsLoading && !(list && list.length)) return loadingBlock('Loading benchmarks…');
     if (!(list && list.length)) {
       return stateBlock('No benchmarks found', v.query ? 'Try a different search or filter.' : 'The API returned no benchmarks yet.', null, null, 'neutral');
     }
-    return '<div class="tml-cardgrid">' + list.map(cardHTML).join('') + '</div>';
+    var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
+    var groups = {};
+    list.forEach(function (c) { (groups[c.author] = groups[c.author] || []).push(c); });
+    var arr = Object.keys(groups).map(function (a) {
+      var ds = groups[a].slice().sort(function (x, y) { return (y.paperCount || 0) - (x.paperCount || 0); });
+      return { author: a, datasets: ds, papers: ds.reduce(function (t, d) { return t + (d.paperCount || 0); }, 0) };
+    }).sort(function (x, y) { return y.papers - x.papers || y.datasets.length - x.datasets.length; });
+    return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;">' +
+      arr.map(function (g) {
+        var rows = g.datasets.map(function (d) {
+          return '<div data-open="' + esc(d.id) + '" class="tml-row-ai" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid #f1f2f4;cursor:pointer;">' +
+            '<div style="min-width:0;">' +
+              '<div style="font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(d.name) + '</div>' +
+              '<div style="font-size:11px;color:#9aa0ab;margin-top:1px;">' + esc(d.category || '') + (d.metric ? ' · ' + esc(d.metric) : '') + (d.topScore != null && d.topScore !== '—' ? ' · top ' + esc(d.topScore) : '') + '</div>' +
+            '</div>' +
+            '<span style="flex:none;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap;' + ((d.paperCount || 0) > 0 ? 'background:#f5f8ff;color:#2563eb;border:1px solid #e2ebfd;' : 'background:#f1f2f4;color:#8a8f9a;border:1px solid #e3e5e9;') + '">' + (d.paperCount || 0) + ' paper' + (d.paperCount === 1 ? '' : 's') + '</span>' +
+          '</div>';
+        }).join('');
+        return '<div class="tml-card" style="cursor:default;display:flex;flex-direction:column;min-width:0;padding:18px 18px 10px;">' +
+          '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;">' +
+            '<a href="https://huggingface.co/' + esc(g.author) + '" target="_blank" rel="noopener" data-stop style="font-size:15px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(g.author) + ' ↗</a>' +
+            '<span style="flex:none;font-size:11px;font-weight:600;color:#2563eb;background:#f5f8ff;border:1px solid #e2ebfd;padding:2px 8px;border-radius:99px;">' + g.papers + ' paper' + (g.papers === 1 ? '' : 's') + ' · ' + g.datasets.length + ' dataset' + (g.datasets.length === 1 ? '' : 's') + '</span>' +
+          '</div>' +
+          '<div style="overflow-y:auto;max-height:250px;min-height:0;">' + rows + '</div>' +
+        '</div>';
+      }).join('') + '</div>';
   }
 
   // -------------------------------------------------------------- views
