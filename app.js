@@ -86,6 +86,7 @@
     download: null,
     scan: null,
     judgeProg: null,
+    apis: null,
 
     // AI relevance judgments
     judgments: null,
@@ -282,6 +283,7 @@
         download: res[1] ? (res[1].download || null) : state.download,
         scan: res[1] ? (res[1].scan || null) : state.scan,
         judgeProg: res[1] ? (res[1].judgeProgress || null) : state.judgeProg,
+        apis: res[1] ? (res[1].apis || null) : state.apis,
         runsLoading: false, runsError: null
       });
     }).catch(function (err) {
@@ -315,6 +317,7 @@
         workers: (res[1] && res[1].items) || state.workers,
         scan: res[1] ? (res[1].scan || null) : state.scan,
         judgeProg: res[1] ? (res[1].judgeProgress || null) : state.judgeProg,
+        apis: res[1] ? (res[1].apis || null) : state.apis,
         judgLoading: false, judgError: null
       });
     }).catch(function (err) {
@@ -1126,6 +1129,22 @@
       catalogQuery: s.catalogQuery,
       catalogTotal: s.catalogTotal, catalogTotalDatasets: s.catalogTotalDatasets,
       catalogPop: s.catalogPop,
+      apiChips: (function (a) {
+        if (!a) return [];
+        var names = { openalex: 'OpenAlex', semantic_scholar: 'Semantic Scholar', crossref: 'Crossref', core: 'CORE' };
+        return Object.keys(names).map(function (k) {
+          var st = a[k];
+          var last = st ? st.last : null;
+          var color = !st ? '#9aa0ab' : (last === 'ok' ? '#15803d' : (last === 'throttled' ? '#b45309' : '#dc2626'));
+          var bg = !st ? '#f1f2f4' : (last === 'ok' ? '#ecfdf3' : (last === 'throttled' ? '#fffbeb' : '#fef2f2'));
+          var bd = !st ? '#e3e5e9' : (last === 'ok' ? '#bbf7d0' : (last === 'throttled' ? '#fde68a' : '#fecaca'));
+          return {
+            name: names[k],
+            label: !st ? 'unused' : (last + ' · ' + (st.ok || 0) + '✓' + ((st.throttled || 0) ? ' ' + st.throttled + '⏳' : '') + ((st.error || 0) ? ' ' + st.error + '✕' : '')),
+            style: 'background:' + bg + ';color:' + color + ';border:1px solid ' + bd + ';'
+          };
+        });
+      })(s.apis),
       judgeProg: (function (jp) {
         if (!jp || !jp.total) return null;
         return {
@@ -1457,6 +1476,12 @@
           '</span>';
         }).join('') + '</div>'
       : '';
+    var apiStrip = v.apiChips && v.apiChips.length
+      ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px;align-items:center;"><span style="font-size:11px;color:#9aa0ab;text-transform:uppercase;letter-spacing:0.05em;">Literature APIs</span>' +
+        v.apiChips.map(function (a) {
+          return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:99px;' + a.style + '">' + esc(a.name) + '<span style="font-weight:500;opacity:.85;">' + esc(a.label) + '</span></span>';
+        }).join('') + '</div>'
+      : '';
     var scanBar = v.scan
       ? '<div style="margin:0 0 22px;border:1px solid #e9eaee;background:#fafbfc;border-radius:12px;padding:13px 16px;max-width:560px;">' +
           '<div style="display:flex;justify-content:space-between;gap:12px;font-size:12.5px;font-weight:600;color:#14161a;">' +
@@ -1483,7 +1508,7 @@
     return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
       '<h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Live runs</h1>' +
       '<p style="margin:0 0 14px;font-size:14px;color:#6b7280;">Reproductions currently executing, and recently finished ones. Pages update live.</p>' +
-      workerStrip + scanBar + downloadBar +
+      workerStrip + apiStrip + scanBar + downloadBar +
       body + '</main>';
   }
 
