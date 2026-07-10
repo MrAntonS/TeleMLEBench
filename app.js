@@ -1165,12 +1165,16 @@
         return Object.keys(names).map(function (k) {
           var st = a[k];
           var last = st ? st.last : null;
+          var cd = st && st.cooldown_until ? new Date(st.cooldown_until) : null;
+          var onCooldown = cd && cd.getTime() > Date.now();
           var color = !st ? '#9aa0ab' : (last === 'ok' ? '#15803d' : (last === 'throttled' ? '#b45309' : '#dc2626'));
           var bg = !st ? '#f1f2f4' : (last === 'ok' ? '#ecfdf3' : (last === 'throttled' ? '#fffbeb' : '#fef2f2'));
           var bd = !st ? '#e3e5e9' : (last === 'ok' ? '#bbf7d0' : (last === 'throttled' ? '#fde68a' : '#fecaca'));
           return {
             name: names[k],
-            label: !st ? 'unused' : (last + ' · ' + (st.ok || 0) + '✓' + ((st.throttled || 0) ? ' ' + st.throttled + '⏳' : '') + ((st.error || 0) ? ' ' + st.error + '✕' : '')),
+            label: !st ? 'unused'
+              : onCooldown ? ((k === 'openalex' ? 'daily budget spent · resumes ' : 'rate window · resumes ') + cd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+              : (last + ' · ' + (st.ok || 0) + '✓' + ((st.throttled || 0) ? ' ' + st.throttled + '⏳' : '') + ((st.error || 0) ? ' ' + st.error + '✕' : '')),
             style: 'background:' + bg + ';color:' + color + ';border:1px solid ' + bd + ';'
           };
         });
