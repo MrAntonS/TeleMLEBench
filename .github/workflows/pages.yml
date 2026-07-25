@@ -28,6 +28,7 @@ jobs:
 
       - name: Stage site files
         run: |
+          python build_standalone.py
           mkdir -p dist
           cp index.html app.js data.js TeleMLEBench.standalone.html dist/
           touch dist/.nojekyll

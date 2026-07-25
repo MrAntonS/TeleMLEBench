@@ -45,9 +45,10 @@ The base URL must end in `/api/v1`. Note that an `https://` page cannot call
 allow the site's origin (it defaults to `https://mrantons.github.io` plus localhost dev
 ports).
 
-Endpoints used: `GET /benchmarks` (cards), `GET /benchmarks/{slug}` (detail + leaderboard),
-and `GET /stats` (hero counters). If the API can't be reached, the app shows an error
-state with a **Retry** button rather than any placeholder data.
+Endpoints used include `GET /benchmarks` (cards), `GET /benchmarks/{slug}` (detail +
+leaderboard), `GET /stats` (hero counters), `GET /catalog/sources` (adapter health),
+and `GET /workers` (harvester heartbeat and scan progress). If the API can't be reached,
+the app shows an error state with a **Retry** button rather than placeholder data.
 
 ## What's here
 
@@ -56,13 +57,18 @@ state with a **Retry** button rather than any placeholder data.
 | `index.html` | App shell + full stylesheet; sets `window.TMLB_API_BASE`, then loads `app.js`. |
 | `app.js` | API client + adapters, scoring/ranking/delta logic, a small state store with async loading/error states, a string-template renderer, and click/keyboard event delegation. |
 | `TeleMLEBench.standalone.html` | Single-file build (`app.js` inlined). |
+| `build_standalone.py` | Regenerates the single-file build from `index.html` and `app.js`. |
 | `data.js` | Legacy demo dataset (`window.TMLB_DATA`) from the original design comp — no longer loaded by the app; kept as a reference for the data shape. |
 | `src/TeleMLEBench.source.html` | The original design comp, decoded for reference. |
 
 ## Features
 
-- **Three views** — Home (hero, stats, featured cards), Datasets (search + category filter),
-  and Dataset detail (metadata, `df.head(5)` preview, download splits, leaderboard).
+- **Source operations view** — live status for DataCite, Zenodo, Figshare, Dataverse,
+  GitHub, OpenML, curated portals, and credential-gated adapters, with worker and scan
+  state shown separately from API availability.
+- **Benchmark views** — Home (hero, stats, featured cards), Datasets (search + category
+  filter), and Dataset detail (metadata, `df.head(5)` preview, download splits,
+  leaderboard).
 - **Leaderboard logic** faithfully ported from the design:
   - ranks by **reproduced** or **claimed** score (toggle), respecting each metric's direction
     (higher- vs. lower-is-better);

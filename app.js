@@ -6,6 +6,8 @@
 //   GET /benchmarks            -> leaderboard cards (home + datasets grid)
 //   GET /benchmarks/{slug}     -> full benchmark detail (leaderboard + features)
 //   GET /stats                 -> hero counters
+//   GET /catalog/sources       -> source adapter health + synchronization state
+//   GET /workers               -> harvester heartbeat + active scan progress
 // The API base URL comes from (in priority order):
 //   ?api=<url> query param  ->  window.TMLB_API_BASE  ->  <meta name="tmlb-api-base">
 //   ->  http://localhost:8080/api/v1 (default, matches `uvicorn api:app --port 8080`).
@@ -87,6 +89,12 @@
     scan: null,
     judgeProg: null,
     apis: null,
+
+    // source-first metadata adapters
+    sources: [],
+    sourcesLoading: false,
+    sourcesError: null,
+    sourcesUpdatedAt: null,
 
     // AI relevance judgments
     judgments: null,
@@ -348,12 +356,37 @@
     });
   }
 
+  function loadSources(silent) {
+    if (!silent) setState({ sourcesLoading: true, sourcesError: null });
+    Promise.all([
+      apiGet('/catalog/sources'),
+      apiGet('/workers').catch(function () { return null; })
+    ]).then(function (res) {
+      var health = res[0] || {};
+      var workerData = res[1];
+      setState({
+        sources: Array.isArray(health.items) ? health.items : [],
+        workers: workerData ? (workerData.items || []) : state.workers,
+        scan: workerData ? (workerData.scan || null) : state.scan,
+        sourcesLoading: false,
+        sourcesError: null,
+        sourcesUpdatedAt: new Date().toISOString()
+      });
+    }).catch(function (err) {
+      setState({
+        sourcesLoading: false,
+        sourcesError: silent ? state.sourcesError : friendlyErr(err)
+      });
+    });
+  }
+
   // Poll while a live-runs page is visible: silent refreshes keep the epoch bar,
   // console line and attempt list moving without flickering the whole page.
   setInterval(function () {
     if (state.route === 'run' && state.runSlug) loadRun(state.runSlug, true);
     else if (state.route === 'runs') loadRuns(true);
     else if (state.route === 'judgments') loadJudgments(true);
+    else if (state.route === 'sources') loadSources(true);
   }, 4000);
 
   // ------------------------------------------------------- text escaping
@@ -641,6 +674,7 @@
     var dsStyle = navBase + (v.routeDs ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var runsStyle = navBase + (v.routeRuns ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var judgStyle = navBase + (v.isJudgments ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
+    var sourcesStyle = navBase + (v.isSources ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     var catStyle = navBase + (v.isCatalog ? 'color:#14161a;background:#f1f2f4;' : 'color:#5b616e;');
     return '' +
     '<header style="position:sticky;top:0;z-index:30;background:rgba(255,255,255,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #ececef;">' +
@@ -653,11 +687,12 @@
           '</div>' +
           '<span style="font-size:16px;font-weight:600;letter-spacing:-0.02em;">TeleMLEBench</span>' +
         '</div>' +
-        '<nav style="display:flex;gap:4px;align-items:center;">' +
+        '<nav style="display:flex;gap:4px;align-items:center;overflow-x:auto;">' +
           '<button data-act="home" style="' + homeStyle + '">Home</button>' +
           '<button data-act="datasets" style="' + dsStyle + '">Datasets</button>' +
           '<button data-act="runs" style="' + runsStyle + '">Live runs</button>' +
           '<button data-act="judgments" style="' + judgStyle + '">Judgments</button>' +
+          '<button data-act="sources" style="' + sourcesStyle + '">Sources</button>' +
           '<button data-act="catalog" style="' + catStyle + '">Catalog</button>' +
           '<a href="#" data-stop style="font-size:14px;font-weight:500;color:#5b616e;padding:7px 13px;border-radius:7px;text-decoration:none;">About</a>' +
         '</nav>' +
@@ -1153,6 +1188,49 @@
       judgmentsData: s.judgments, judgLoading: s.judgLoading, judgError: s.judgError,
       judgFold: s.judgFold, judgOpenIdx: s.judgOpenIdx,
       judgMore: s.judgMore, judgMoreLoading: s.judgMoreLoading,
+      isSources: s.route === 'sources',
+      sourcesLoading: s.sourcesLoading,
+      sourcesError: s.sourcesError,
+      sourcesUpdatedAt: s.sourcesUpdatedAt,
+      sourceItems: (s.sources || []).map(function (source) {
+        var status = source.status || (source.enabled ? 'ready' : 'disabled');
+        var tones = {
+          ready: ['#15803d', '#ecfdf3', '#bbf7d0'],
+          syncing: ['#2563eb', '#f5f8ff', '#b9ccf7'],
+          degraded: ['#b45309', '#fffbeb', '#fde68a'],
+          error: ['#dc2626', '#fef2f2', '#fecaca'],
+          disabled: ['#6b7280', '#f1f2f4', '#e3e5e9']
+        };
+        var tone = tones[status] || tones.disabled;
+        return {
+          provider: String(source.provider || 'unknown').replace(/_/g, ' '),
+          status: status,
+          detail: source.detail || '',
+          authenticated: !!source.authenticated,
+          enabled: source.enabled !== false,
+          seen: source.records_seen || 0,
+          kept: source.records_kept || 0,
+          lastSync: source.last_sync || null,
+          lastStarted: source.last_started || null,
+          activeQueries: source.active_queries || [],
+          errors: source.errors || [],
+          color: tone[0],
+          chipStyle: 'color:' + tone[0] + ';background:' + tone[1] + ';border:1px solid ' + tone[2] + ';'
+        };
+      }),
+      sourceSummary: (function (items) {
+        var out = { total: items.length, ready: 0, syncing: 0, attention: 0, seen: 0, kept: 0 };
+        items.forEach(function (source) {
+          var status = source.status || (source.enabled ? 'ready' : 'disabled');
+          if (status === 'ready') out.ready++;
+          else if (status === 'syncing') out.syncing++;
+          else out.attention++;
+          out.seen += source.records_seen || 0;
+          out.kept += source.records_kept || 0;
+        });
+        return out;
+      })(s.sources || []),
+      harvestWorker: (s.workers || []).find(function (w) { return w.name === 'harvest'; }) || null,
       isCatalog: s.route === 'catalog',
       catalogItems: s.catalogItems, catalogLoading: s.catalogLoading,
       catalogError: s.catalogError, catalogDone: s.catalogDone,
@@ -1438,6 +1516,99 @@
       judgeBar + scanNote + body + '</main>';
   }
 
+  function sourcesHTML(v) {
+    function age(value) {
+      if (!value) return 'never synchronized';
+      var t = new Date(value).getTime();
+      if (!isFinite(t)) return 'unknown';
+      var minutes = Math.max(0, Math.floor((Date.now() - t) / 60000));
+      if (minutes < 1) return 'just now';
+      if (minutes < 60) return minutes + 'm ago';
+      if (minutes < 1440) return Math.floor(minutes / 60) + 'h ago';
+      return Math.floor(minutes / 1440) + 'd ago';
+    }
+
+    var worker = v.harvestWorker;
+    var workerLive = !!(worker && worker.live);
+    var workerBusy = !!(workerLive && worker.busy);
+    var workerColor = workerBusy ? '#15803d' : (workerLive ? '#2563eb' : '#dc2626');
+    var workerBg = workerBusy ? '#ecfdf3' : (workerLive ? '#f5f8ff' : '#fef2f2');
+    var workerBorder = workerBusy ? '#bbf7d0' : (workerLive ? '#b9ccf7' : '#fecaca');
+    var workerTitle = workerBusy ? (worker.task || 'Metadata harvest running')
+      : (workerLive ? 'Harvester online and idle' : 'Harvester is not running');
+    var workerCopy = workerBusy
+      ? 'Provider records are being normalized and written to the source-first catalog.'
+      : (workerLive
+        ? 'The worker is connected and waiting for the next sweep.'
+        : 'The API is online, but no source worker is pulling metadata right now.');
+
+    var scan = v.scan
+      ? '<div style="margin-top:14px;padding-top:13px;border-top:1px solid ' + workerBorder + ';">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;font-weight:600;color:#3d424c;">' +
+            '<span>Current metadata scan</span><span>' + esc(v.scan.label) + '</span>' +
+          '</div>' +
+          '<div style="height:5px;border-radius:99px;background:#fff;margin-top:8px;overflow:hidden;">' +
+            '<div style="height:100%;background:' + workerColor + ';border-radius:99px;' + v.scan.barStyle + '"></div>' +
+          '</div>' +
+          '<div class="mono" style="font-size:10.5px;color:#6b7280;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(v.scan.current) + '</div>' +
+        '</div>'
+      : '';
+
+    var summary = v.sourceSummary || { total: 0, ready: 0, syncing: 0, attention: 0, seen: 0, kept: 0 };
+    var summaryStrip = '<div class="tml-grid1 tml-metastrip" style="margin:20px 0 24px;">' +
+      '<div style="background:#fff;padding:17px 18px;"><div class="mono" style="font-size:24px;font-weight:600;">' + esc(summary.total) + '</div><div style="font-size:11.5px;color:#8a8f9a;margin-top:3px;">Adapters</div></div>' +
+      '<div style="background:#fff;padding:17px 18px;"><div class="mono" style="font-size:24px;font-weight:600;color:#15803d;">' + esc(summary.ready) + '</div><div style="font-size:11.5px;color:#8a8f9a;margin-top:3px;">Ready</div></div>' +
+      '<div style="background:#fff;padding:17px 18px;"><div class="mono" style="font-size:24px;font-weight:600;color:#2563eb;">' + esc(summary.syncing) + '</div><div style="font-size:11.5px;color:#8a8f9a;margin-top:3px;">Syncing</div></div>' +
+      '<div style="background:#fff;padding:17px 18px;"><div class="mono" style="font-size:24px;font-weight:600;">' + esc(summary.kept) + '</div><div style="font-size:11.5px;color:#8a8f9a;margin-top:3px;">Records kept</div></div>' +
+    '</div>';
+
+    var cards = v.sourceItems.map(function (source) {
+      var errorText = source.errors.length
+        ? source.errors[source.errors.length - 1]
+        : source.detail;
+      var activity = source.activeQueries.length
+        ? 'Query: ' + source.activeQueries[0]
+        : (source.status === 'syncing' ? 'Synchronization in progress' : age(source.lastSync));
+      return '<article style="position:relative;border:1px solid #e3e5e9;border-radius:13px;background:#fff;padding:17px 18px 16px;overflow:hidden;">' +
+        '<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:' + source.color + ';"></div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+          '<strong style="font-size:15px;text-transform:capitalize;">' + esc(source.provider) + '</strong>' +
+          '<span style="font-size:10px;font-weight:700;letter-spacing:0.045em;text-transform:uppercase;border-radius:99px;padding:4px 8px;' + source.chipStyle + '">' + esc(source.status) + '</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#ececef;border:1px solid #ececef;border-radius:9px;overflow:hidden;margin-top:15px;">' +
+          '<div style="background:#fafbfc;padding:11px 12px;"><div class="mono" style="font-size:18px;font-weight:600;">' + esc(source.seen) + '</div><div style="font-size:10.5px;color:#9aa0ab;margin-top:2px;">seen</div></div>' +
+          '<div style="background:#fafbfc;padding:11px 12px;"><div class="mono" style="font-size:18px;font-weight:600;">' + esc(source.kept) + '</div><div style="font-size:10.5px;color:#9aa0ab;margin-top:2px;">kept</div></div>' +
+        '</div>' +
+        '<div style="font-size:11.5px;color:#6b7280;margin-top:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(activity) + '">' + esc(activity) + '</div>' +
+        (errorText ? '<div style="font-size:10.5px;color:' + (source.status === 'disabled' ? '#6b7280' : '#b45309') + ';margin-top:5px;line-height:1.35;">' + esc(errorText) + '</div>' : '') +
+      '</article>';
+    }).join('');
+
+    var body = v.sourcesError
+      ? stateBlock('Couldn’t load source health', v.sourcesError, 'Retry', 'retry-sources', 'error')
+      : (v.sourcesLoading && !v.sourceItems.length
+        ? loadingBlock('Reading adapter health…')
+        : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px;">' + cards + '</div>');
+
+    return '<main style="max-width:1120px;width:100%;margin:0 auto;padding:34px 28px 120px;flex:1;">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;">' +
+        '<div><h1 style="margin:0 0 6px;font-size:27px;font-weight:600;letter-spacing:-0.025em;">Dataset sources</h1>' +
+        '<p style="margin:0;font-size:14px;line-height:1.55;color:#6b7280;max-width:660px;">Live metadata adapter status for DataCite, repositories, ML catalogs, and curated telecom portals. Payload downloads remain off.</p></div>' +
+        '<div class="mono" style="font-size:10.5px;color:#8a8f9a;border:1px solid #e3e5e9;border-radius:8px;padding:8px 10px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(getApiBase()) + '">' + esc(getApiBase()) + '</div>' +
+      '</div>' +
+      '<section style="margin-top:22px;border:1px solid ' + workerBorder + ';background:' + workerBg + ';border-radius:13px;padding:17px 18px;">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+          '<span style="flex:none;width:10px;height:10px;border-radius:50%;background:' + workerColor + ';margin-top:5px;' + (workerBusy ? 'animation:tmlPulse 1.6s ease-out infinite;' : '') + '"></span>' +
+          '<div><strong style="font-size:14px;color:#14161a;">' + esc(workerTitle) + '</strong><p style="margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#5b616e;">' + esc(workerCopy) + '</p></div>' +
+        '</div>' + scan +
+      '</section>' +
+      summaryStrip + body +
+      '<div style="margin-top:18px;font-size:11.5px;color:#9aa0ab;">' +
+        (v.sourcesUpdatedAt ? 'Checked ' + esc(age(v.sourcesUpdatedAt)) + '. ' : '') +
+        'Counts reflect completed source synchronization state, not dataset payload downloads.</div>' +
+    '</main>';
+  }
+
   function catalogHTML(v) {
     var mono = "font-family:'JetBrains Mono',ui-monospace,monospace;";
     var cards = v.catalogItems.map(function (g, gi) {
@@ -1690,7 +1861,8 @@
       : (v.isRuns ? runsHTML(v)
       : (v.isRun ? runHTML(v)
       : (v.isJudgments ? judgmentsHTML(v)
-      : (v.isCatalog ? catalogHTML(v) : datasetsHTML(v))))));
+      : (v.isSources ? sourcesHTML(v)
+      : (v.isCatalog ? catalogHTML(v) : datasetsHTML(v)))))));
     var overlays = '';
     if (v.submitOpen && v.detail) overlays += submitModalHTML(v);
     if (v.panelOpen) overlays += panelHTML(v);
@@ -1705,6 +1877,7 @@
     if (s.route === 'run' && s.runSlug) return '#/run/' + s.runSlug;
     if (s.route === 'runs') return '#/runs';
     if (s.route === 'judgments') return '#/judgments';
+    if (s.route === 'sources') return '#/sources';
     if (s.route === 'catalog') return '#/catalog';
     return '#/';
   }
@@ -1721,6 +1894,8 @@
       state.route = 'runs';
     } else if (parts[0] === 'judgments') {
       state.route = 'judgments';
+    } else if (parts[0] === 'sources') {
+      state.route = 'sources';
     } else if (parts[0] === 'catalog') {
       state.route = 'catalog';
     } else {
@@ -1735,6 +1910,7 @@
     if (state.route === 'runs') loadRuns();
     if (state.route === 'run' && state.runSlug) loadRun(state.runSlug);
     if (state.route === 'judgments') loadJudgments();
+    if (state.route === 'sources') loadSources();
     if (state.route === 'catalog' && !state.catalogItems.length) loadCatalog(true);
   }
 
@@ -1780,6 +1956,8 @@
       case 'judgments': setState({ route: 'judgments', panelSubId: null, disputeOpen: false, submitOpen: false }); loadJudgments(); break;
       case 'retry-judgments': loadJudgments(); break;
       case 'toggle-judgfold': setState({ judgFold: !state.judgFold }); break;
+      case 'sources': setState({ route: 'sources', panelSubId: null, disputeOpen: false, submitOpen: false }); loadSources(); break;
+      case 'retry-sources': loadSources(); break;
       case 'catalog': setState({ route: 'catalog', panelSubId: null, disputeOpen: false, submitOpen: false }); if (!state.catalogItems.length) loadCatalog(true); break;
       case 'catalog-more': loadCatalog(false); break;
       case 'catalog-retry': loadCatalog(true); break;
