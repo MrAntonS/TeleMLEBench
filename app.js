@@ -1529,14 +1529,18 @@
     }
 
     var worker = v.harvestWorker;
+    var sourceConnectionFailed = !!v.sourcesError;
     var workerLive = !!(worker && worker.live);
     var workerBusy = !!(workerLive && worker.busy);
     var workerColor = workerBusy ? '#15803d' : (workerLive ? '#2563eb' : '#dc2626');
     var workerBg = workerBusy ? '#ecfdf3' : (workerLive ? '#f5f8ff' : '#fef2f2');
     var workerBorder = workerBusy ? '#bbf7d0' : (workerLive ? '#b9ccf7' : '#fecaca');
-    var workerTitle = workerBusy ? (worker.task || 'Metadata harvest running')
+    var workerTitle = sourceConnectionFailed ? 'Backend unavailable'
+      : workerBusy ? (worker.task || 'Metadata harvest running')
       : (workerLive ? 'Harvester online and idle' : 'Harvester is not running');
-    var workerCopy = workerBusy
+    var workerCopy = sourceConnectionFailed
+      ? 'Source and worker state cannot be checked until the configured API is reachable.'
+      : workerBusy
       ? 'Provider records are being normalized and written to the source-first catalog.'
       : (workerLive
         ? 'The worker is connected and waiting for the next sweep.'
