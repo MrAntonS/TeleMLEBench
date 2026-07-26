@@ -26,6 +26,11 @@ expect(
   app.includes("localContext && window.location.protocol !== 'file:'"),
   'production must not guess a Pages-local API origin'
 );
+expect(app.includes('isLoopbackApiBase'), 'strict loopback API validation is missing');
+expect(
+  app.includes("defaults.targetAddressSpace = 'loopback'"),
+  'loopback fetches do not declare their target address space'
+);
 expect(app.includes("'/datasets"), 'source-first dataset endpoint is missing');
 expect(app.includes("'/papers"), 'paper endpoint is missing');
 expect(app.includes("'/reproductions"), 'reproduction endpoint is missing');
@@ -40,8 +45,12 @@ expect(app.includes('signal-path'), 'provenance signal-path signature is missing
 expect(workflow.includes('vars.TMLB_API_BASE'), 'Pages does not use the configured API variable');
 expect(workflow.includes('https://'), 'Pages does not enforce HTTPS');
 expect(
-  workflow.includes('deploying the public shell with an explicit backend-unavailable state'),
-  'Pages still hard-fails when the optional backend variable is empty'
+  workflow.includes("'http://127.0.0.1:8080/api/v1'"),
+  'Pages does not default to the exact temporary loopback API'
+);
+expect(
+  workflow.includes('http://127.0.0.1:8080/api/v1)'),
+  'Pages validation does not narrowly allow the temporary loopback API'
 );
 expect(workflow.includes('npm ci'), 'Pages validation does not install locked test dependencies');
 expect(workflow.includes('playwright install --with-deps chromium'), 'Pages validation does not install Chromium');

@@ -31,16 +31,39 @@
   var app = document.getElementById('app');
   var API_BASE = resolveApiBase();
 
+  function isLoopbackApiBase(value) {
+    try {
+      var url = new URL(String(value || ''));
+      var host = url.hostname.toLowerCase();
+      return url.protocol === 'http:' &&
+        (host === '127.0.0.1' || host === 'localhost' || host === '[::1]') &&
+        url.port === '8080' &&
+        url.pathname.replace(/\/+$/, '') === '/api/v1' &&
+        !url.username && !url.password && !url.search && !url.hash;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function resolveApiBase() {
     var configured = String(window.TMLB_API_BASE || '').trim().replace(/\/+$/, '');
     var params = new URLSearchParams(window.location.search);
     var override = String(params.get('api') || '').trim().replace(/\/+$/, '');
     var localContext = window.location.protocol === 'file:' || /^(127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-    if (override && (override.indexOf('https://') === 0 || localContext)) configured = override;
+    if (override && (
+      override.indexOf('https://') === 0 ||
+      localContext ||
+      isLoopbackApiBase(override)
+    )) configured = override;
     if (!configured && localContext && window.location.protocol !== 'file:') {
       configured = window.location.origin + '/api/v1';
     }
-    if (window.location.protocol === 'https:' && configured && configured.indexOf('https://') !== 0) return '';
+    if (
+      window.location.protocol === 'https:' &&
+      configured &&
+      configured.indexOf('https://') !== 0 &&
+      !isLoopbackApiBase(configured)
+    ) return '';
     return configured;
   }
 
@@ -107,7 +130,9 @@
 
   function api(path, options) {
     if (!API_BASE) return Promise.reject(new Error('The backend API is not configured for this deployment.'));
-    return fetch(API_BASE + path, Object.assign({ headers: { Accept: 'application/json' } }, options || {})).then(function (res) {
+    var defaults = { headers: { Accept: 'application/json' } };
+    if (isLoopbackApiBase(API_BASE)) defaults.targetAddressSpace = 'loopback';
+    return fetch(API_BASE + path, Object.assign(defaults, options || {})).then(function (res) {
       if (!res.ok) {
         var err = new Error('API request failed (' + res.status + ')');
         err.status = res.status;
