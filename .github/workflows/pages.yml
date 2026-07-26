@@ -1,48 +1,62 @@
-name: Deploy to GitHub Pages
+name: Validate and deploy GitHub Pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Allow the workflow to enable Pages and publish to it via the built-in GITHUB_TOKEN.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Only one concurrent Pages deployment; let an in-progress run finish.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/validate.mjs
+
   deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      API_BASE: ${{ vars.TMLB_API_BASE }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Stage site files
+      - uses: actions/checkout@v4
+      - name: Validate production API origin
+        shell: bash
         run: |
-          python build_standalone.py
+          test -n "$API_BASE"
+          case "$API_BASE" in
+            https://*/api/v1) ;;
+            *) echo "TMLB_API_BASE must be an HTTPS URL ending in /api/v1"; exit 1 ;;
+          esac
+      - name: Stage site
+        shell: bash
+        run: |
           mkdir -p dist
-          cp index.html app.js data.js TeleMLEBench.standalone.html dist/
+          cp index.html app.js dist/
+          printf 'window.TMLB_API_BASE = "%s";\n' "$API_BASE" > dist/config.js
           touch dist/.nojekyll
-
-      - name: Configure Pages (enables Pages on first run)
-        uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v5
         with:
           enablement: true
-
-      - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
