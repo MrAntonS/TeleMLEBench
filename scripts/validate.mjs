@@ -21,6 +21,11 @@ expect(app.includes("main.setAttribute('tabindex', '-1')"), 'skip link does not 
 expect(index.includes('prefers-reduced-motion'), 'reduced-motion handling is missing');
 expect(index.includes('./config.js'), 'runtime/build configuration is not loaded');
 expect(app.includes("window.TMLB_API_BASE"), 'API configuration hook is missing');
+expect(app.includes('Backend not configured'), 'unconfigured production backend state is missing');
+expect(
+  app.includes("localContext && window.location.protocol !== 'file:'"),
+  'production must not guess a Pages-local API origin'
+);
 expect(app.includes("'/datasets"), 'source-first dataset endpoint is missing');
 expect(app.includes("'/papers"), 'paper endpoint is missing');
 expect(app.includes("'/reproductions"), 'reproduction endpoint is missing');
@@ -34,6 +39,10 @@ expect(app.includes('static trainable ML'), 'ML-only scope is not communicated')
 expect(app.includes('signal-path'), 'provenance signal-path signature is missing');
 expect(workflow.includes('vars.TMLB_API_BASE'), 'Pages does not use the configured API variable');
 expect(workflow.includes('https://'), 'Pages does not enforce HTTPS');
+expect(
+  workflow.includes('deploying the public shell with an explicit backend-unavailable state'),
+  'Pages still hard-fails when the optional backend variable is empty'
+);
 expect(workflow.includes('npm ci'), 'Pages validation does not install locked test dependencies');
 expect(workflow.includes('playwright install --with-deps chromium'), 'Pages validation does not install Chromium');
 expect(workflow.includes('npm run test:e2e'), 'Pages does not run browser tests before deployment');

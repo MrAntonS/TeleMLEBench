@@ -55,7 +55,10 @@ jobs:
       - name: Validate production API origin
         shell: bash
         run: |
-          test -n "$API_BASE"
+          if [ -z "$API_BASE" ]; then
+            echo "::warning::TMLB_API_BASE is not configured; deploying the public shell with an explicit backend-unavailable state."
+            exit 0
+          fi
           case "$API_BASE" in
             https://*/api/v1) ;;
             *) echo "TMLB_API_BASE must be an HTTPS URL ending in /api/v1"; exit 1 ;;

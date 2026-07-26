@@ -37,7 +37,9 @@
     var override = String(params.get('api') || '').trim().replace(/\/+$/, '');
     var localContext = window.location.protocol === 'file:' || /^(127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
     if (override && (override.indexOf('https://') === 0 || localContext)) configured = override;
-    if (!configured && window.location.protocol !== 'file:') configured = window.location.origin + '/api/v1';
+    if (!configured && localContext && window.location.protocol !== 'file:') {
+      configured = window.location.origin + '/api/v1';
+    }
     if (window.location.protocol === 'https:' && configured && configured.indexOf('https://') !== 0) return '';
     return configured;
   }
@@ -104,7 +106,7 @@
   }
 
   function api(path, options) {
-    if (!API_BASE) return Promise.reject(new Error('This deployment has no HTTPS API origin configured.'));
+    if (!API_BASE) return Promise.reject(new Error('The backend API is not configured for this deployment.'));
     return fetch(API_BASE + path, Object.assign({ headers: { Accept: 'application/json' } }, options || {})).then(function (res) {
       if (!res.ok) {
         var err = new Error('API request failed (' + res.status + ')');
@@ -457,7 +459,12 @@
   }
 
   function errorBox() {
-    return '<div class="error"><h3>Evidence service unavailable</h3><p class="muted">' + esc(state.error) + '</p><button class="btn btn-light" data-action="retry">Retry</button></div>';
+    var unconfigured = !API_BASE;
+    return '<div class="error"><h3>' + (unconfigured ? 'Backend not configured' : 'Evidence service unavailable') + '</h3><p class="muted">' + esc(state.error) + '</p>' +
+      (unconfigured
+        ? '<a class="btn btn-light" href="#/methodology">Read the methodology</a>'
+        : '<button class="btn btn-light" data-action="retry">Retry</button>') +
+      '</div>';
   }
 
   function homePage() {

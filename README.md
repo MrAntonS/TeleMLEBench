@@ -45,9 +45,11 @@ including `/api/v1`, for example:
 https://api.example.org/api/v1
 ```
 
-The Pages workflow rejects an empty value, a non-HTTPS value, and a value
-without `/api/v1`. It generates `config.js` into the deployment artifact, so
-production never defaults to a local API.
+An empty value no longer blocks publication: Pages deploys the public shell and
+the interface states that its backend is not configured. A configured value
+must use HTTPS and end in `/api/v1`; invalid non-empty values still fail the
+deployment. The workflow generates `config.js` into the deployment artifact,
+and production never guesses a Pages-local API.
 
 ## Validate
 
