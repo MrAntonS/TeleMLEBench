@@ -127,7 +127,8 @@
     .card-footer{border-top:1px solid var(--line);padding-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .mini-value{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink)}
     .mini-label{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--subtle);margin-top:3px}
-    .filters{display:grid;grid-template-columns:minmax(240px,2fr) repeat(4,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+    .filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+    .filters .field:first-child{grid-column:span 2}
     .field{position:relative}
     .field label{position:absolute;left:12px;top:8px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);z-index:1}
     input,select{width:100%;height:58px;padding:22px 12px 7px;border:1px solid var(--line-strong);background:#fff;border-radius:9px;color:var(--ink);outline:0}
@@ -145,9 +146,11 @@
     .detail-title p{color:#b6c6d5;max-width:780px;line-height:1.6;margin-bottom:0}
     .detail-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
     .detail-body{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.55fr);gap:22px;align-items:start}
-    .panel{padding:24px}
+    .detail-body>*{min-width:0}
+    .panel{min-width:0;padding:24px}
     .panel + .panel{margin-top:18px}
     .panel-head{display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:20px}
+    .panel-head>*{min-width:0;max-width:100%}
     .panel-head h2,.panel-head h3{margin:0}
     .panel h2{font-size:24px}
     .definition{font-size:16px;line-height:1.7;color:#3f5871}
@@ -182,6 +185,9 @@
     .coverage-card h3{margin:10px 0 6px}
     .coverage-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
     .evidence{border-left:3px solid var(--amber);padding:13px 15px;background:#fffaf0;color:#5f5134;font-size:13px;line-height:1.6}
+    .loading-example{margin-top:14px;border:1px solid var(--line);border-radius:9px;background:var(--navy-950);padding:14px}
+    .loading-example .row-meta{color:#83a1bb;margin:0 0 9px}
+    .loading-example pre{margin:0;overflow:auto;color:#dffafb;font:12px/1.55 var(--mono)}
     .repro-table{width:100%;border-collapse:collapse;font-size:12px}
     .repro-table th,.repro-table td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
     .repro-table th{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle)}
@@ -219,6 +225,7 @@
       .card-footer{grid-template-columns:1fr 1fr}
       .detail-title h1{font-size:34px}
       .detail-actions .btn{width:100%}
+      .panel-head{flex-direction:column;gap:10px}
       .kv{grid-template-columns:1fr}
       .kv dt{padding-bottom:3px;border:0}
       .kv dd{padding-top:0}
@@ -227,7 +234,7 @@
       .rail-copy strong{font-size:9px}
       .source-row,.file-row{grid-template-columns:1fr}
       .footer-inner{padding:26px 0;align-items:flex-start;flex-direction:column}
-      .repro-table{display:block;overflow-x:auto}
+      .repro-table{display:block;max-width:100%;overflow-x:auto}
     }
     @media(prefers-reduced-motion:reduce){
       html{scroll-behavior:auto}
@@ -236,7 +243,7 @@
   </style>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main" data-skip-link>Skip to content</a>
   <div id="app" aria-live="polite"></div>
   <script src="./config.js"></script>
   <script src="./app.js"></script>

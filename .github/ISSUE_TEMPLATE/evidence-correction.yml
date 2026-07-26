@@ -1,0 +1,58 @@
+name: Correct metadata or link a paper
+description: Propose a sourced correction, identity/version update, or exact paper-use relationship.
+title: "[Evidence]: "
+labels:
+  - evidence-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        TeleMLEBench changes public evidence records from inspectable sources. Keep quotations short and identify their page or section. Do not upload paywalled papers or restricted supplements.
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Change type
+      options:
+        - Dataset metadata correction
+        - Dataset identity or version correction
+        - Add or correct a paper link
+        - Correct dataset-use evidence
+        - Correct a reproduction report
+    validations:
+      required: true
+  - type: input
+    id: affected_record
+    attributes:
+      label: Affected TeleMLEBench record
+      description: Link the dataset, paper, or reproduction page.
+      placeholder: https://.../#/dataset/... or https://.../#/paper/...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_change
+    attributes:
+      label: Proposed correction
+      description: State what is wrong, what it should say, and which exact dataset/paper version is affected.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Supporting source records
+      description: Provide stable DOI, repository, paper, or author-project URLs. Names alone are not identity evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: usage_evidence
+    attributes:
+      label: Exact paper-use evidence, if applicable
+      description: Include a short quote plus page/section showing training or evaluation on the dataset, and identify the paper and dataset versions.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Evidence checklist
+      options:
+        - label: I have distinguished a citation from actual dataset use.
+          required: true
+        - label: I have not pasted a paywalled paper, restricted supplement, personal data, credentials, or private URL.
+          required: true

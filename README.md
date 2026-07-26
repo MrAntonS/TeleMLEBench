@@ -26,14 +26,15 @@ The frontend first uses the source-first API:
 - `GET /datasets`
 - `GET /datasets/{slug}`
 - `GET /datasets/{slug}/files`
-- `GET /papers`
-- `GET /reproductions`
+- `GET /papers` and `GET /papers/{paper_id}`
+- `GET /reproductions` and `GET /reproductions/{experiment_id}`
+- `GET /releases/{release_id}/manifest`
 - `GET /catalog/coverage`
 - `GET /catalog/sources`
 
-During the backend transition it safely falls back to `/benchmarks`, `/runs`,
-and `/stats`. Missing release, paper-evidence, or reproduction fields are shown
-as unavailable; the client does not fabricate them.
+It does not call the retired `/benchmarks`, `/runs`, submission, hidden-label,
+or worker surfaces. Missing release, paper-evidence, or reproduction fields are
+shown as unavailable; the client does not fabricate them.
 
 ## GitHub Pages
 
@@ -51,12 +52,20 @@ production never defaults to a local API.
 ## Validate
 
 ```bash
-node scripts/validate.mjs
+npm ci
+npx playwright install chromium
+npm test
 ```
 
-The static contract check verifies required source-first routes, the API
-configuration hook, accessibility landmarks, and the absence of unsupported
-public submission/worker UI.
+`npm test` runs the dependency-free static contract and a deterministic
+Playwright suite. The suite starts a local fixture API and covers populated,
+empty, and unavailable service states; desktop and mobile navigation; basic
+landmark, label, focus, keyboard, and overflow checks; and the dataset, paper,
+and reproduction detail routes. No live backend or credentials are required.
+
+The production site itself remains dependency-free: Playwright and its fixture
+server are development/CI tooling only. GitHub Pages runs both test layers
+before staging or deploying the three production assets.
 
 ## Routes
 
@@ -64,7 +73,17 @@ public submission/worker UI.
 - `#/datasets`
 - `#/dataset/{slug}`
 - `#/papers`
+- `#/paper/{paper_id}`
 - `#/reproductions`
+- `#/reproduction/{experiment_id}`
 - `#/methodology`
 - `#/coverage`
 - `#/contribute`
+
+## Contribute
+
+Use the repository's structured issue forms for dataset suggestions,
+evidence corrections or paper links, and takedown concerns. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for evidence, safety, testing, and pull
+request requirements. Public issues are never an upload path for dataset
+payloads, restricted papers, credentials, private links, or personal data.

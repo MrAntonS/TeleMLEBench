@@ -4,7 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const port = Number(process.env.PORT || 4173);
+const port = Number(process.argv[2] || process.env.PORT || 4173);
+if (!Number.isInteger(port) || port < 1024 || port > 65535) {
+  throw new Error('Preview port must be an integer between 1024 and 65535');
+}
 const types = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.svg':'image/svg+xml' };
 
 http.createServer((request, response) => {

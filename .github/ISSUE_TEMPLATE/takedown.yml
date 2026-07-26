@@ -1,0 +1,65 @@
+name: Request correction, restriction, or takedown
+description: Flag a license, ownership, privacy, sensitivity, or redistribution concern without posting sensitive material.
+title: "[Takedown]: "
+labels:
+  - takedown-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a public issue. Do not paste personal data, secrets, access tokens, private download links, restricted files, or the sensitive material itself.
+
+        For an active secret or security exposure, use the repository's private security-reporting channel if available. If it is unavailable, file only a high-level request here and ask the maintainers to establish private contact.
+  - type: input
+    id: affected_record
+    attributes:
+      label: Affected public record or release
+      description: Link the TeleMLEBench page or identify its public slug/release ID.
+    validations:
+      required: true
+  - type: dropdown
+    id: concern
+    attributes:
+      label: Concern
+      options:
+        - License or redistribution
+        - Ownership or attribution
+        - Privacy or sensitive data
+        - Security or exposed secret
+        - Incorrect access classification
+        - Other legal or ethical concern
+    validations:
+      required: true
+  - type: dropdown
+    id: requested_action
+    attributes:
+      label: Requested interim action
+      options:
+        - Remove public download while reviewed
+        - Make the record link-only while reviewed
+        - Correct metadata or attribution
+        - Remove the public record while reviewed
+        - Contact me for clarification
+    validations:
+      required: true
+  - type: textarea
+    id: public_basis
+    attributes:
+      label: Publicly safe explanation and evidence links
+      description: Give only the minimum non-sensitive explanation and links that are safe to publish. Do not include the protected content.
+    validations:
+      required: true
+  - type: textarea
+    id: authority
+    attributes:
+      label: Relationship to the material
+      description: State whether you are the rights holder, data subject, repository operator, researcher, or reporter. Do not post private identity documents.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: I have not included sensitive content, personal data, credentials, private URLs, restricted files, or identity documents.
+          required: true
+        - label: I understand maintainers may temporarily make a release link-only while the concern is reviewed.
+          required: true

@@ -1,0 +1,70 @@
+name: Suggest a telecom ML dataset
+description: Propose a static dataset for discovery and review; do not upload dataset payloads.
+title: "[Dataset]: "
+labels:
+  - dataset-suggestion
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping expand the source-first catalog. A suggestion starts review; it does not authorize TeleMLEBench to mirror or publish the data.
+
+        Do not paste credentials, private links, personal data, restricted files, or dataset payloads into this public issue.
+  - type: input
+    id: landing_url
+    attributes:
+      label: Stable public landing page
+      description: Use the repository record or official dataset page, not a direct expiring download URL.
+      placeholder: https://doi.org/... or https://repository.example/datasets/...
+    validations:
+      required: true
+  - type: input
+    id: identifier
+    attributes:
+      label: DOI or provider identifier
+      description: Include the concept DOI, version DOI, or exact provider ID when available.
+      placeholder: 10.xxxx/example or provider:record-version
+  - type: textarea
+    id: telecom_scope
+    attributes:
+      label: Why this is static telecom ML data
+      description: Describe the telecom domain, measured/fixed-simulated origin, and why this is data rather than software, a generator, model, paper, or figure.
+    validations:
+      required: true
+  - type: textarea
+    id: task_contract
+    attributes:
+      label: Candidate ML task contract
+      description: If known, name the inputs, target, sample identity, dependency groups, and leakage-safe split policy. TeleMLEBench will not infer the last column as a target.
+  - type: dropdown
+    id: origin
+    attributes:
+      label: Data origin
+      options:
+        - Measured
+        - Fixed simulated
+        - Mixed
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: access_license
+    attributes:
+      label: Access, license, and redistribution evidence
+      description: Link to the exact license or terms. Unknown, gated, restricted, or sensitive data remains link-only.
+    validations:
+      required: true
+  - type: textarea
+    id: papers
+    attributes:
+      label: Papers that use this dataset
+      description: Provide stable paper links and, when possible, a short quote with page/section showing actual training or evaluation use. A citation alone is not use.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Public issue safety
+      options:
+        - label: I have not included credentials, private download links, personal data, restricted files, or dataset payloads.
+          required: true
+        - label: I understand that catalog review, acquisition approval, and publication approval are separate decisions.
+          required: true
