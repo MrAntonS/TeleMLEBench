@@ -31,6 +31,12 @@ expect(
   app.includes("defaults.targetAddressSpace = 'loopback'"),
   'loopback fetches do not declare their target address space'
 );
+expect(app.includes("data-action=\"connect-local\""), 'Pages has no explicit localhost permission action');
+expect(app.includes("name: 'loopback-network'"), 'Pages does not inspect the loopback permission state');
+expect(
+  app.includes("api('/health/ready')"),
+  'Pages does not verify the local backend before loading catalog data'
+);
 expect(app.includes("'/datasets"), 'source-first dataset endpoint is missing');
 expect(app.includes("'/papers"), 'paper endpoint is missing');
 expect(app.includes("'/reproductions"), 'reproduction endpoint is missing');

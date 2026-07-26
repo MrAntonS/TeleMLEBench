@@ -14,6 +14,7 @@
     coverage: null,
     loading: false,
     error: '',
+    localConnection: 'not_required',
     filters: {
       query: '',
       task: 'all',
@@ -30,6 +31,9 @@
 
   var app = document.getElementById('app');
   var API_BASE = resolveApiBase();
+  var LOOPBACK_PERMISSION_MODE =
+    window.location.protocol === 'https:' && isLoopbackApiBase(API_BASE);
+  if (LOOPBACK_PERMISSION_MODE) state.localConnection = 'checking';
 
   function isLoopbackApiBase(value) {
     try {
@@ -65,6 +69,26 @@
       !isLoopbackApiBase(configured)
     ) return '';
     return configured;
+  }
+
+  function queryLoopbackPermission() {
+    if (!LOOPBACK_PERMISSION_MODE || !navigator.permissions || !navigator.permissions.query) {
+      return Promise.resolve('prompt');
+    }
+    return navigator.permissions.query({ name: 'loopback-network' }).catch(function () {
+      return navigator.permissions.query({ name: 'local-network-access' });
+    }).then(function (permission) {
+      return permission && permission.state ? permission.state : 'prompt';
+    }).catch(function () {
+      return 'prompt';
+    });
+  }
+
+  function routeNeedsBackend(name) {
+    return [
+      'home', 'datasets', 'dataset', 'papers', 'paper',
+      'reproductions', 'reproduction', 'coverage'
+    ].indexOf(name) >= 0;
   }
 
   function esc(value) {
@@ -505,6 +529,26 @@
   }
 
   function errorBox() {
+    if (LOOPBACK_PERMISSION_MODE && state.localConnection !== 'connected') {
+      var denied = state.localConnection === 'denied';
+      var failed = state.localConnection === 'failed';
+      var heading = denied
+        ? 'Allow access to the local backend'
+        : failed ? 'Local backend not reachable' : 'Connect to the local backend';
+      var message = denied
+        ? 'Chrome blocked this site from reaching localhost. Open the site controls, allow Local network access, then try again.'
+        : failed
+          ? state.error
+          : 'This temporary GitHub Pages build reads the API running on this computer at 127.0.0.1:8080.';
+      return '<div class="tml-state' + (denied || failed ? ' error' : '') + '">' +
+        '<h3>' + heading + '</h3><p>' + esc(message) + '</p>' +
+        (!denied
+          ? '<p class="muted">When Chrome asks, choose Allow. The page cannot access any other host or port.</p>'
+          : '') +
+        '<button class="tml-button primary" data-action="connect-local">' +
+          (failed || denied ? 'Try again' : 'Connect local backend') +
+        '</button></div>';
+    }
     var unconfigured = !API_BASE;
     return '<div class="tml-state error"><h3>' +
       (unconfigured ? 'Backend not configured' : 'Evidence service unavailable') +
@@ -989,6 +1033,16 @@
     state.navOpen = false;
     state.error = '';
     window.scrollTo(0, 0);
+    if (
+      LOOPBACK_PERMISSION_MODE &&
+      state.localConnection !== 'connected' &&
+      routeNeedsBackend(state.route.name)
+    ) {
+      state.loading = false;
+      state.error = 'Local backend permission is required.';
+      render();
+      return;
+    }
     if (state.route.name === 'home' || state.route.name === 'datasets') loadCore();
     else if (state.route.name === 'dataset') loadDetail(state.route.slug);
     else if (state.route.name === 'papers') loadPapers();
@@ -997,6 +1051,28 @@
     else if (state.route.name === 'reproduction') loadReproductionDetail(state.route.id);
     else if (state.route.name === 'coverage') loadCoverage();
     else render();
+  }
+
+  function connectLocalBackend() {
+    state.localConnection = 'connecting';
+    state.loading = true;
+    state.error = '';
+    render();
+    api('/health/ready').then(function () {
+      state.localConnection = 'connected';
+      state.loading = false;
+      state.datasetsLoaded = false;
+      syncRoute();
+    }).catch(function (err) {
+      return queryLoopbackPermission().then(function (permission) {
+        state.localConnection = permission === 'denied' ? 'denied' : 'failed';
+        state.loading = false;
+        state.error = permission === 'denied'
+          ? 'Chrome denied local network access.'
+          : (err.message || 'Could not reach the backend at 127.0.0.1:8080.');
+        render();
+      });
+    });
   }
 
   function retry() {
@@ -1018,6 +1094,7 @@
       state.navOpen = !state.navOpen;
       render();
     } else if (action === 'retry') retry();
+    else if (action === 'connect-local') connectLocalBackend();
     else if (action === 'clear-filters') {
       state.filters = {
         query:'', task:'all', origin:'all', access:'all', source:'all',
@@ -1061,5 +1138,14 @@
   }
 
   window.addEventListener('hashchange', syncRoute);
-  syncRoute();
+  if (LOOPBACK_PERMISSION_MODE) {
+    queryLoopbackPermission().then(function (permission) {
+      state.localConnection =
+        permission === 'granted' || permission === 'allowed' ? 'connected' :
+          permission === 'denied' ? 'denied' : 'prompt';
+      syncRoute();
+    });
+  } else {
+    syncRoute();
+  }
 }());
