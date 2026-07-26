@@ -390,7 +390,11 @@
   }
 
   function logo() {
-    return '<span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 15.5a12 12 0 0 1 17 0M6.7 18.5a7.5 7.5 0 0 1 10.6 0M10.1 21.1a2.7 2.7 0 0 1 3.8 0" stroke="#24d1d8" stroke-width="1.7" stroke-linecap="round"/><path d="M12 3v9" stroke="#5f8dff" stroke-width="1.7"/><circle cx="12" cy="3" r="1.7" fill="#f2b84b"/></svg></span>';
+    return '<span class="tml-logo" aria-hidden="true">' +
+      '<span style="height:7px;opacity:.65"></span>' +
+      '<span style="height:11px;opacity:.82"></span>' +
+      '<span style="height:15px"></span>' +
+    '</span>';
   }
 
   function navLink(route, label) {
@@ -398,29 +402,38 @@
       (route === 'datasets' && state.route.name === 'dataset') ||
       (route === 'papers' && state.route.name === 'paper') ||
       (route === 'reproductions' && state.route.name === 'reproduction');
-    return '<a class="navlink" href="#/' + route + '"' + (active ? ' aria-current="page"' : '') + '>' + esc(label) + '</a>';
+    return '<a class="tml-navlink' + (active ? ' active' : '') + '" href="#/' + route + '"' +
+      (active ? ' aria-current="page"' : '') + '>' + esc(label) + '</a>';
   }
 
   function header() {
-    return '<header class="topbar"><nav class="nav" aria-label="Main navigation">' +
-      '<a class="brand" href="#/home">' + logo() + '<span class="brand-name">TeleMLEBench</span></a>' +
-      '<button class="nav-toggle" data-action="toggle-nav" aria-expanded="' + (state.navOpen ? 'true' : 'false') + '" aria-label="Toggle navigation">Menu</button>' +
-      '<div class="navlinks ' + (state.navOpen ? 'open' : '') + '">' +
-        navLink('datasets', 'Datasets') + navLink('papers', 'Papers') + navLink('reproductions', 'Reproductions') +
-        navLink('methodology', 'Methodology') + navLink('coverage', 'Coverage') +
-      '</div>' +
-      '<a class="nav-cta" href="#/contribute">Contribute via GitHub</a>' +
-    '</nav></header>';
+    return '<header class="tml-header"><div class="tml-header-inner">' +
+      '<a class="tml-brand" href="#/home">' + logo() + '<span>TeleMLEBench</span></a>' +
+      '<button class="tml-nav-toggle" data-action="toggle-nav" aria-expanded="' +
+        (state.navOpen ? 'true' : 'false') + '" aria-label="Toggle navigation">Menu</button>' +
+      '<nav class="tml-nav ' + (state.navOpen ? 'open' : '') + '" aria-label="Main navigation">' +
+        navLink('home', 'Home') +
+        navLink('datasets', 'Datasets') +
+        navLink('papers', 'Papers') +
+        navLink('reproductions', 'Reproductions') +
+        navLink('coverage', 'Sources') +
+        navLink('contribute', 'Contribute') +
+        navLink('methodology', 'About') +
+      '</nav>' +
+    '</div></header>';
   }
 
   function footer() {
-    return '<footer><div class="container footer-inner"><div>TeleMLEBench · evidence before rank</div>' +
-      '<div class="footer-links"><a href="#/methodology">Methods</a><a href="#/coverage">Coverage</a><a href="#/contribute">Contribute</a></div></div></footer>';
+    return '<footer class="tml-footer"><div class="tml-footer-inner">' +
+      '<div>TeleMLEBench — source-first telecom ML datasets.</div>' +
+      '<div>Datasets, paper evidence, and controlled reproductions.</div>' +
+    '</div></footer>';
   }
 
   function statusBadge(value) {
     var normalized = text(value, 'unknown').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
-    return '<span class="status ' + normalized + '">' + esc(text(value, 'unknown').replace(/_/g, ' ')) + '</span>';
+    return '<span class="tml-status ' + normalized + '">' +
+      esc(text(value, 'unknown').replace(/_/g, ' ')) + '</span>';
   }
 
   function signalPath(stages) {
@@ -438,32 +451,42 @@
   }
 
   function statBlock(value, label) {
-    return '<div class="stat"><div class="stat-value">' + esc(number(value)) + '</div><div class="stat-label">' + esc(label) + '</div></div>';
+    return '<div><div class="mono tml-stat-value">' + esc(number(value)) +
+      '</div><div class="tml-stat-label">' + esc(label) + '</div></div>';
   }
 
   function datasetCard(d) {
-    var tags = [d.task, d.origin !== 'unknown' ? d.origin : d.domain].concat(d.tags.slice(0, 1)).filter(Boolean);
-    return '<a class="card dataset-card" href="#/dataset/' + encodeURIComponent(d.slug) + '">' +
-      '<div class="card-kicker"><span class="id">' + esc(d.id || d.slug) + '</span>' + statusBadge(d.access) + '</div>' +
-      '<h3>' + esc(d.name) + '</h3><p>' + esc(d.description) + '</p>' +
-      '<div class="tag-row">' + tags.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
-      '<div class="card-footer">' +
-        '<div><div class="mini-value">' + esc(d.source) + '</div><div class="mini-label">Primary source</div></div>' +
-        '<div><div class="mini-value">' + esc(d.fileCount ? number(d.fileCount) : '—') + '</div><div class="mini-label">Files indexed</div></div>' +
-        '<div><div class="mini-value">' + esc(d.paperCount ? number(d.paperCount) : '—') + '</div><div class="mini-label">Papers linked</div></div>' +
+    var category = d.task === 'Needs task adapter' ? d.domain : d.task;
+    return '<a class="tml-card tml-dataset-card" href="#/dataset/' +
+      encodeURIComponent(d.slug) + '">' +
+      '<div class="tml-card-top"><span class="tml-category">' +
+        esc(category) + '</span>' + statusBadge(d.access) + '</div>' +
+      '<h3>' + esc(d.name) + '</h3>' +
+      '<p class="tml-clamp2">' + esc(d.description) + '</p>' +
+      '<div class="tml-card-bottom">' +
+        '<div><div class="tml-meta-label">Primary source</div>' +
+          '<div class="tml-meta-value">' + esc(d.source) + '</div></div>' +
+        '<div class="tml-card-counts"><div>' +
+          '<strong class="mono">' + esc(d.fileCount ? number(d.fileCount) : '—') +
+          '</strong><span> files</span></div><div>' +
+          '<strong class="mono">' + esc(d.paperCount ? number(d.paperCount) : '—') +
+          '</strong><span> papers</span></div></div>' +
       '</div></a>';
   }
 
   function loading(message) {
-    return '<div class="loading"><span class="spinner" aria-hidden="true"></span><p class="muted" style="margin:14px 0 0">' + esc(message || 'Loading evidence…') + '</p></div>';
+    return '<div class="tml-state"><span class="tml-spinner" aria-hidden="true"></span>' +
+      '<p>' + esc(message || 'Loading evidence…') + '</p></div>';
   }
 
   function errorBox() {
     var unconfigured = !API_BASE;
-    return '<div class="error"><h3>' + (unconfigured ? 'Backend not configured' : 'Evidence service unavailable') + '</h3><p class="muted">' + esc(state.error) + '</p>' +
+    return '<div class="tml-state error"><h3>' +
+      (unconfigured ? 'Backend not configured' : 'Evidence service unavailable') +
+      '</h3><p>' + esc(state.error) + '</p>' +
       (unconfigured
-        ? '<a class="btn btn-light" href="#/methodology">Read the methodology</a>'
-        : '<button class="btn btn-light" data-action="retry">Retry</button>') +
+        ? '<a class="tml-button primary" href="#/methodology">Read the methodology</a>'
+        : '<button class="tml-button primary" data-action="retry">Retry</button>') +
       '</div>';
   }
 
@@ -471,24 +494,31 @@
     var stats = state.stats || {};
     var featured = state.datasets.slice(0, 6);
     return '<main id="main">' +
-      '<section class="hero"><div class="container hero-grid"><div>' +
-        '<div class="eyebrow">Source-first telecom ML</div>' +
-        '<h1>Follow the evidence from <span>dataset</span> to result.</h1>' +
-        '<p class="hero-copy">A public catalog of static telecom ML datasets, transparent task releases, paper-use evidence, and controlled reproduction attempts. Every status says what is known—and what is still missing.</p>' +
-        '<div class="hero-actions"><a class="btn btn-primary" href="#/datasets">Explore ML datasets</a><a class="btn btn-ghost" href="#/methodology">Read the protocol</a></div>' +
-      '</div>' + heroSignal() + '</div></section>' +
-      '<section class="stat-band"><div class="container stats">' +
-        statBlock(stats.datasets != null ? stats.datasets : state.datasets.length, 'Catalog candidates') +
-        statBlock(state.datasets.length || stats.approved_static, 'Public ML datasets') +
-        statBlock(stats.confirmed_paper_links || stats.papers, 'Confirmed paper links') +
-        statBlock(stats.reproductions, 'Reproduction protocols') +
-      '</div></section>' +
-      '<section class="page"><div class="container"><div class="section-head"><div><div class="eyebrow">Current catalog</div><h2>Static datasets with traceable origins</h2></div><p class="section-copy">The active view excludes LLM corpora, evaluation suites, generators, and software. Publication evidence becomes richer as source manifests and task releases are verified.</p></div>' +
+      '<section class="tml-herosec">' +
+        '<h1 class="tml-hero">Every telecom-ML dataset, with the evidence actually verified.</h1>' +
+        '<p class="tml-hero-copy">A searchable catalog of channel estimation, beamforming, ' +
+          'mobility, network traffic and more — where every dataset keeps its source, ' +
+          'release, paper-use evidence, and reproduction status visible.</p>' +
+        '<div class="tml-searchbox" role="search">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8f9a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
+          '<label class="sr-only" for="filter-query">Search</label>' +
+          '<input id="filter-query" data-filter="query" value="' + esc(state.filters.query) +
+            '" placeholder="Search datasets, tasks, or sources…">' +
+          '<a class="tml-button primary" href="#/datasets">Search</a>' +
+        '</div>' +
+        '<div class="tml-stats">' +
+          statBlock(state.datasets.length || stats.approved_static, 'Datasets') +
+          statBlock(stats.published || stats.releases, 'Published releases') +
+          statBlock(stats.confirmed_paper_links || stats.papers, 'Papers tracked') +
+          statBlock(stats.verified_reproductions || stats.reproductions, 'Verified reproductions') +
+        '</div>' +
+      '</section>' +
+      '<section class="tml-section"><div class="tml-section-heading">' +
+        '<h2>Featured datasets</h2><a href="#/datasets">Browse all →</a></div>' +
       (state.loading ? loading() : state.error ? errorBox() : featured.length
-        ? '<div class="grid card-grid">' + featured.map(datasetCard).join('') + '</div>'
-        : '<div class="empty"><h3>No reviewed ML releases yet</h3><p class="muted">Candidates are being collected, but none are public until the relevance, task, license, sensitivity, and publication reviews pass.</p><a class="btn btn-light" href="#/coverage">Inspect coverage</a></div>') +
-      (!state.loading && !state.error ? '<div style="margin-top:26px"><a class="btn btn-light" href="#/datasets">View the catalog →</a></div>' : '') +
-      '</div></section></main>';
+        ? '<div class="tml-cardgrid">' + featured.map(datasetCard).join('') + '</div>'
+        : '<div class="tml-state"><h3>No reviewed ML releases yet</h3><p>Candidates remain hidden until the relevance, task, license, sensitivity, and publication reviews pass.</p><a class="tml-button" href="#/coverage">Inspect coverage</a></div>') +
+      '</section></main>';
   }
 
   function filterOptions(values, selected) {
@@ -533,10 +563,17 @@
 
   function datasetsPage() {
     var results = filteredDatasets();
-    return '<main id="main" class="page"><div class="container">' +
-      '<div class="section-head"><div><div class="eyebrow">ML-only catalog</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 0">Datasets, not benchmark noise.</h1></div><p class="section-copy">Search approved static dataset records. Measured and fixed simulated data remain visibly distinct; uncertain task structure stays unpublished until an adapter is reviewed.</p></div>' +
-      '<div class="filters" role="search">' +
-        '<div class="field"><label for="filter-query">Search metadata</label><input id="filter-query" data-filter="query" value="' + esc(state.filters.query) + '" placeholder="CSI, handover, spectrum, QoE…"></div>' +
+    return '<main id="main" class="tml-page">' +
+      '<h1>Datasets</h1>' +
+      '<p class="tml-page-intro">Telecom-ML datasets across tasks and repositories. ' +
+        'Each public record keeps source, access, task, paper, and release evidence together.</p>' +
+      '<div class="tml-filter-search" role="search">' +
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8a8f9a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
+        '<label class="sr-only" for="filter-query">Search</label>' +
+        '<input id="filter-query" data-filter="query" value="' + esc(state.filters.query) +
+          '" placeholder="Filter datasets…">' +
+      '</div>' +
+      '<div class="tml-filters" aria-label="Dataset filters">' +
         '<div class="field"><label for="filter-task">Task</label><select id="filter-task" data-filter="task">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.tasks;}))), state.filters.task) + '</select></div>' +
         '<div class="field"><label for="filter-origin">Origin</label><select id="filter-origin" data-filter="origin">' + filterOptions(unique(state.datasets.map(function(d){return d.origin;})), state.filters.origin) + '</select></div>' +
         '<div class="field"><label for="filter-access">Access</label><select id="filter-access" data-filter="access">' + filterOptions(unique(state.datasets.map(function(d){return d.access;})), state.filters.access) + '</select></div>' +
@@ -546,9 +583,12 @@
         '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Evidence-linked'},{value:'none',label:'No confirmed paper'}], state.filters.papers) + '</select></div>' +
         '<div class="field"><label for="filter-reproduction">Reproduction</label><select id="filter-reproduction" data-filter="reproduction">' + choiceOptions([{value:'verified',label:'Verified result'},{value:'recorded',label:'Protocol recorded'},{value:'none',label:'No protocol'}], state.filters.reproduction) + '</select></div>' +
       '</div>' +
-      '<div class="result-line"><span>' + esc(number(results.length)) + ' records match</span><span>Active scope: static trainable ML</span></div>' +
-      (state.loading ? loading() : state.error ? errorBox() : results.length ? '<div class="grid card-grid">' + results.map(datasetCard).join('') + '</div>' : '<div class="empty"><h3>No matching dataset records</h3><p class="muted">Clear one or more filters to widen the catalog.</p><button class="btn btn-light" data-action="clear-filters">Clear filters</button></div>') +
-      '</div></main>';
+      '<div class="tml-result-line"><span>' + esc(number(results.length)) +
+        ' datasets</span><span>Active scope: static trainable ML</span></div>' +
+      (state.loading ? loading() : state.error ? errorBox() : results.length
+        ? '<div class="tml-cardgrid">' + results.map(datasetCard).join('') + '</div>'
+        : '<div class="tml-state"><h3>No matching dataset records</h3><p>Clear one or more filters to widen the catalog.</p><button class="tml-button" data-action="clear-filters">Clear filters</button></div>') +
+      '</main>';
   }
 
   function externalButton(url, label) {
@@ -698,7 +738,7 @@
   }
 
   function papersPage() {
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><div class="eyebrow">Literature graph</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 0">Papers connected by evidence.</h1></div><p class="section-copy">Metadata is cataloged broadly. Reproduction requires open-access full text or a lawful user-supplied copy, and dataset use must be confirmed beyond a passing citation.</p></div>' +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Papers</h1><p class="tml-page-intro">Papers connected to datasets by exact usage evidence, not citation alone.</p></div><p class="section-copy">Reproduction requires open-access full text or a lawful user-supplied copy. Metadata can still be cataloged when the paper itself is gated.</p></div>' +
       (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No public papers returned</h3><p class="muted">The literature graph may still be building.</p></div>') +
     '</div></main>';
   }
@@ -742,7 +782,7 @@
   }
 
   function reproductionsPage() {
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><div class="eyebrow">Controlled study</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 0">Attempts, not leaderboard theater.</h1></div><p class="section-copy">Paper-only and artifact-assisted tracks are kept separate. A result is verified only after harness validation, isolated execution, conformance review, and server-side metric recomputation.</p></div>' +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Reproductions</h1><p class="tml-page-intro">Controlled, claim-specific attempts with attributable outcomes.</p></div><p class="section-copy">Paper-only and artifact-assisted tracks remain separate. Results are verified only after harness validation, isolated execution, conformance review, and server-side scoring.</p></div>' +
       '<div class="evidence" style="margin-bottom:20px"><strong>Important:</strong> “No verified result” is not a failed reproduction. Access, missing data, unsupported tasks, runtime faults, and under-specified methods remain distinct outcomes.</div>' +
       (state.loading ? loading('Loading reproduction records…') : state.error ? errorBox() : reproductionRows(state.reproductions)) +
     '</div></main>';
@@ -831,7 +871,7 @@
   }
 
   function methodologyPage() {
-    return '<main id="main" class="page"><div class="container prose"><div class="eyebrow">Transparent convention</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 24px">One evidence chain, three views of the data.</h1>' +
+    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">One transparent evidence chain, with separate source, release, paper, and reproduction records.</p>' +
       '<p>TeleMLEBench separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
       '<div class="steps">' +
         '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then independently review telecom relevance, static-data evidence, license, access, and sensitivity.</p></div></article>' +
@@ -850,7 +890,7 @@
     var summary = c.summary || {};
     var s = summary.counts || summary;
     var sync = summary.sync || {};
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><div class="eyebrow">Coverage ledger</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 0">Bounded, versioned, honest.</h1></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Sources</h1><p class="tml-page-intro">Coverage is bounded, versioned, and inspectable.</p></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
       (state.loading ? loading('Loading source coverage…') : state.error ? errorBox() :
         '<div class="grid coverage-grid">' +
           '<article class="card coverage-card"><strong>' + esc(number(s.discovered != null ? s.discovered : s.datasets)) + '</strong><h3>Discovered candidates</h3><p>Raw candidates before relevance, usability, license, and publication review.</p></article>' +
@@ -868,7 +908,7 @@
   }
 
   function contributePage() {
-    return '<main id="main" class="page"><div class="container prose"><div class="eyebrow">Community path</div><h1 style="font-size:clamp(38px,5vw,60px);margin:14px 0 24px">Improve the record in public.</h1><p>Prototype contributions happen through GitHub issues and pull requests. There are no platform accounts, prediction uploads, hidden-label scores, or private dispute forms.</p>' +
+    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Catalog contributions</h1><p class="tml-page-intro">Improve the public record through GitHub issues and pull requests.</p><p>There are no platform accounts, prediction uploads, hidden-label scores, or private dispute forms.</p>' +
       '<div class="grid card-grid" style="margin-top:28px">' +
         '<article class="card panel"><h3>Suggest a dataset</h3><p class="muted">Provide a landing page, stable identifier, license, task description, and why it contains static telecom ML data.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Open an issue ↗</a></article>' +
         '<article class="card panel"><h3>Link a paper</h3><p class="muted">Name the dataset version and quote the passage showing actual training or evaluation use.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Submit evidence ↗</a></article>' +

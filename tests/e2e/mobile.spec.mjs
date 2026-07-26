@@ -18,7 +18,7 @@ test('mobile navigation is operable and detail content does not overflow', async
   await expect(papersLink).toBeVisible();
   await papersLink.click();
   await expect(page).toHaveURL(/#\/papers$/);
-  await expect(page.getByRole('heading', { name: 'Papers connected by evidence.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Papers' })).toBeVisible();
 
   await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
   await expect(page.getByRole('heading', { level: 1, name: 'Metro LTE KPI Handover Dataset' })).toBeVisible();

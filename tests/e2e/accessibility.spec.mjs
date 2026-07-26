@@ -8,7 +8,7 @@ test('landmarks, names, focus order, and skip navigation support keyboard users'
   await expectCoreLandmarks(page);
 
   const headings = await page.getByRole('heading', { level: 1 }).allTextContents();
-  expect(headings).toEqual(['Datasets, not benchmark noise.']);
+  expect(headings).toEqual(['Datasets']);
 
   await page.keyboard.press('Tab');
   const skip = page.getByRole('link', { name: 'Skip to content' });

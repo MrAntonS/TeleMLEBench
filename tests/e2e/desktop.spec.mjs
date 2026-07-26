@@ -2,11 +2,44 @@ import { expect, test } from '@playwright/test';
 
 import { fixtureUrl, monitorClientErrors } from './support.mjs';
 
+test('preserves the pre-redesign white and blue visual contract', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const header = page.locator('.tml-header');
+  const inner = page.locator('.tml-header-inner');
+  const hero = page.locator('.tml-herosec');
+
+  await expect(header).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.97)');
+  await expect(page.locator('.tml-logo')).toHaveCSS('background-color', 'rgb(37, 99, 235)');
+  await expect(page.locator('.tml-hero')).toHaveCSS('font-size', '54px');
+  await expect(page.locator('.signal-panel')).toHaveCount(0);
+
+  const geometry = await page.evaluate(() => {
+    const headerBox = document.querySelector('.tml-header')?.getBoundingClientRect();
+    const innerBox = document.querySelector('.tml-header-inner')?.getBoundingClientRect();
+    const heroBox = document.querySelector('.tml-herosec')?.getBoundingClientRect();
+    return {
+      headerHeight: headerBox?.height,
+      innerLeft: innerBox?.left,
+      innerWidth: innerBox?.width,
+      heroLeft: heroBox?.left,
+      heroWidth: heroBox?.width
+    };
+  });
+  expect(geometry.headerHeight).toBe(63);
+  expect(geometry.innerLeft).toBe(188);
+  expect(geometry.innerWidth).toBe(1064);
+  expect(geometry.heroLeft).toBe(188);
+  expect(geometry.heroWidth).toBe(1064);
+  assertNoClientErrors();
+});
+
 test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
-  await expect(page.getByRole('heading', { name: 'Datasets, not benchmark noise.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
   await expect(page.getByLabel('Task')).toContainText('mobility / handover');
   await expect(page.getByLabel('Source')).toContainText('Zenodo');
