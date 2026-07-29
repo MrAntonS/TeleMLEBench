@@ -62,6 +62,22 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   assertNoClientErrors();
 });
 
+test('top-bar navigation renders cached dashboard data without a reload', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'datasets'));
+
+  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  await page.getByRole('link', { name: 'Papers', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Papers' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(page).toHaveURL(/#\/home$/);
+  await expect(page.getByRole('heading', {
+    name: 'Every telecom-ML dataset, with the evidence actually verified.'
+  })).toBeVisible();
+  assertNoClientErrors();
+});
+
 test('paper detail exposes exact versioned usage evidence', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'paper/paper-1'));

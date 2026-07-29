@@ -302,7 +302,11 @@
   }
 
   function loadCore() {
-    if (state.datasetsLoaded) return Promise.resolve();
+    if (state.datasetsLoaded) {
+      state.loading = false;
+      render();
+      return Promise.resolve();
+    }
     state.loading = true;
     state.error = '';
     render();
