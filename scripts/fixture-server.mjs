@@ -64,7 +64,9 @@ function populatedResponse(apiPath) {
     return {
       datasets: coverage.counts.discovered,
       approved_static: coverage.counts.approved_static_ml,
-      papers: coverage.counts.paper_linked,
+      papers: coverage.counts.linked_papers,
+      linked_papers: coverage.counts.linked_papers,
+      confirmed_paper_links: coverage.counts.paper_linked,
       reproductions: coverage.counts.verified_reproductions
     };
   }

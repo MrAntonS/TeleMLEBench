@@ -15,6 +15,19 @@ export const dataset = {
   doi: '10.1234/radio-kpi',
   version: '1.0.0',
   last_verified: '2026-07-20T12:00:00Z',
+  review: {
+    version_id: 'version-radio-kpi-1',
+    basis: 'ai',
+    decision: 'approved',
+    model_id: 'gpt-5.6-sol',
+    policy_version: 'ai-catalog-review-2026.07.1',
+    prompt_hash: 'b'.repeat(64),
+    reviewed_at: '2026-07-20T12:30:00Z',
+    human_audit: {
+      status: 'pending',
+      audited_at: null
+    }
+  },
   source_count: 2,
   file_count: 2,
   total_bytes: 3072,
@@ -25,6 +38,55 @@ export const dataset = {
   task: 'mobility / handover',
   task_families: ['mobility / handover'],
   task_definition: 'Predict handover success from pre-event radio and mobility KPIs.',
+  task_types: ['classification'],
+  task_profile: {
+    id: 'profile-radio-kpi-v1',
+    status: 'classified',
+    source: 'ai_metadata',
+    execution_status: 'suggested',
+    primary_family: 'mobility_handover',
+    primary_task_type: 'classification',
+    primary_task_name: 'Handover success prediction',
+    task_description: 'Predict handover success from pre-event radio and mobility KPIs.',
+    tasks: [
+      {
+        task_type: 'classification',
+        task_name: 'Handover success prediction',
+        description: 'Predict handover success from pre-event radio and mobility KPIs.',
+        target: {
+          name: 'handover_success',
+          data_type: 'boolean',
+          basis: 'explicit'
+        },
+        evidence_quotes: ['supervised handover prediction']
+      }
+    ],
+    schema: {
+      field_count: 4,
+      sample_unit: 'handover attempt',
+      grouping_keys: ['ue_id'],
+      time_key: 'timestamp',
+      fields: [
+        { name: 'sample_id', data_type: 'string', role: 'id', description: 'Stable sample identifier.', basis: 'explicit' },
+        { name: 'rsrp', data_type: 'float', role: 'feature', description: 'Reference signal received power.', basis: 'explicit' },
+        { name: 'ue_id', data_type: 'string', role: 'group', description: 'User equipment grouping key.', basis: 'explicit' },
+        { name: 'handover_success', data_type: 'boolean', role: 'target', description: 'Whether the attempted handover succeeded.', basis: 'explicit' }
+      ]
+    },
+    notice: 'Metadata-derived suggestion; an explicit task adapter is still required before splitting or release construction.'
+  },
+  schema: {
+    field_count: 4,
+    sample_unit: 'handover attempt',
+    grouping_keys: ['ue_id'],
+    time_key: 'timestamp',
+    fields: [
+      { name: 'sample_id', data_type: 'string', role: 'id', description: 'Stable sample identifier.', basis: 'explicit' },
+      { name: 'rsrp', data_type: 'float', role: 'feature', description: 'Reference signal received power.', basis: 'explicit' },
+      { name: 'ue_id', data_type: 'string', role: 'group', description: 'User equipment grouping key.', basis: 'explicit' },
+      { name: 'handover_success', data_type: 'boolean', role: 'target', description: 'Whether the attempted handover succeeded.', basis: 'explicit' }
+    ]
+  },
   tags: ['LTE', 'KPI', 'handover'],
   url: 'https://doi.org/10.1234/radio-kpi',
   sources: [
@@ -94,7 +156,7 @@ export const files = [
     filename: 'test.csv',
     byte_size: 1024,
     checksum: `sha256:${'c'.repeat(64)}`,
-    content_url: 'https://zenodo.org/records/4242/files/test.csv',
+    content_url: null,
     restricted: false
   }
 ];
@@ -263,6 +325,7 @@ export const coverage = {
     approved_static_ml: 1,
     published: 1,
     paper_linked: 1,
+    linked_papers: 1,
     verified_reproductions: 1
   },
   sync: {

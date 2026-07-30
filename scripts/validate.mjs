@@ -6,6 +6,7 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const runtimeConfig = fs.readFileSync(path.join(root, 'config.js'), 'utf8');
 const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'pages.yml'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const fixtureServer = fs.readFileSync(path.join(root, 'scripts', 'fixture-server.mjs'), 'utf8');
@@ -21,16 +22,21 @@ expect(app.includes("main.setAttribute('tabindex', '-1')"), 'skip link does not 
 expect(index.includes('prefers-reduced-motion'), 'reduced-motion handling is missing');
 expect(index.includes('./config.js'), 'runtime/build configuration is not loaded');
 expect(app.includes("window.TMLB_API_BASE"), 'API configuration hook is missing');
+expect(
+  runtimeConfig.includes('http://127.0.0.1:8080/api/v1'),
+  'local runtime configuration does not target the backend on port 8080'
+);
 expect(app.includes('Backend not configured'), 'unconfigured production backend state is missing');
 expect(
-  app.includes("localContext && window.location.protocol !== 'file:'"),
-  'production must not guess a Pages-local API origin'
+  app.includes("configured = 'http://127.0.0.1:8080/api/v1'"),
+  'local fallback does not target the backend on port 8080'
 );
 expect(app.includes('isLoopbackApiBase'), 'strict loopback API validation is missing');
 expect(
   app.includes("defaults.targetAddressSpace = 'loopback'"),
   'loopback fetches do not declare their target address space'
 );
+expect(app.includes("cache: 'no-store'"), 'API reads may reuse stale catalog responses');
 expect(app.includes("data-action=\"connect-local\""), 'Pages has no explicit localhost permission action');
 expect(app.includes("name: 'loopback-network'"), 'Pages does not inspect the loopback permission state');
 expect(
@@ -43,10 +49,16 @@ expect(app.includes("'/reproductions"), 'reproduction endpoint is missing');
 expect(app.includes("'/catalog/coverage"), 'coverage endpoint is missing');
 expect(app.includes("summary.counts"), 'coverage response is not using canonical nested counts');
 expect(app.includes('Tasks and immutable releases'), 'release/task evidence panel is missing');
+expect(app.includes('Papers linked'), 'homepage does not show distinct linked papers');
+expect(!app.includes("'Papers tracked'"), 'homepage still exposes the paper-candidate count');
 expect(app.includes('#/paper/'), 'paper detail route is missing');
 expect(app.includes('#/reproduction/'), 'reproduction detail route is missing');
 expect(app.includes('Exact usage evidence'), 'paper evidence rendering is missing');
 expect(app.includes('static trainable ML'), 'ML-only scope is not communicated');
+expect(app.includes('normalizeReview'), 'dataset review provenance normalization is missing');
+expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending status is missing');
+expect(app.includes('Human audits run retroactively'), 'retroactive human audit policy is not communicated');
+expect(!app.includes('after all human publication gates'), 'obsolete human-first publication wording remains');
 expect(app.includes('signal-path'), 'provenance signal-path signature is missing');
 expect(workflow.includes('vars.TMLB_API_BASE'), 'Pages does not use the configured API variable');
 expect(workflow.includes('https://'), 'Pages does not enforce HTTPS');

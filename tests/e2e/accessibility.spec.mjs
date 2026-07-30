@@ -9,6 +9,10 @@ test('landmarks, names, focus order, and skip navigation support keyboard users'
 
   const headings = await page.getByRole('heading', { level: 1 }).allTextContents();
   expect(headings).toEqual(['Datasets']);
+  await expect(page.getByText(
+    'AI reviewed · audit pending',
+    { exact: true }
+  )).toBeVisible();
 
   await page.keyboard.press('Tab');
   const skip = page.getByRole('link', { name: 'Skip to content' });

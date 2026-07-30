@@ -59,8 +59,8 @@
       localContext ||
       isLoopbackApiBase(override)
     )) configured = override;
-    if (!configured && localContext && window.location.protocol !== 'file:') {
-      configured = window.location.origin + '/api/v1';
+    if (!configured && localContext) {
+      configured = 'http://127.0.0.1:8080/api/v1';
     }
     if (
       window.location.protocol === 'https:' &&
@@ -99,7 +99,9 @@
 
   function safeUrl(value) {
     try {
-      var url = new URL(String(value || ''), window.location.href);
+      var raw = String(value || '').trim();
+      if (!raw) return '';
+      var url = new URL(raw, window.location.href);
       return /^(https?:)$/.test(url.protocol) ? url.href : '';
     } catch (_) {
       return '';
@@ -154,7 +156,10 @@
 
   function api(path, options) {
     if (!API_BASE) return Promise.reject(new Error('The backend API is not configured for this deployment.'));
-    var defaults = { headers: { Accept: 'application/json' } };
+    var defaults = {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    };
     if (isLoopbackApiBase(API_BASE)) defaults.targetAddressSpace = 'loopback';
     return fetch(API_BASE + path, Object.assign(defaults, options || {})).then(function (res) {
       if (!res.ok) {
@@ -206,7 +211,33 @@
   }
 
   function taskName(item) {
-    return text(item.task || item.task_type || item.taskType || item.ml_type || item.domain || item.category, 'Needs task adapter');
+    var profile = item && item.task_profile && typeof item.task_profile === 'object'
+      ? item.task_profile : {};
+    return text(item.task || profile.primary_task_type || item.task_type || item.taskType || item.ml_type || item.domain || item.category, 'Needs task adapter');
+  }
+
+  function normalizeReview(value) {
+    var review = value && typeof value === 'object' && !Array.isArray(value)
+      ? value : {};
+    var humanAudit = review.human_audit &&
+      typeof review.human_audit === 'object' &&
+      !Array.isArray(review.human_audit)
+      ? review.human_audit : {};
+    var basis = text(review.basis, 'legacy_unknown').toLowerCase();
+    return {
+      versionId: text(review.version_id, ''),
+      basis: basis,
+      decision: text(review.decision, 'unknown').toLowerCase(),
+      modelId: text(review.model_id, ''),
+      policyVersion: text(review.policy_version, ''),
+      promptHash: text(review.prompt_hash, ''),
+      reviewedAt: review.reviewed_at || '',
+      humanAuditStatus: text(
+        humanAudit.status,
+        basis === 'ai' ? 'pending' : 'unknown'
+      ).toLowerCase(),
+      humanAuditedAt: humanAudit.audited_at || ''
+    };
   }
 
   function normalizeDataset(item) {
@@ -216,7 +247,14 @@
     var sourceProviders = unique(sources.map(function (source) {
       return text(source.provider, '');
     }).filter(Boolean));
-    var taskFamilies = Array.isArray(item.task_families) ? item.task_families : [];
+    var profile = item.task_profile && typeof item.task_profile === 'object'
+      ? item.task_profile : null;
+    var schema = item.schema && typeof item.schema === 'object'
+      ? item.schema : (profile && profile.schema && typeof profile.schema === 'object'
+        ? profile.schema : { fields: [] });
+    var taskFamilies = Array.isArray(item.task_types) && item.task_types.length
+      ? item.task_types
+      : (Array.isArray(item.task_families) ? item.task_families : []);
     if (!taskFamilies.length && taskName(item) !== 'Needs task adapter') {
       taskFamilies = [taskName(item)];
     }
@@ -252,11 +290,14 @@
       publisher: text(item.publisher, 'Not recorded'),
       version: text(item.version, 'Not recorded'),
       taskDefinition: text(item.task_definition, ''),
+      taskProfile: profile,
+      schema: schema,
       isMl: !item.kind || item.kind === 'trainable_ml',
       isStatic: !item.asset_type || item.asset_type === 'static_dataset',
       approved: !item.relevance_status || item.relevance_status === 'approved',
       downloadStatus: text(item.download_status, 'not_requested'),
-      lastVerified: item.last_verified || ''
+      lastVerified: item.last_verified || '',
+      review: normalizeReview(item.review)
     };
   }
 
@@ -312,11 +353,21 @@
     render();
     return Promise.all([
       loadDatasetPages(),
-      optional('/stats')
+      optional('/stats'),
+      optional('/catalog/coverage')
     ]).then(function (values) {
-      state.datasets = list(values[0]).map(normalizeDataset).filter(isPublicMl);
+      state.datasets = list(values[0]).map(normalizeDataset).filter(isPublicMl)
+        .sort(function (left, right) {
+          return (right.paperCount - left.paperCount) ||
+            (right.fileCount - left.fileCount) ||
+            left.name.localeCompare(right.name);
+        });
       state.datasetsLoaded = true;
-      state.stats = values[1] || {};
+      state.stats = Object.assign(
+        {},
+        values[1] || {},
+        (values[2] && values[2].counts) || {}
+      );
     }).catch(function (err) {
       state.error = err.message || 'The catalog could not be loaded.';
     }).finally(function () {
@@ -344,6 +395,12 @@
       }).map(normalizeReproduction);
       state.detail = {
         dataset: dataset,
+        taskProfile: raw.task_profile && typeof raw.task_profile === 'object'
+          ? raw.task_profile : null,
+        schema: raw.schema && typeof raw.schema === 'object'
+          ? raw.schema
+          : (raw.task_profile && raw.task_profile.schema
+            ? raw.task_profile.schema : { fields: [] }),
         files: list(values[1]),
         sources: Array.isArray(raw.sources) ? raw.sources : [],
         versions: Array.isArray(raw.versions) ? raw.versions : [],
@@ -364,8 +421,17 @@
     state.loading = true;
     state.error = '';
     render();
-    api('/papers?limit=200').then(function (payload) {
-      state.papers = list(payload).map(normalizePaper);
+    Promise.all([
+      api('/papers?limit=200'),
+      optional('/catalog/coverage')
+    ]).then(function (values) {
+      state.papers = list(values[0]).map(normalizePaper);
+      if (values[1]) {
+        state.coverage = {
+          summary: values[1],
+          sources: state.coverage ? state.coverage.sources : []
+        };
+      }
     }).catch(function (err) {
       state.error = err.message || 'Paper metadata could not be loaded.';
     }).finally(function () {
@@ -483,10 +549,66 @@
     '</div></footer>';
   }
 
-  function statusBadge(value) {
-    var normalized = text(value, 'unknown').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  function statusBadge(value, tone) {
+    var normalized = text(tone || value, 'unknown').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
     return '<span class="tml-status ' + normalized + '">' +
       esc(text(value, 'unknown').replace(/_/g, ' ')) + '</span>';
+  }
+
+  function reviewPresentation(review) {
+    if (review.basis === 'ai') {
+      if (review.humanAuditStatus === 'completed') {
+        return { label: 'AI reviewed · human audited', tone: 'verified' };
+      }
+      if (review.humanAuditStatus === 'flagged') {
+        return { label: 'AI reviewed · audit flagged', tone: 'rejected' };
+      }
+      if (review.humanAuditStatus === 'in_progress') {
+        return { label: 'AI reviewed · audit in progress', tone: 'pending' };
+      }
+      return { label: 'AI reviewed · audit pending', tone: 'pending' };
+    }
+    if (review.basis === 'human') {
+      return { label: 'Human reviewed', tone: 'verified' };
+    }
+    return { label: 'Review provenance unavailable', tone: 'unknown' };
+  }
+
+  function reviewBadge(review) {
+    var presentation = reviewPresentation(review);
+    return statusBadge(presentation.label, presentation.tone);
+  }
+
+  function publicationReviewFact(review) {
+    if (review.basis === 'ai') {
+      return 'AI' + (review.modelId ? ' · ' + review.modelId : '');
+    }
+    if (review.basis === 'human') return 'Human';
+    return 'Not recorded';
+  }
+
+  function reviewPolicyFact(review) {
+    var policy = text(review.policyVersion, 'Not recorded');
+    return review.reviewedAt
+      ? policy + ' · ' + date(review.reviewedAt)
+      : policy;
+  }
+
+  function humanAuditFact(review) {
+    var labels = {
+      pending: 'Pending',
+      in_progress: 'In progress',
+      completed: 'Completed',
+      flagged: 'Flagged',
+      unknown: 'Not recorded'
+    };
+    var label = labels[review.humanAuditStatus] || text(
+      review.humanAuditStatus.replace(/_/g, ' '),
+      'Not recorded'
+    );
+    return review.humanAuditedAt
+      ? label + ' · ' + date(review.humanAuditedAt)
+      : label;
   }
 
   function signalPath(stages) {
@@ -516,6 +638,7 @@
         esc(category) + '</span>' + statusBadge(d.access) + '</div>' +
       '<h3>' + esc(d.name) + '</h3>' +
       '<p class="tml-clamp2">' + esc(d.description) + '</p>' +
+      '<div class="tml-review-status">' + reviewBadge(d.review) + '</div>' +
       '<div class="tml-card-bottom">' +
         '<div><div class="tml-meta-label">Primary source</div>' +
           '<div class="tml-meta-value">' + esc(d.source) + '</div></div>' +
@@ -568,10 +691,10 @@
     var featured = state.datasets.slice(0, 6);
     return '<main id="main">' +
       '<section class="tml-herosec">' +
-        '<h1 class="tml-hero">Every telecom-ML dataset, with the evidence actually verified.</h1>' +
+        '<h1 class="tml-hero">Every telecom-ML dataset, with its review trail visible.</h1>' +
         '<p class="tml-hero-copy">A searchable catalog of channel estimation, beamforming, ' +
           'mobility, network traffic and more — where every dataset keeps its source, ' +
-          'release, paper-use evidence, and reproduction status visible.</p>' +
+          'automated review, human audit, release, paper-use evidence, and reproduction status visible.</p>' +
         '<div class="tml-searchbox" role="search">' +
           '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8f9a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
           '<label class="sr-only" for="filter-query">Search</label>' +
@@ -582,7 +705,12 @@
         '<div class="tml-stats">' +
           statBlock(state.datasets.length || stats.approved_static, 'Datasets') +
           statBlock(stats.published || stats.releases, 'Published releases') +
-          statBlock(stats.confirmed_paper_links || stats.papers, 'Papers tracked') +
+          statBlock(
+            stats.linked_papers != null
+              ? stats.linked_papers
+              : (stats.papers != null ? stats.papers : 0),
+            'Papers linked'
+          ) +
           statBlock(stats.verified_reproductions || stats.reproductions, 'Verified reproductions') +
         '</div>' +
       '</section>' +
@@ -590,7 +718,7 @@
         '<h2>Featured datasets</h2><a href="#/datasets">Browse all →</a></div>' +
       (state.loading ? loading() : state.error ? errorBox() : featured.length
         ? '<div class="tml-cardgrid">' + featured.map(datasetCard).join('') + '</div>'
-        : '<div class="tml-state"><h3>No reviewed ML releases yet</h3><p>Candidates remain hidden until the relevance, task, license, sensitivity, and publication reviews pass.</p><a class="tml-button" href="#/coverage">Inspect coverage</a></div>') +
+        : '<div class="tml-state"><h3>No AI-reviewed ML records yet</h3><p>Candidates appear after deterministic source checks and evidence-bound AI relevance and usability review. Human audits follow publication.</p><a class="tml-button" href="#/coverage">Inspect coverage</a></div>') +
       '</section></main>';
   }
 
@@ -753,6 +881,47 @@
         esc(example) + '</code></pre></div>' : '');
   }
 
+  function metadataTaskRows(detail) {
+    var profile = detail.taskProfile;
+    var tasks = profile && Array.isArray(profile.tasks) ? profile.tasks : [];
+    if (!tasks.length) return '';
+    return '<div class="source-list" style="margin-top:16px">' + tasks.map(function (task) {
+      var target = task.target && task.target.name
+        ? ' · target ' + task.target.name + ' (' + text(task.target.basis, 'inferred') + ')'
+        : '';
+      return '<div class="source-row"><div><div class="row-title">' +
+        esc(text(task.task_name, 'Metadata-derived task')) +
+        '</div><div class="row-meta">' +
+        esc(text(task.task_type, 'unknown').replace(/_/g, ' ') + target) +
+        '</div></div>' + statusBadge('suggested') + '</div>';
+    }).join('') + '</div>';
+  }
+
+  function schemaRows(detail) {
+    var schema = detail.schema && typeof detail.schema === 'object'
+      ? detail.schema : {};
+    var fields = Array.isArray(schema.fields) ? schema.fields : [];
+    if (!fields.length) {
+      return '<div class="empty"><h3>No metadata schema available</h3><p class="muted">The provider has not exposed field-level metadata yet. TeleMLEBench does not invent columns from filenames or assume the last column is a target.</p></div>';
+    }
+    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Field</th><th>Type / shape</th><th>Role</th><th>Description</th></tr></thead><tbody>' +
+      fields.map(function (field) {
+        var typeShape = text(field.data_type, 'unknown') +
+          (field.shape ? ' · ' + field.shape : '');
+        return '<tr><td class="mono"><strong>' + esc(text(field.name, 'unnamed')) +
+          '</strong></td><td>' + esc(typeShape) + '</td><td>' +
+          esc(text(field.role, 'unknown')) + '</td><td>' +
+          esc(text(field.description, 'No field description recorded.')) +
+          '<div class="row-meta">' + esc(text(field.basis, 'inferred')) +
+          ' metadata</div></td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<dl class="kv" style="margin-top:14px">' +
+        '<dt>Sample unit</dt><dd>' + esc(text(schema.sample_unit, 'Not established')) + '</dd>' +
+        '<dt>Grouping keys</dt><dd class="mono">' + esc(Array.isArray(schema.grouping_keys) && schema.grouping_keys.length ? schema.grouping_keys.join(', ') : 'Not established') + '</dd>' +
+        '<dt>Time key</dt><dd class="mono">' + esc(text(schema.time_key, 'Not established')) + '</dd>' +
+      '</dl>';
+  }
+
   function paperRows(papers) {
     if (!papers.length) return '<div class="empty"><h3>No confirmed paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Confirmed relationships require inspectable evidence.</p></div>';
     return papers.map(function (p) {
@@ -787,10 +956,12 @@
         '<div class="detail-title"><div><div class="eyebrow">' + esc(d.task) + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(d.description) + '</p></div>' +
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div style="margin-bottom:22px">' + detailRail(x) + '</div><div class="detail-body"><div>' +
-        '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">Task contract</div><h2 style="margin-top:10px">What this data supports</h2></div>' + statusBadge(d.downloadStatus) + '</div>' +
+        '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">Metadata-derived ML task</div><h2 style="margin-top:10px">' + esc(text(d.taskProfile && d.taskProfile.primary_task_name, 'What this data supports')) + '</h2></div>' + statusBadge(d.taskProfile ? 'suggested' : d.downloadStatus) + '</div>' +
           '<p class="definition">' + esc(d.taskDefinition || 'No reviewed task definition is published yet. The dataset remains discoverable, but no target or task view should be inferred from column order.') + '</p>' +
+          metadataTaskRows(x) +
           '<div class="tag-row">' + [d.task,d.domain,d.origin].concat(d.tags.slice(0,4)).filter(Boolean).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('') + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Tasks and immutable releases</h2><span class="id">70 / 15 / 15 · seed 42</span></div>' + taskReleaseRows(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Papers using this dataset</h2><span class="id">Evidence required</span></div><div class="paper-list">' + paperRows(x.papers) + '</div></section>' +
@@ -803,6 +974,9 @@
           '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
           '<dt>Origin</dt><dd>' + esc(d.origin) + '</dd>' +
           '<dt>Publisher</dt><dd>' + esc(d.publisher) + '</dd>' +
+          '<dt>Publication review</dt><dd>' + esc(publicationReviewFact(d.review)) + '</dd>' +
+          '<dt>Review policy</dt><dd class="mono">' + esc(reviewPolicyFact(d.review)) + '</dd>' +
+          '<dt>Human audit</dt><dd>' + esc(humanAuditFact(d.review)) + '</dd>' +
           '<dt>Last verified</dt><dd>' + esc(date(d.lastVerified)) + '</dd>' +
           '<dt>DOI</dt><dd class="mono">' + esc(d.doi || 'Not recorded') + '</dd>' +
         '</dl></section>' +
@@ -811,8 +985,16 @@
   }
 
   function papersPage() {
+    var coverageCounts = (
+      state.coverage && state.coverage.summary &&
+      (state.coverage.summary.counts || state.coverage.summary)
+    ) || {};
+    var candidateMessage =
+      number(coverageCounts.cataloged_papers) + ' paper records and ' +
+      number(coverageCounts.paper_candidates) +
+      ' dataset-use candidates are cataloged; none has passed exact-use confirmation yet.';
     return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Papers</h1><p class="tml-page-intro">Papers connected to datasets by exact usage evidence, not citation alone.</p></div><p class="section-copy">Reproduction requires open-access full text or a lawful user-supplied copy. Metadata can still be cataloged when the paper itself is gated.</p></div>' +
-      (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No public papers returned</h3><p class="muted">The literature graph may still be building.</p></div>') +
+      (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No confirmed paper use yet</h3><p class="muted">' + esc(candidateMessage) + '</p></div>') +
     '</div></main>';
   }
 
@@ -947,7 +1129,7 @@
     return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">One transparent evidence chain, with separate source, release, paper, and reproduction records.</p>' +
       '<p>TeleMLEBench separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
       '<div class="steps">' +
-        '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then independently review telecom relevance, static-data evidence, license, access, and sensitivity.</p></div></article>' +
+        '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then apply deterministic source checks and AI semantic review. Legal and sensitivity gates separately control payload acquisition and release. Human audits run retroactively and can correct or withdraw a record.</p></div></article>' +
         '<article class="step"><div><h3>Immutable release</h3><p>Mirror only when redistribution is allowed. Hash the raw snapshot, assign stable sample IDs, publish a documented task adapter, and preserve the provider split alongside the TeleMLEBench view.</p></div></article>' +
         '<article class="step"><div><h3>Leakage-aware split</h3><p>Use 70/15/15 and seed 42. Time, subscriber, device, cell, site, route, session, or spatial dependencies stay together. Stratified rows are only a proven-safe fallback.</p></div></article>' +
         '<article class="step"><div><h3>Paper-use evidence</h3><p>Find papers from direct identifiers, aliases, and citation graphs. Store the exact passage showing training or evaluation use; a citation alone is not accepted.</p></div></article>' +
@@ -967,10 +1149,11 @@
       (state.loading ? loading('Loading source coverage…') : state.error ? errorBox() :
         '<div class="grid coverage-grid">' +
           '<article class="card coverage-card"><strong>' + esc(number(s.discovered != null ? s.discovered : s.datasets)) + '</strong><h3>Discovered candidates</h3><p>Raw candidates before relevance, usability, license, and publication review.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.approved_static_ml != null ? s.approved_static_ml : (s.approved_static != null ? s.approved_static : state.datasets.length))) + '</strong><h3>Active ML records</h3><p>Static trainable records exposed by the current API after all human publication gates.</p></article>' +
+          '<article class="card coverage-card"><strong>' + esc(number(s.approved_static_ml != null ? s.approved_static_ml : (s.approved_static != null ? s.approved_static : state.datasets.length))) + '</strong><h3>Active ML records</h3><p>Static trainable records exposed after deterministic checks and AI metadata review. Human audits run retroactively and can correct or withdraw a record.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(s.published)) + '</strong><h3>Published releases</h3><p>Immutable task releases with public manifests, checksums, and reviewed split assignments.</p></article>' +
+          '<article class="card coverage-card"><strong>' + esc(number(s.paper_candidates)) + '</strong><h3>Paper-use candidates</h3><p>Source-linked papers queued for exact evidence confirmation across ' + esc(number(s.paper_candidate_datasets)) + ' dataset concepts.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(s.paper_linked != null ? s.paper_linked : s.confirmed_paper_links)) + '</strong><h3>Confirmed paper links</h3><p>Relationships requiring evidence of real dataset use rather than citation alone.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.verified_reproductions)) + '</strong><h3>Verified reproductions</h3><p>Only harness-passing, conformant runs scored by the trusted evaluator.</p></article>' +
+          '<article class="card coverage-card"><strong>' + esc(number(s.verified_reproductions)) + '</strong><h3>Verified reproductions</h3><p>Paper-claim experiments with at least one harness-passing, conformant run scored by the trusted evaluator.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(sync.terminal)) + ' / ' + esc(number(sync.total)) + '</strong><h3>Terminal source scans</h3><p>Complete or explicitly waived registry queries. Registry: ' + esc(text(summary.registry_version, 'not reported')) + '.</p></article>' +
         '</div>' +
         '<div class="section-head" style="margin-top:46px"><div><div class="eyebrow">Source registry</div><h2>Synchronization state</h2></div><p class="section-copy">Operational errors are summarized, not exposed with internal URLs or credentials.</p></div>' +

@@ -14,6 +14,9 @@ test('preserves the pre-redesign white and blue visual contract', async ({ page 
   await expect(page.locator('.tml-logo')).toHaveCSS('background-color', 'rgb(37, 99, 235)');
   await expect(page.locator('.tml-hero')).toHaveCSS('font-size', '54px');
   await expect(page.locator('.signal-panel')).toHaveCount(0);
+  const linkedPapers = page.locator('.tml-stats > div').filter({ hasText: 'Papers linked' });
+  await expect(linkedPapers).toContainText('1');
+  await expect(page.getByText('Papers tracked', { exact: true })).toHaveCount(0);
 
   const geometry = await page.evaluate(() => {
     const headerBox = document.querySelector('.tml-header')?.getBoundingClientRect();
@@ -41,17 +44,34 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
-  await expect(page.getByLabel('Task')).toContainText('mobility / handover');
+  const reviewBadge = page.getByText('AI reviewed · audit pending', { exact: true });
+  await expect(reviewBadge).toBeVisible();
+  await expect(reviewBadge).toHaveClass(/pending/);
+  await expect(page.getByLabel('Task')).toContainText('classification');
   await expect(page.getByLabel('Source')).toContainText('Zenodo');
 
   await page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ }).click();
   await expect(page).toHaveURL(/#\/dataset\/radio-kpi$/);
   await expect(page.getByRole('heading', { level: 1, name: datasetName })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Handover success prediction' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Dataset schema' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'handover_success' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tasks and immutable releases' })).toBeVisible();
   await expect(page.getByText('release-radio-kpi-v1', { exact: true })).toBeVisible();
   await expect(page.getByText('70 / 15 / 15')).toBeVisible();
   await expect(page.getByText('train.csv')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Provider file/ })).toHaveCount(1);
+  await expect(page.getByText('metadata only', { exact: true })).toBeVisible();
   await expect(page.getByText('We train and evaluate every model')).toBeVisible();
+  await expect(page.getByText('Publication review', { exact: true })).toBeVisible();
+  await expect(page.getByText('AI · gpt-5.6-sol', { exact: true })).toBeVisible();
+  await expect(page.getByText('Review policy', { exact: true })).toBeVisible();
+  await expect(page.getByText(
+    'ai-catalog-review-2026.07.1 · Jul 20, 2026',
+    { exact: true }
+  )).toBeVisible();
+  await expect(page.getByText('Human audit', { exact: true })).toBeVisible();
+  await expect(page.getByText('Pending', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: paperTitle }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: paperTitle }).first()).toHaveAttribute('href', '#/paper/paper-1');
   await expect(page.getByRole('link', { name: paperTitle }).last()).toHaveAttribute(
@@ -73,7 +93,7 @@ test('top-bar navigation renders cached dashboard data without a reload', async 
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   await expect(page).toHaveURL(/#\/home$/);
   await expect(page.getByRole('heading', {
-    name: 'Every telecom-ML dataset, with the evidence actually verified.'
+    name: 'Every telecom-ML dataset, with its review trail visible.'
   })).toBeVisible();
   assertNoClientErrors();
 });
@@ -123,7 +143,7 @@ test('empty and unavailable catalogs state different facts', async ({ page }) =>
   await expect(page.getByText('Evidence service unavailable')).toHaveCount(0);
 
   await page.goto(fixtureUrl('empty', 'papers'));
-  await expect(page.getByRole('heading', { name: 'No public papers returned' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No confirmed paper use yet' })).toBeVisible();
 
   await page.goto(fixtureUrl('empty', 'reproductions'));
   await expect(page.getByRole('heading', { name: 'No controlled reproduction record' })).toBeVisible();
