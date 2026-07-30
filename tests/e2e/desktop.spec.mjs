@@ -103,7 +103,7 @@ test('paper detail exposes exact versioned usage evidence', async ({ page }) => 
   await page.goto(fixtureUrl('populated', 'paper/paper-1'));
 
   await expect(page.getByRole('heading', { level: 1, name: paperTitle })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Confirmed dataset use' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Evidence-linked dataset use' })).toBeVisible();
   await expect(page.getByText('version-radio-kpi-1')).toBeVisible();
   await expect(page.getByText('[IV-A Dataset, p. 5]')).toBeVisible();
   await expect(page.getByText('Ada Researcher, Lin Engineer')).toBeVisible();
@@ -143,7 +143,7 @@ test('empty and unavailable catalogs state different facts', async ({ page }) =>
   await expect(page.getByText('Evidence service unavailable')).toHaveCount(0);
 
   await page.goto(fixtureUrl('empty', 'papers'));
-  await expect(page.getByRole('heading', { name: 'No confirmed paper use yet' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No evidence-linked paper use yet' })).toBeVisible();
 
   await page.goto(fixtureUrl('empty', 'reproductions'));
   await expect(page.getByRole('heading', { name: 'No controlled reproduction record' })).toBeVisible();

@@ -301,7 +301,12 @@
       relevance_status: 'approved',
       download_status: version.acquisition_status || 'not_requested',
       release_count: 0,
-      reproduction_count: 0
+      reproduction_count: 0,
+      review: {
+        basis: 'qualification',
+        decision: 'approved',
+        policy_version: 'public-qualified-with-paper-evidence'
+      }
     };
   }
 
@@ -938,6 +943,9 @@
   }
 
   function reviewPresentation(review) {
+    if (review.basis === 'qualification') {
+      return { label: 'Qualified - paper evidence linked', tone: 'verified' };
+    }
     if (review.basis === 'ai') {
       if (review.humanAuditStatus === 'completed') {
         return { label: 'AI reviewed · human audited', tone: 'verified' };
@@ -962,6 +970,7 @@
   }
 
   function publicationReviewFact(review) {
+    if (review.basis === 'qualification') return 'Qualification gates passed';
     if (review.basis === 'ai') {
       return 'AI' + (review.modelId ? ' · ' + review.modelId : '');
     }
@@ -1163,7 +1172,7 @@
         '<div class="field"><label for="filter-source">Source</label><select id="filter-source" data-filter="source">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.sourceProviders;}))), state.filters.source) + '</select></div>' +
         '<div class="field"><label for="filter-license">License</label><select id="filter-license" data-filter="license">' + filterOptions(unique(state.datasets.map(function(d){return d.license;})), state.filters.license) + '</select></div>' +
         '<div class="field"><label for="filter-publication">Publication</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Published release'},{value:'source-only',label:'Source-only'}], state.filters.publication) + '</select></div>' +
-        '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Evidence-linked'},{value:'none',label:'No confirmed paper'}], state.filters.papers) + '</select></div>' +
+        '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Evidence-linked'},{value:'none',label:'No evidence-linked paper'}], state.filters.papers) + '</select></div>' +
         '<div class="field"><label for="filter-reproduction">Reproduction</label><select id="filter-reproduction" data-filter="reproduction">' + choiceOptions([{value:'verified',label:'Verified result'},{value:'recorded',label:'Protocol recorded'},{value:'none',label:'No protocol'}], state.filters.reproduction) + '</select></div>' +
       '</div>' +
       '<div class="tml-result-line"><span>' + esc(number(results.length)) +
@@ -1192,7 +1201,7 @@
     var copy = [
       {v:d.source, l:d.sourceCount ? d.sourceCount + ' source records' : 'Primary record'},
       {v:hasRelease ? detail.releases.length + ' published' : 'Not published', l:'Immutable task view'},
-      {v:hasPaper ? (detail.papers.length || d.paperCount) + ' linked' : 'No confirmed use', l:'Usage evidence'},
+      {v:hasPaper ? (detail.papers.length || d.paperCount) + ' linked' : 'No evidence-linked use', l:'Usage evidence'},
       {v:hasRepro ? detail.reproductions.length + ' protocols' : 'No protocol recorded', l:'Controlled study'}
     ];
     return '<section class="rail-wrap" aria-label="Dataset provenance signal path">' +
@@ -1305,7 +1314,7 @@
   }
 
   function paperRows(papers) {
-    if (!papers.length) return '<div class="empty"><h3>No confirmed paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Confirmed relationships require inspectable evidence.</p></div>';
+    if (!papers.length) return '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Machine-linked relationships require an inspectable evidence passage and remain open to correction.</p></div>';
     return papers.map(function (p) {
       var detailUrl = p.id ? '#/paper/' + encodeURIComponent(p.id) : '';
       return '<article class="paper-row"><div class="card-kicker">' + statusBadge(p.status) + '<span class="id">' + esc(p.year) + '</span></div><h3 style="margin:12px 0 6px">' +
@@ -1346,7 +1355,7 @@
         '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Papers using this dataset</h2><span class="id">Evidence required</span></div><div class="paper-list">' + paperRows(x.papers) + '</div></section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Papers linked by dataset-use evidence</h2><span class="id">Machine checked</span></div><div class="paper-list">' + paperRows(x.papers) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Reproduction reports</h2><span class="id">Attributable outcomes</span></div><div class="repro-list">' + reproductionRows(x.reproductions) + '</div></section>' +
       '</div><aside>' +
         '<section class="card panel"><h3>Record facts</h3><dl class="kv">' +
@@ -1375,8 +1384,8 @@
       number(coverageCounts.cataloged_papers) + ' paper records and ' +
       number(coverageCounts.paper_candidates) +
       ' dataset-use candidates are cataloged; none has passed exact-use confirmation yet.';
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Papers</h1><p class="tml-page-intro">Papers connected to datasets by exact usage evidence, not citation alone.</p></div><p class="section-copy">Reproduction requires open-access full text or a lawful user-supplied copy. Metadata can still be cataloged when the paper itself is gated.</p></div>' +
-      (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No confirmed paper use yet</h3><p class="muted">' + esc(candidateMessage) + '</p></div>') +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Papers</h1><p class="tml-page-intro">Papers connected to datasets by machine-checked usage evidence, not citation alone.</p></div><p class="section-copy">Every link includes an inspectable passage and paper-text hash. These are evidence-linked records, not a claim that every link has been manually verified. Reproduction requires open-access full text or a lawful user-supplied copy.</p></div>' +
+      (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">' + esc(candidateMessage) + '</p></div>') +
     '</div></main>';
   }
 
@@ -1390,19 +1399,19 @@
     var versions = Array.isArray(raw.versions) ? raw.versions : [];
     return '<main id="main"><section class="detail-hero"><div class="container">' +
       '<div class="breadcrumbs"><a href="#/papers">Papers</a><span>/</span><span>' + esc(paper.id) + '</span></div>' +
-      '<div class="detail-title"><div><div class="eyebrow">Dataset-use evidence</div><h1>' + esc(paper.title) + '</h1><p>Relationships appear here only after a specific version of this paper is confirmed to train or evaluate on a specific dataset version.</p></div>' +
+      '<div class="detail-title"><div><div class="eyebrow">Dataset-use evidence</div><h1>' + esc(paper.title) + '</h1><p>Relationships appear here after a machine check finds an exact passage linking this paper version to training or evaluation on a dataset version. The passage remains visible for audit and correction.</p></div>' +
       '<div class="detail-actions">' + externalButton(paper.url, 'Open lawful source') + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
-      '<section class="card panel"><div class="panel-head"><h2>Confirmed dataset use</h2><span class="id">' + esc(number(usages.length)) + ' relationships</span></div>' +
+      '<section class="card panel"><div class="panel-head"><h2>Evidence-linked dataset use</h2><span class="id">' + esc(number(usages.length)) + ' relationships</span></div>' +
       (usages.length ? usages.map(function (usage) {
         var slug = usage.dataset_slug || usage.dataset;
-        return '<article class="paper-row"><div class="card-kicker">' + statusBadge('confirmed') +
+        return '<article class="paper-row"><div class="card-kicker">' + statusBadge('evidence linked') +
           '<span class="id">' + esc(text(usage.dataset_version_id, 'version not listed')) + '</span></div>' +
           '<h3 style="margin:12px 0 8px"><a href="#/dataset/' + encodeURIComponent(slug) + '">' +
           esc(text(usage.dataset_name, slug)) + '</a></h3>' +
           '<div class="evidence"><strong>Exact usage evidence</strong><br>' +
           esc(evidenceText(usage.evidence) || 'No public evidence span is available.') + '</div></article>';
-      }).join('') : '<div class="empty"><h3>No public confirmed relationship</h3><p class="muted">Metadata alone does not establish dataset use.</p></div>') +
+      }).join('') : '<div class="empty"><h3>No public evidence-linked relationship</h3><p class="muted">Metadata alone does not establish dataset use.</p></div>') +
       '</section>' +
       (paper.abstract ? '<section class="card panel"><h2>Abstract</h2><p class="muted" style="line-height:1.7">' + esc(paper.abstract) + '</p></section>' : '') +
       '</div><aside><section class="card panel"><h3>Paper facts</h3><dl class="kv">' +
@@ -1534,7 +1543,7 @@
           '<article class="card coverage-card"><strong>' + esc(number(s.approved_static_ml != null ? s.approved_static_ml : (s.approved_static != null ? s.approved_static : state.datasets.length))) + '</strong><h3>Active ML records</h3><p>Static trainable records exposed after deterministic checks and AI metadata review. Human audits run retroactively and can correct or withdraw a record.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(s.published)) + '</strong><h3>Published releases</h3><p>Immutable task releases with public manifests, checksums, and reviewed split assignments.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(s.paper_candidates)) + '</strong><h3>Paper-use candidates</h3><p>Source-linked papers queued for exact evidence confirmation across ' + esc(number(s.paper_candidate_datasets)) + ' dataset concepts.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.paper_linked != null ? s.paper_linked : s.confirmed_paper_links)) + '</strong><h3>Confirmed paper links</h3><p>Relationships requiring evidence of real dataset use rather than citation alone.</p></article>' +
+          '<article class="card coverage-card"><strong>' + esc(number(s.paper_linked != null ? s.paper_linked : s.confirmed_paper_links)) + '</strong><h3>Evidence-linked paper relationships</h3><p>Machine-checked relationships with an exact passage and paper-text hash. They remain auditable and correctable.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(s.verified_reproductions)) + '</strong><h3>Verified reproductions</h3><p>Paper-claim experiments with at least one harness-passing, conformant run scored by the trusted evaluator.</p></article>' +
           '<article class="card coverage-card"><strong>' + esc(number(sync.terminal)) + ' / ' + esc(number(sync.total)) + '</strong><h3>Terminal source scans</h3><p>Complete or explicitly waived registry queries. Registry: ' + esc(text(summary.registry_version, 'not reported')) + '.</p></article>' +
         '</div>' +

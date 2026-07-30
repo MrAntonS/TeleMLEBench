@@ -54,6 +54,14 @@ expect(app.includes("summary.counts"), 'coverage response is not using canonical
 expect(app.includes('Tasks and immutable releases'), 'release/task evidence panel is missing');
 expect(app.includes('Papers linked'), 'homepage does not show distinct linked papers');
 expect(!app.includes("'Papers tracked'"), 'homepage still exposes the paper-candidate count');
+expect(
+  app.includes('Qualified - paper evidence linked'),
+  'qualified public datasets do not show an accurate qualification badge'
+);
+expect(
+  app.includes('Evidence-linked paper relationships'),
+  'paper counts are still presented as universally human-confirmed'
+);
 expect(app.includes('#/paper/'), 'paper detail route is missing');
 expect(app.includes('#/reproduction/'), 'reproduction detail route is missing');
 expect(app.includes('Exact usage evidence'), 'paper evidence rendering is missing');
