@@ -30,6 +30,10 @@
   };
 
   var app = document.getElementById('app');
+  var SUPABASE_URL = String(window.TMLB_SUPABASE_URL || '').trim().replace(/\/+$/, '');
+  var SUPABASE_KEY = String(window.TMLB_SUPABASE_PUBLISHABLE_KEY || '').trim();
+  var LEGACY_API_OVERRIDE = Boolean(new URLSearchParams(window.location.search).get('api'));
+  var USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_KEY && !LEGACY_API_OVERRIDE);
   var API_BASE = resolveApiBase();
   var LOOPBACK_PERMISSION_MODE =
     window.location.protocol === 'https:' && isLoopbackApiBase(API_BASE);
@@ -59,6 +63,7 @@
       localContext ||
       isLoopbackApiBase(override)
     )) configured = override;
+    if (USE_SUPABASE) return '';
     if (!configured && localContext) {
       configured = 'http://127.0.0.1:8080/api/v1';
     }
@@ -155,6 +160,7 @@
   }
 
   function api(path, options) {
+    if (USE_SUPABASE) return catalogApi(path);
     if (!API_BASE) return Promise.reject(new Error('The backend API is not configured for this deployment.'));
     var defaults = {
       cache: 'no-store',
@@ -203,6 +209,382 @@
 
   function first(value) {
     return Array.isArray(value) ? value[0] : value;
+  }
+
+  function supabase(table, params) {
+    var url = new URL(SUPABASE_URL + '/rest/v1/' + table);
+    Object.keys(params || {}).forEach(function (key) {
+      if (params[key] != null && params[key] !== '') url.searchParams.set(key, params[key]);
+    });
+    return fetch(url.href, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        apikey: SUPABASE_KEY
+      }
+    }).then(function (res) {
+      if (!res.ok) {
+        var err = new Error('Catalog request failed (' + res.status + ')');
+        err.status = res.status;
+        throw err;
+      }
+      return res.json();
+    });
+  }
+
+  function supabaseAll(table, params, maximum) {
+    var pageSize = 1000;
+    var cap = maximum || 5000;
+    function next(offset, collected) {
+      return supabase(table, Object.assign({}, params || {}, {
+        limit: String(Math.min(pageSize, cap - collected.length)),
+        offset: String(offset)
+      })).then(function (rows) {
+        var merged = collected.concat(rows);
+        if (rows.length < pageSize || merged.length >= cap) return merged.slice(0, cap);
+        return next(offset + rows.length, merged);
+      });
+    }
+    return next(0, []);
+  }
+
+  function nested(value) {
+    return first(value) || {};
+  }
+
+  function latestDate(rows, field) {
+    return (rows || []).map(function (row) { return row[field] || ''; }).sort().reverse()[0] || '';
+  }
+
+  function datasetFromCatalog(row) {
+    var versions = Array.isArray(row.tmlb_dataset_versions) ? row.tmlb_dataset_versions : [];
+    var version = versions[0] || {};
+    var profile = nested(version.tmlb_dataset_profiles);
+    var sources = Array.isArray(row.tmlb_dataset_sources) ? row.tmlb_dataset_sources : [];
+    var modalities = Array.isArray(profile.modalities) ? profile.modalities : [];
+    return {
+      id: row.id,
+      canonical_id: row.id,
+      slug: row.slug,
+      name: row.title,
+      title: row.title,
+      description: row.description,
+      creators: Array.isArray(row.creators) ? row.creators : [],
+      publisher: row.publisher,
+      doi: row.concept_doi || version.version_doi,
+      version: version.version_label || version.version_key,
+      versions: versions,
+      publication_date: version.publication_date,
+      publication_status: version.publication_status,
+      access_status: version.access_status || (sources[0] && sources[0].access_status),
+      license: version.license_name,
+      origin_type: row.origin_type,
+      modality: row.modality || profile.primary_family || modalities[0],
+      task: profile.primary_task_name || profile.primary_task_type,
+      task_type: profile.primary_task_type,
+      task_types: profile.primary_task_type ? [profile.primary_task_type] : [],
+      task_definition: profile.task_description,
+      task_profile: profile,
+      tasks: Array.isArray(profile.tasks) ? profile.tasks : [],
+      schema: profile.schema || { fields: [] },
+      tags: modalities,
+      source_count: row.source_count,
+      file_count: row.file_count,
+      paper_count: row.paper_count,
+      total_bytes: 0,
+      last_verified: latestDate(sources, 'last_verified') || row.updated_at,
+      url: sources[0] && sources[0].landing_url,
+      sources: sources,
+      releases: [],
+      kind: 'trainable_ml',
+      asset_type: 'static_dataset',
+      relevance_status: 'approved',
+      download_status: version.acquisition_status || 'not_requested',
+      release_count: 0,
+      reproduction_count: 0
+    };
+  }
+
+  function catalogDatasetRows(params) {
+    return supabase('tmlb_datasets', Object.assign({
+      select: '*,tmlb_dataset_versions(*,tmlb_dataset_profiles(*)),tmlb_dataset_sources(*)',
+      order: 'paper_count.desc,title.asc',
+      limit: '500'
+    }, params || {}));
+  }
+
+  function inFilter(ids) {
+    return 'in.(' + ids.map(function (id) {
+      return '"' + String(id).replace(/"/g, '') + '"';
+    }).join(',') + ')';
+  }
+
+  function paperFromUsage(row) {
+    var paperVersion = nested(row.tmlb_paper_versions);
+    var paper = nested(paperVersion.tmlb_papers);
+    var datasetVersion = nested(row.tmlb_dataset_versions);
+    var dataset = nested(datasetVersion.tmlb_datasets);
+    var sourceUrl = paperVersion.source_url ||
+      (paper.doi ? 'https://doi.org/' + paper.doi : '') ||
+      (paper.arxiv_id ? 'https://arxiv.org/abs/' + paper.arxiv_id : '');
+    return {
+      id: paper.id,
+      paper_id: paper.id,
+      doi: paper.doi,
+      arxiv_id: paper.arxiv_id,
+      title: paper.title,
+      authors: Array.isArray(paper.authors) ? paper.authors : [],
+      venue: paper.venue,
+      abstract: paper.abstract,
+      year: paper.year,
+      publication_date: paper.publication_date,
+      access_status: paper.access_status,
+      url: sourceUrl,
+      evidence: row.evidence,
+      dataset_name: dataset.title,
+      dataset_slug: dataset.slug,
+      dataset_version_id: row.version_id,
+      confirmed_at: row.confirmed_at
+    };
+  }
+
+  function catalogUsage(params) {
+    return supabaseAll('tmlb_dataset_paper_usage', Object.assign({
+      select: 'id,version_id,evidence,confirmed_at,tmlb_dataset_versions(dataset_id,tmlb_datasets(title,slug)),tmlb_paper_versions(source_url,tmlb_papers(id,doi,arxiv_id,title,authors,venue,abstract,publication_date,year,access_status))',
+      order: 'confirmed_at.desc'
+    }, params || {}), 5000).then(function (rows) {
+      var papers = [];
+      var byId = {};
+      rows.forEach(function (row) {
+        var paper = paperFromUsage(row);
+        if (!paper.id || !byId[paper.id]) {
+          if (paper.id) byId[paper.id] = paper;
+          papers.push(paper);
+          return;
+        }
+        var existing = byId[paper.id];
+        var combined = (Array.isArray(existing.evidence) ? existing.evidence : [])
+          .concat(Array.isArray(paper.evidence) ? paper.evidence : []);
+        existing.evidence = combined.filter(function (item, index) {
+          var key = JSON.stringify(item);
+          return combined.findIndex(function (candidate) {
+            return JSON.stringify(candidate) === key;
+          }) === index;
+        });
+      });
+      return papers;
+    });
+  }
+
+  function paperFromCatalog(row) {
+    var paperVersions = Array.isArray(row.tmlb_paper_versions) ? row.tmlb_paper_versions : [];
+    var datasetUsage = [];
+    paperVersions.forEach(function (paperVersion) {
+      var usages = Array.isArray(paperVersion.tmlb_dataset_paper_usage)
+        ? paperVersion.tmlb_dataset_paper_usage : [];
+      usages.forEach(function (usage) {
+        var version = nested(usage.tmlb_dataset_versions);
+        var dataset = nested(version.tmlb_datasets);
+        datasetUsage.push({
+          dataset_name: dataset.title,
+          dataset_slug: dataset.slug,
+          dataset_version_id: usage.version_id,
+          evidence: usage.evidence,
+          confirmed_at: usage.confirmed_at
+        });
+      });
+    });
+    var firstUsage = datasetUsage[0] || {};
+    var sourceVersion = paperVersions.filter(function (version) {
+      return version.source_url;
+    })[0] || {};
+    return {
+      id: row.id,
+      paper_id: row.id,
+      doi: row.doi,
+      arxiv_id: row.arxiv_id,
+      openalex_id: row.openalex_id,
+      title: row.title,
+      authors: Array.isArray(row.authors) ? row.authors : [],
+      venue: row.venue,
+      abstract: row.abstract,
+      publication_date: row.publication_date,
+      year: row.year,
+      access_status: row.access_status,
+      url: sourceVersion.source_url ||
+        (row.doi ? 'https://doi.org/' + row.doi : '') ||
+        (row.arxiv_id ? 'https://arxiv.org/abs/' + row.arxiv_id : ''),
+      evidence: firstUsage.evidence,
+      dataset_name: firstUsage.dataset_name,
+      dataset_slug: firstUsage.dataset_slug,
+      dataset_usage: datasetUsage,
+      versions: paperVersions.map(function (version) {
+        return {
+          id: version.id,
+          version_key: version.version_key,
+          text_sha256: version.text_sha256,
+          source_url: version.source_url,
+          lawful_fulltext: version.lawful_fulltext
+        };
+      })
+    };
+  }
+
+  function catalogPapers(params) {
+    return supabase('tmlb_papers', Object.assign({
+      select: '*,tmlb_paper_versions(id,version_key,text_sha256,source_url,lawful_fulltext,tmlb_dataset_paper_usage(version_id,evidence,confirmed_at,tmlb_dataset_versions(dataset_id,tmlb_datasets(title,slug))))',
+      order: 'year.desc.nullslast,title.asc',
+      limit: '200'
+    }, params || {})).then(function (rows) {
+      return rows.map(paperFromCatalog);
+    });
+  }
+
+  function catalogFiles(slug) {
+    return catalogDatasetRows({ slug: 'eq.' + slug, limit: '1' }).then(function (rows) {
+      if (!rows.length) return [];
+      var sourceIds = (rows[0].tmlb_dataset_sources || []).map(function (source) {
+        return source.id;
+      });
+      if (!sourceIds.length) return [];
+      return supabase('tmlb_source_files', {
+        select: 'id,source_id,filename,byte_size,media_type,checksum,restricted,acquisition_status,safety_status,manifest_seen_at',
+        source_id: inFilter(sourceIds),
+        order: 'filename.asc',
+        limit: '500'
+      });
+    });
+  }
+
+  function catalogDetail(slug) {
+    return catalogDatasetRows({ slug: 'eq.' + slug, limit: '1' }).then(function (rows) {
+      if (!rows.length) {
+        var err = new Error('Dataset not found.');
+        err.status = 404;
+        throw err;
+      }
+      var row = rows[0];
+      var versions = row.tmlb_dataset_versions || [];
+      var versionIds = versions.map(function (version) { return version.id; });
+      var usagePromise = versionIds.length
+        ? catalogUsage({ version_id: inFilter(versionIds) })
+        : Promise.resolve([]);
+      return usagePromise.then(function (papers) {
+        var dataset = datasetFromCatalog(row);
+        dataset.papers = papers;
+        return dataset;
+      });
+    });
+  }
+
+  function catalogStats() {
+    return supabase('tmlb_export_metadata', {
+      select: 'dataset_count,paper_count,usage_count,generated_at',
+      limit: '1'
+    }).then(function (rows) {
+      var row = rows[0] || {};
+      var counts = {
+        datasets: row.dataset_count || 0,
+        discovered: row.dataset_count || 0,
+        approved_static: row.dataset_count || 0,
+        approved_static_ml: row.dataset_count || 0,
+        cataloged_papers: row.paper_count || 0,
+        linked_papers: row.paper_count || 0,
+        papers: row.paper_count || 0,
+        paper_candidates: 0,
+        paper_candidate_datasets: 0,
+        paper_linked: row.usage_count || 0,
+        confirmed_paper_links: row.usage_count || 0,
+        published: 0,
+        releases: 0,
+        verified_reproductions: 0,
+        reproductions: 0
+      };
+      return Object.assign({
+        counts: counts,
+        generated_at: row.generated_at,
+        source_sync: { terminal: 0, total: 0 }
+      }, counts);
+    });
+  }
+
+  function catalogSources() {
+    return supabase('tmlb_dataset_sources', {
+      select: 'provider,last_verified',
+      order: 'provider.asc',
+      limit: '500'
+    }).then(function (rows) {
+      var providers = {};
+      rows.forEach(function (row) {
+        var key = row.provider || 'unknown';
+        var current = providers[key] || {
+          provider: key,
+          status: 'published',
+          records_seen: 0,
+          records_kept: 0,
+          last_sync: '',
+          authenticated: false
+        };
+        current.records_seen += 1;
+        current.records_kept += 1;
+        if (row.last_verified > current.last_sync) current.last_sync = row.last_verified;
+        providers[key] = current;
+      });
+      return {
+        items: Object.keys(providers).sort().map(function (key) {
+          return providers[key];
+        })
+      };
+    });
+  }
+
+  function catalogApi(path) {
+    var parsed = new URL(path, 'https://catalog.local');
+    var route = parsed.pathname.replace(/\/+$/, '') || '/';
+    var fileMatch = route.match(/^\/datasets\/([^/]+)\/files$/);
+    var datasetMatch = route.match(/^\/datasets\/([^/]+)$/);
+    var paperMatch = route.match(/^\/papers\/([^/]+)$/);
+    var reproductionMatch = route.match(/^\/reproductions\/([^/]+)$/);
+
+    if (fileMatch) {
+      return catalogFiles(decodeURIComponent(fileMatch[1])).then(function (items) {
+        return { items: items, total: items.length };
+      });
+    }
+    if (datasetMatch) return catalogDetail(decodeURIComponent(datasetMatch[1]));
+    if (paperMatch) {
+      return catalogPapers({ id: 'eq.' + decodeURIComponent(paperMatch[1]), limit: '1' })
+        .then(function (items) {
+          if (items.length) return items[0];
+          var err = new Error('Paper not found.');
+          err.status = 404;
+          throw err;
+        });
+    }
+    if (reproductionMatch) {
+      var missing = new Error('No verified reproduction is published.');
+      missing.status = 404;
+      return Promise.reject(missing);
+    }
+    if (route === '/datasets') {
+      return catalogDatasetRows().then(function (rows) {
+        var items = rows.map(datasetFromCatalog);
+        return { items: items, total: items.length };
+      });
+    }
+    if (route === '/papers') {
+      var limit = Math.min(Number(parsed.searchParams.get('limit')) || 200, 1000);
+      return catalogPapers({ limit: String(limit) }).then(function (items) {
+        return { items: items, total: items.length };
+      });
+    }
+    if (route === '/stats' || route === '/catalog/coverage') return catalogStats();
+    if (route === '/catalog/sources') return catalogSources();
+    if (route === '/reproductions') return Promise.resolve({ items: [], total: 0 });
+
+    var err = new Error('Catalog route is not available.');
+    err.status = 404;
+    return Promise.reject(err);
   }
 
   function sourceName(item) {
@@ -676,7 +1058,7 @@
           (failed || denied ? 'Try again' : 'Connect local backend') +
         '</button></div>';
     }
-    var unconfigured = !API_BASE;
+    var unconfigured = !API_BASE && !USE_SUPABASE;
     return '<div class="tml-state error"><h3>' +
       (unconfigured ? 'Backend not configured' : 'Evidence service unavailable') +
       '</h3><p>' + esc(state.error) + '</p>' +

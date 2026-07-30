@@ -22,10 +22,13 @@ expect(app.includes("main.setAttribute('tabindex', '-1')"), 'skip link does not 
 expect(index.includes('prefers-reduced-motion'), 'reduced-motion handling is missing');
 expect(index.includes('./config.js'), 'runtime/build configuration is not loaded');
 expect(app.includes("window.TMLB_API_BASE"), 'API configuration hook is missing');
+expect(app.includes("window.TMLB_SUPABASE_URL"), 'Supabase URL configuration hook is missing');
+expect(app.includes("window.TMLB_SUPABASE_PUBLISHABLE_KEY"), 'Supabase publishable-key hook is missing');
 expect(
-  runtimeConfig.includes('http://127.0.0.1:8080/api/v1'),
-  'local runtime configuration does not target the backend on port 8080'
+  runtimeConfig.includes('https://xyzrtrugifrnwoukrxyj.supabase.co'),
+  'qualified-catalog Supabase project is not configured'
 );
+expect(runtimeConfig.includes('sb_publishable_'), 'Supabase publishable key is not configured');
 expect(app.includes('Backend not configured'), 'unconfigured production backend state is missing');
 expect(
   app.includes("configured = 'http://127.0.0.1:8080/api/v1'"),
@@ -60,15 +63,9 @@ expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending st
 expect(app.includes('Human audits run retroactively'), 'retroactive human audit policy is not communicated');
 expect(!app.includes('after all human publication gates'), 'obsolete human-first publication wording remains');
 expect(app.includes('signal-path'), 'provenance signal-path signature is missing');
-expect(workflow.includes('vars.TMLB_API_BASE'), 'Pages does not use the configured API variable');
-expect(workflow.includes('https://'), 'Pages does not enforce HTTPS');
 expect(
-  workflow.includes("'http://127.0.0.1:8080/api/v1'"),
-  'Pages does not default to the exact temporary loopback API'
-);
-expect(
-  workflow.includes('http://127.0.0.1:8080/api/v1)'),
-  'Pages validation does not narrowly allow the temporary loopback API'
+  workflow.includes('cp index.html app.js config.js dist/'),
+  'Pages does not publish the Supabase runtime configuration'
 );
 expect(workflow.includes('npm ci'), 'Pages validation does not install locked test dependencies');
 expect(workflow.includes('playwright install --with-deps chromium'), 'Pages validation does not install Chromium');

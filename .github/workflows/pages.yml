@@ -48,27 +48,13 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    env:
-      # Temporary local-companion mode: a visitor's browser talks to the API
-      # running on that same visitor's machine. Set TMLB_API_BASE to an HTTPS
-      # production API later without changing the application.
-      API_BASE: ${{ vars.TMLB_API_BASE || 'http://127.0.0.1:8080/api/v1' }}
     steps:
       - uses: actions/checkout@v4
-      - name: Validate production API origin
-        shell: bash
-        run: |
-          case "$API_BASE" in
-            https://*/api/v1) ;;
-            http://127.0.0.1:8080/api/v1) echo "::warning::Using temporary loopback API companion mode." ;;
-            *) echo "TMLB_API_BASE must be HTTPS ending in /api/v1, or the exact temporary loopback URL."; exit 1 ;;
-          esac
       - name: Stage site
         shell: bash
         run: |
           mkdir -p dist
-          cp index.html app.js dist/
-          printf 'window.TMLB_API_BASE = "%s";\n' "$API_BASE" > dist/config.js
+          cp index.html app.js config.js dist/
           touch dist/.nojekyll
       - uses: actions/configure-pages@v5
         with:

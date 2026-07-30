@@ -17,39 +17,34 @@ node scripts/serve.mjs
 
 Then configure the API in one of two ways:
 
-1. Set `window.TMLB_API_BASE` in `config.js`.
+1. Use the committed read-only Supabase project in `config.js`.
 2. From a `127.0.0.1` preview only, append
-   `?api=http://127.0.0.1:8080/api/v1`.
+   `?api=http://127.0.0.1:8080/api/v1` to test the FastAPI backend.
 
-The frontend first uses the source-first API:
+The default frontend reads the qualified public catalog directly from Supabase.
+Its publishable browser key is intentionally public; row-level security allows
+anonymous reads and denies anonymous writes. The client maps these public
+tables to the existing screen contract:
 
-- `GET /datasets`
-- `GET /datasets/{slug}`
-- `GET /datasets/{slug}/files`
-- `GET /papers` and `GET /papers/{paper_id}`
-- `GET /reproductions` and `GET /reproductions/{experiment_id}`
-- `GET /releases/{release_id}/manifest`
-- `GET /catalog/coverage`
-- `GET /catalog/sources`
+- `tmlb_datasets`
+- `tmlb_dataset_versions`
+- `tmlb_dataset_sources`
+- `tmlb_source_files`
+- `tmlb_dataset_profiles`
+- `tmlb_papers`
+- `tmlb_paper_versions`
+- `tmlb_dataset_paper_usage`
 
-It does not call the retired `/benchmarks`, `/runs`, submission, hidden-label,
-or worker surfaces. Missing release, paper-evidence, or reproduction fields are
-shown as unavailable; the client does not fabricate them.
+Only datasets that passed publication qualification and have confirmed
+paper-use evidence are present in these tables. Missing release or reproduction
+records are shown as unavailable; the client does not fabricate them. The
+local `?api=` override retains the source-first FastAPI contract for development.
 
 ## GitHub Pages
 
-Set the repository variable `TMLB_API_BASE` to the deployed HTTPS API origin,
-including `/api/v1`, for example:
-
-```text
-https://api.example.org/api/v1
-```
-
-An empty value no longer blocks publication: Pages deploys the public shell and
-the interface states that its backend is not configured. A configured value
-must use HTTPS and end in `/api/v1`; invalid non-empty values still fail the
-deployment. The workflow generates `config.js` into the deployment artifact,
-and production never guesses a Pages-local API.
+The Pages workflow publishes `config.js` with the static site. Production uses
+the HTTPS Supabase project configured there and never defaults to localhost.
+No Vercel deployment or server-side proxy is required.
 
 ## Validate
 
