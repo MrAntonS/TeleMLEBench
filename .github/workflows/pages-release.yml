@@ -1,0 +1,52 @@
+name: Publish Pages release integration
+
+on:
+  workflow_run:
+    workflows: ["Validate and deploy GitHub Pages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify release assets
+        run: node --test tests/unit/pages-release-integration.test.mjs
+      - name: Stage static GitHub Pages frontend
+        shell: bash
+        run: |
+          mkdir -p dist/browser
+          cp index.html app.js config.js dist/
+          cat pages-config-overrides.js >> dist/config.js
+          sed "s|import('/browser/blob-upload.js')|import('./browser/blob-upload.js')|" public/app-enhancements.js > dist/app-enhancements.js
+          cp public/browser/blob-upload.js dist/browser/blob-upload.js
+          touch dist/.nojekyll
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy GitHub Pages frontend
+        id: deployment
+        uses: actions/deploy-pages@v4

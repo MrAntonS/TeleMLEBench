@@ -1,0 +1,17 @@
+# GitHub Pages owns the browser application and its validation workflow.
+index.html
+app.js
+config.js
+public/**
+browser/**
+.github/**
+docs/**
+tests/**
+scripts/**
+playwright.config.mjs
+
+# Vercel must use the explicit API-only config passed at deploy time.
+vercel.ts
+vite.config.ts
+vite.backend.config.ts
+vite.api.config.ts
