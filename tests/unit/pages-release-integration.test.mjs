@@ -6,25 +6,18 @@ function read(path) {
   return readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 }
 
-test('GitHub Pages loads release UI from the canonical Vercel API', () => {
-  const override = read('pages-config-overrides.js');
-  const enhancement = read('public/app-enhancements.js');
-  const upload = read('public/browser/blob-upload.js');
+test('existing Pages files expose release downloads through the Vercel API', () => {
+  const config = read('config.js');
+  const app = read('app.js');
 
   assert.match(
-    override,
+    config,
     /TMLB_EVALUATION_API_BASE\s*=\s*'https:\/\/telemlebench\.vercel\.app\/api\/v1'/
   );
-  assert.match(override, /\.\/app-enhancements\.js/);
-  assert.match(enhancement, /\/releases\?dataset=/);
-  assert.match(enhancement, /jsonRequest\('\/evaluations'/);
-  assert.match(upload, /\/evaluations\/uploads/);
-  assert.match(upload, /blob\.generate-client-token/);
-
-  const stagedEnhancement = enhancement.replace(
-    "import('/browser/blob-upload.js')",
-    "import('./browser/blob-upload.js')"
-  );
-  assert.match(stagedEnhancement, /import\('\.\/browser\/blob-upload\.js'\)/);
-  assert.doesNotMatch(stagedEnhancement, /import\('\/browser\/blob-upload\.js'\)/);
+  assert.match(app, /Published split downloads/);
+  assert.match(app, /\/releases\?dataset=/);
+  assert.match(app, /test_features/);
+  assert.match(app, /\/evaluations\/uploads/);
+  assert.match(app, /blob\.generate-client-token/);
+  assert.doesNotMatch(app, /import\('\/browser\/blob-upload\.js'\)/);
 });

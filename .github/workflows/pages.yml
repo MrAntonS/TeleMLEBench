@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Validate static contract
         run: npm run test:static
+      - name: Validate release download integration
+        run: node --test tests/unit/pages-release-integration.test.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser contract tests

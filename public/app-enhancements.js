@@ -301,7 +301,7 @@
     var panel = element('section', 'card panel tml-release-download-panel');
     var panelHead = element('div', 'panel-head');
     panelHead.appendChild(element('h2', '', 'Published split downloads'));
-    panelHead.appendChild(element('span', 'id', '70 / 15 / 15 · hidden-label scoring'));
+    panelHead.appendChild(element('span', 'id', 'Hidden-label scoring'));
     panel.appendChild(panelHead);
     var stack = element('div', 'tml-release-stack');
     stack.appendChild(element('div', 'tml-release-empty', 'Loading immutable release manifests…'));
