@@ -30,7 +30,7 @@ jobs:
       - name: Validate static contract
         run: npm run test:static
       - name: Validate release download integration
-        run: node --test tests/unit/pages-release-integration.test.mjs
+        run: node --test tests/unit/pages-release-integration.test.mjs tests/unit/evaluation-grants.test.mjs tests/unit/evaluation-security-contract.test.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser contract tests

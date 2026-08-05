@@ -1733,42 +1733,49 @@
 
   var API_BASE = String(window.TMLB_EVALUATION_API_BASE || '/api/v1').replace(/\/+$/, '');
   var activeLoad = 0;
+  var turnstileConfigPromise = null;
+  var turnstileScriptPromise = null;
 
   // Browser transport for @vercel/blob 2.6's constrained client-token protocol.
   // The token is scoped by the server to one private pathname, size, media type,
   // and ten-minute validity window. No store credential reaches the browser.
-  async function uploadPrediction({ apiBase, apiKey, file, releaseId, onProgress }) {
+  async function uploadPrediction({ apiBase, apiKey, turnstileToken, file, releaseId, onProgress }) {
     if (!(file instanceof File)) throw new Error('Choose a prediction CSV first.');
     const compressed = /\.csv\.gz$/i.test(file.name);
     if (!compressed && !/\.csv$/i.test(file.name)) {
       throw new Error('Predictions must be a .csv or .csv.gz file.');
     }
-    if (!apiKey) throw new Error('An evaluation API key is required.');
+    if (!apiKey && !turnstileToken) throw new Error('Complete the human-verification check first.');
     const uploadId = crypto.randomUUID();
     const pathname = `evaluations/${releaseId}/${uploadId}/predictions.csv${compressed ? '.gz' : ''}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    };
+    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
     const tokenResponse = await fetch(`${String(apiBase).replace(/\/+$/, '')}/evaluations/uploads`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify({
         type: 'blob.generate-client-token',
         payload: {
           pathname,
           multipart: false,
-          clientPayload: JSON.stringify({ release_id: releaseId })
+          clientPayload: JSON.stringify({
+            release_id: releaseId,
+            turnstile_token: turnstileToken || ''
+          })
         }
       })
     });
     if (!tokenResponse.ok) {
-      throw new Error(tokenResponse.status === 401
-        ? 'The evaluation API key was rejected.'
+      throw new Error(tokenResponse.status === 401 || tokenResponse.status === 403
+        ? 'Human verification was rejected or expired. Please try it again.'
         : 'The private upload could not be authorized.');
     }
     const tokenBody = await tokenResponse.json();
     const clientToken = String(tokenBody.clientToken || '');
+    const evaluationToken = String(tokenBody.evaluationToken || apiKey || '');
     const tokenParts = clientToken.split('_');
     const storeId = tokenParts[3] || '';
     if (!clientToken.startsWith('vercel_blob_client_') || !storeId) {
@@ -1812,7 +1819,7 @@
       };
       request.send(file);
     });
-    return result;
+    return { blob: result, evaluationToken };
   }
 
   var style = document.createElement('style');
@@ -1840,10 +1847,13 @@
     '.tml-evaluator-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}',
     '.tml-evaluator h4{margin:0;font-size:15px}',
     '.tml-evaluator-copy{margin:5px 0 13px;color:#646b77;font-size:12px;line-height:1.55}',
-    '.tml-evaluator-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:9px;align-items:end}',
+    '.tml-evaluator-grid{display:grid;grid-template-columns:minmax(220px,1fr) 300px auto;gap:12px;align-items:end}',
     '.tml-evaluator-field{display:grid;gap:5px}',
     '.tml-evaluator-field span{color:#6b7280;font:8px var(--mono);letter-spacing:.05em;text-transform:uppercase}',
     '.tml-evaluator-field input{height:42px;padding:9px 11px;font-size:13px}',
+    '.tml-turnstile-field{display:grid;gap:5px}',
+    '.tml-turnstile-field>span{color:#6b7280;font:8px var(--mono);letter-spacing:.05em;text-transform:uppercase}',
+    '.tml-turnstile{min-height:65px;display:flex;align-items:center;justify-content:flex-start}',
     '.tml-evaluator-submit{height:42px;padding:0 15px;border:1px solid #2563eb;border-radius:8px;background:#2563eb;color:#fff;font-weight:650;cursor:pointer}',
     '.tml-evaluator-submit[disabled]{cursor:wait;opacity:.58}',
     '.tml-evaluator-progress{display:none;width:100%;height:7px;margin-top:12px;accent-color:#2563eb}',
@@ -1888,6 +1898,34 @@
       throw new Error(body.statusMessage || body.message || body.detail || ('Request failed (' + response.status + ')'));
     }
     return body;
+  }
+
+  function getTurnstileConfig() {
+    if (!turnstileConfigPromise) {
+      turnstileConfigPromise = jsonRequest('/evaluations/config', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      });
+    }
+    return turnstileConfigPromise;
+  }
+
+  function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    if (!turnstileScriptPromise) {
+      turnstileScriptPromise = new Promise(function (resolve, reject) {
+        var script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.onload = function () {
+          window.turnstile ? resolve(window.turnstile) : reject(new Error('Human verification did not initialize.'));
+        };
+        script.onerror = function () { reject(new Error('Human verification could not be loaded.')); };
+        document.head.appendChild(script);
+      });
+    }
+    return turnstileScriptPromise;
   }
 
   function canonicalId(panel) {
@@ -1944,11 +1982,11 @@
     status.appendChild(card);
   }
 
-  async function pollEvaluation(endpoint, apiKey, status) {
+  async function pollEvaluation(endpoint, credential, status) {
     var deadline = Date.now() + 30 * 60 * 1000;
     while (Date.now() < deadline) {
       var payload = await jsonRequest(endpoint, {
-        headers: { Accept: 'application/json', Authorization: 'Bearer ' + apiKey },
+        headers: { Accept: 'application/json', Authorization: 'Bearer ' + credential },
         cache: 'no-store'
       });
       if (payload.status === 'completed') return payload.result;
@@ -1973,17 +2011,6 @@
     wrap.appendChild(element('p', 'tml-evaluator-copy',
       'Upload CSV or CSV.GZ with exactly sample_id,prediction in test-file order. Labels stay private; the uploaded file is deleted after scoring.'));
     var form = element('form', 'tml-evaluator-grid');
-    var keyField = element('label', 'tml-evaluator-field');
-    keyField.appendChild(element('span', '', 'Evaluation API key'));
-    var keyInput = document.createElement('input');
-    keyInput.type = 'password';
-    keyInput.name = 'evaluation-key';
-    keyInput.autocomplete = 'off';
-    keyInput.required = true;
-    keyInput.placeholder = 'Bearer key';
-    keyField.appendChild(keyInput);
-    form.appendChild(keyField);
-
     var fileField = element('label', 'tml-evaluator-field');
     fileField.appendChild(element('span', '', 'Prediction file'));
     var fileInput = document.createElement('input');
@@ -1993,8 +2020,14 @@
     fileInput.required = true;
     fileField.appendChild(fileInput);
     form.appendChild(fileField);
+    var challengeField = element('div', 'tml-turnstile-field');
+    challengeField.appendChild(element('span', '', 'Human verification'));
+    var challenge = element('div', 'tml-turnstile');
+    challengeField.appendChild(challenge);
+    form.appendChild(challengeField);
     var submit = element('button', 'tml-evaluator-submit', 'Score predictions');
     submit.type = 'submit';
+    submit.disabled = true;
     form.appendChild(submit);
     wrap.appendChild(form);
 
@@ -2008,12 +2041,45 @@
     status.setAttribute('aria-live', 'polite');
     wrap.appendChild(status);
 
+    var turnstileApi = null;
+    var turnstileWidgetId = null;
+    var turnstileToken = '';
+    Promise.all([getTurnstileConfig(), loadTurnstile()]).then(function (values) {
+      var config = values[0];
+      turnstileApi = values[1];
+      if (!config.enabled || !config.turnstile_site_key) {
+        throw new Error('Human verification is not configured yet.');
+      }
+      turnstileWidgetId = turnstileApi.render(challenge, {
+        sitekey: config.turnstile_site_key,
+        action: config.action || 'evaluation_upload',
+        theme: 'light',
+        callback: function (token) {
+          turnstileToken = String(token || '');
+          submit.disabled = !turnstileToken;
+          setEvaluatorStatus(status, 'Verified. Choose a prediction file and request a private score.', false);
+        },
+        'expired-callback': function () {
+          turnstileToken = '';
+          submit.disabled = true;
+          setEvaluatorStatus(status, 'Human verification expired. Please complete it again.', true);
+        },
+        'error-callback': function () {
+          turnstileToken = '';
+          submit.disabled = true;
+          setEvaluatorStatus(status, 'Human verification failed to load. Please retry.', true);
+        }
+      });
+    }).catch(function (error) {
+      submit.disabled = true;
+      setEvaluatorStatus(status, error && error.message ? error.message : 'Human verification is unavailable.', true);
+    });
+
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
-      var apiKey = keyInput.value.trim();
       var file = fileInput.files && fileInput.files[0];
-      if (!apiKey || !file) {
-        setEvaluatorStatus(status, 'Choose a prediction file and enter an evaluation API key.', true);
+      if (!turnstileToken || !file) {
+        setEvaluatorStatus(status, 'Choose a prediction file and complete human verification.', true);
         return;
       }
       if (file.size > Number(release.evaluation.maximum_upload_bytes || 0)) {
@@ -2025,9 +2091,9 @@
       progress.value = 0;
       setEvaluatorStatus(status, 'Authorizing a private upload…', false);
       try {
-        var blob = await uploadPrediction({
+        var upload = await uploadPrediction({
           apiBase: API_BASE,
-          apiKey: apiKey,
+          turnstileToken: turnstileToken,
           file: file,
           releaseId: release.id,
           onProgress: function (event) {
@@ -2035,13 +2101,16 @@
             setEvaluatorStatus(status, 'Private upload ' + Math.floor(progress.value) + '%…', false);
           }
         });
+        var blob = upload.blob;
+        var evaluationToken = upload.evaluationToken;
+        if (!evaluationToken) throw new Error('The upload service did not return an evaluation grant.');
         progress.value = 100;
         setEvaluatorStatus(status, 'Upload complete. Queueing hidden-label verification…', false);
         var accepted = await jsonRequest('/evaluations', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
-            Authorization: 'Bearer ' + apiKey,
+            Authorization: 'Bearer ' + evaluationToken,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -2049,14 +2118,15 @@
             prediction: { pathname: blob.pathname, size: file.size }
           })
         });
-        var result = await pollEvaluation(accepted.status_endpoint, apiKey, status);
+        var result = await pollEvaluation(accepted.status_endpoint, evaluationToken, status);
         renderScore(status, result);
-        keyInput.value = '';
         fileInput.value = '';
       } catch (error) {
         setEvaluatorStatus(status, error && error.message ? error.message : 'Evaluation failed.', true);
       } finally {
-        submit.disabled = false;
+        turnstileToken = '';
+        if (turnstileApi && turnstileWidgetId !== null) turnstileApi.reset(turnstileWidgetId);
+        submit.disabled = true;
         progress.style.display = 'none';
       }
     });

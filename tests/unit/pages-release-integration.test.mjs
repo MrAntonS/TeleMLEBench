@@ -18,6 +18,12 @@ test('existing Pages files expose release downloads through the Vercel API', () 
   assert.match(app, /\/releases\?dataset=/);
   assert.match(app, /test_features/);
   assert.match(app, /\/evaluations\/uploads/);
+  assert.match(app, /\/evaluations\/config/);
+  assert.match(app, /challenges\.cloudflare\.com\/turnstile/);
+  assert.match(app, /turnstile_token/);
+  assert.match(app, /Human verification/);
+  assert.doesNotMatch(app, /Evaluation API key/);
+  assert.doesNotMatch(app, /name = 'evaluation-key'/);
   assert.match(app, /blob\.generate-client-token/);
   assert.doesNotMatch(app, /import\('\/browser\/blob-upload\.js'\)/);
 });

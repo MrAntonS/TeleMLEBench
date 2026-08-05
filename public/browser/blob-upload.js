@@ -1,38 +1,43 @@
 // Browser transport for @vercel/blob 2.6's constrained client-token protocol.
 // The token is scoped by the server to one private pathname, size, media type,
 // and ten-minute validity window. No store credential reaches the browser.
-export async function uploadPrediction({ apiBase, apiKey, file, releaseId, onProgress }) {
+export async function uploadPrediction({ apiBase, apiKey, turnstileToken, file, releaseId, onProgress }) {
   if (!(file instanceof File)) throw new Error('Choose a prediction CSV first.');
   const compressed = /\.csv\.gz$/i.test(file.name);
   if (!compressed && !/\.csv$/i.test(file.name)) {
     throw new Error('Predictions must be a .csv or .csv.gz file.');
   }
-  if (!apiKey) throw new Error('An evaluation API key is required.');
+  if (!apiKey && !turnstileToken) throw new Error('Complete the human-verification check first.');
   const uploadId = crypto.randomUUID();
   const pathname = `evaluations/${releaseId}/${uploadId}/predictions.csv${compressed ? '.gz' : ''}`;
+  const headers = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json'
+  };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   const tokenResponse = await fetch(`${String(apiBase).replace(/\/+$/, '')}/evaluations/uploads`, {
     method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify({
       type: 'blob.generate-client-token',
       payload: {
         pathname,
         multipart: false,
-        clientPayload: JSON.stringify({ release_id: releaseId })
+        clientPayload: JSON.stringify({
+          release_id: releaseId,
+          turnstile_token: turnstileToken || ''
+        })
       }
     })
   });
   if (!tokenResponse.ok) {
-    throw new Error(tokenResponse.status === 401
-      ? 'The evaluation API key was rejected.'
+    throw new Error(tokenResponse.status === 401 || tokenResponse.status === 403
+      ? 'Human verification was rejected or expired. Please try it again.'
       : 'The private upload could not be authorized.');
   }
   const tokenBody = await tokenResponse.json();
   const clientToken = String(tokenBody.clientToken || '');
+  const evaluationToken = String(tokenBody.evaluationToken || apiKey || '');
   const tokenParts = clientToken.split('_');
   const storeId = tokenParts[3] || '';
   if (!clientToken.startsWith('vercel_blob_client_') || !storeId) {
@@ -76,5 +81,5 @@ export async function uploadPrediction({ apiBase, apiKey, file, releaseId, onPro
     };
     request.send(file);
   });
-  return result;
+  return { blob: result, evaluationToken };
 }
