@@ -54,10 +54,17 @@ export const openApiDocument = {
       post: {
         tags: ["Evaluations"],
         summary: "Issue a constrained private Vercel Blob upload token",
-        security: [{ bearerAuth: [] }],
-        description: "Implements the @vercel/blob client-upload protocol. Tokens are path-, type-, size-, and time-constrained.",
+        security: [{ bearerAuth: [] }, {}],
+        description: "Implements the @vercel/blob client-upload protocol. SDK clients authenticate with an API key. Browser clients include a Cloudflare Turnstile response in clientPayload and receive a short-lived evaluation grant. Upload tokens are path-, type-, size-, and time-constrained.",
         requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
-        responses: { "200": { description: "Vercel Blob client token" }, "401": { description: "Invalid API key" } },
+        responses: { "200": { description: "Vercel Blob client token and, for CAPTCHA clients, a scoped evaluation grant" }, "401": { description: "Invalid API key" }, "403": { description: "Human verification failed" } },
+      },
+    },
+    "/evaluations/config": {
+      get: {
+        tags: ["Evaluations"],
+        summary: "Get public browser evaluation configuration",
+        responses: { "200": { description: "Turnstile site key and availability; no secret values" } },
       },
     },
     "/evaluations": {
@@ -65,8 +72,9 @@ export const openApiDocument = {
         tags: ["Evaluations"],
         summary: "Start hidden-label evaluation of a private upload",
         security: [{ bearerAuth: [] }],
+        description: "Accepts either an SDK API key or the browser grant returned by the upload-token response. Browser grants are bound to the exact release and private pathname.",
         requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/EvaluationRequest" } } } },
-        responses: { "202": { description: "Durable evaluation queued", content: { "application/json": { schema: { $ref: "#/components/schemas/EvaluationAccepted" } } } }, "400": { description: "Invalid upload" }, "401": { description: "Invalid API key" } },
+        responses: { "202": { description: "Durable evaluation queued", content: { "application/json": { schema: { $ref: "#/components/schemas/EvaluationAccepted" } } } }, "400": { description: "Invalid upload" }, "401": { description: "Invalid or expired evaluation credential" } },
       },
     },
     "/evaluations/{evaluationId}": {
@@ -75,13 +83,13 @@ export const openApiDocument = {
         summary: "Get durable evaluation status or score",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "evaluationId", in: "path", required: true, schema: { type: "string" } }],
-        responses: { "200": { description: "Terminal evaluation and private result" }, "202": { description: "Evaluation still running" }, "401": { description: "Invalid API key" }, "404": { description: "Evaluation not found for this key" } },
+        responses: { "200": { description: "Terminal evaluation and private result" }, "202": { description: "Evaluation still running" }, "401": { description: "Invalid or expired evaluation credential" }, "404": { description: "Evaluation not found for this credential" } },
       },
     },
   },
   components: {
     securitySchemes: {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "TeleMLEBench evaluation key" },
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "TeleMLEBench API key or scoped browser grant" },
     },
     parameters: {
       ReleaseId: { name: "releaseId", in: "path", required: true, schema: { type: "string" } },

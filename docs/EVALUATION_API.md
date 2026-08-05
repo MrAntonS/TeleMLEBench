@@ -43,9 +43,22 @@ the `sample_id` on every row before comparing the prediction; missing, extra,
 duplicated, or reordered IDs fail closed. This streaming contract makes the
 largest releases scoreable without putting millions of hidden labels in memory.
 
-## Authenticated evaluation flow
+## Browser evaluation flow
 
-All evaluation calls use:
+The GitHub Pages frontend uses Cloudflare Turnstile instead of asking visitors
+for an API key. The browser obtains the public site key from
+`GET /api/v1/evaluations/config`, completes the challenge, and includes the
+short-lived Turnstile response in the Vercel Blob `clientPayload`.
+
+After server-side verification, the upload-token response includes an
+`evaluationToken`. This signed grant expires within one hour and is bound to
+the exact release and private prediction pathname. The browser holds it only in
+memory, uses it to start and poll that one evaluation, then discards it. The
+Turnstile secret and grant-signing secret never reach GitHub Pages.
+
+## SDK evaluation flow
+
+Automated clients and the future SDK use:
 
 ```http
 Authorization: Bearer $TELEMLEBENCH_EVALUATION_KEY
@@ -72,8 +85,9 @@ only comma-separated SHA-256 digests in
    }
    ```
 
-3. Poll the returned `status_endpoint` with the same API key. The opaque
-   `evaluation_id` is cryptographically bound to that key.
+3. Poll the returned `status_endpoint` with the same API key. Browser clients
+   use their scoped `evaluationToken` instead. The opaque `evaluation_id` is
+   cryptographically bound to the supplied credential.
 4. A completed result contains the metric, sample count, label artifact hash,
    exact uploaded prediction hash, and scorer version. The private prediction
    Blob is then deleted.
@@ -112,7 +126,10 @@ Required production secrets/resources:
 - a private Vercel Blob store (`BLOB_READ_WRITE_TOKEN` is attached by Vercel);
 - `HF_TOKEN` with read access only to `NextGLab/telemlebench-evaluator`;
 - one or more SHA-256 evaluation-key digests in
-  `TMLB_EVALUATION_API_KEY_SHA256S`.
+  `TMLB_EVALUATION_API_KEY_SHA256S` for SDK clients;
+- `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, and
+  `TURNSTILE_EXPECTED_HOSTNAME=mrantons.github.io`;
+- a random server-only `TMLB_EVALUATION_GRANT_SECRET` of at least 32 bytes.
 
 Vercel Workflow generates queue-only consumer functions. The score step uses
 `maxDuration: max`, streams both files, retries infrastructure failures, and

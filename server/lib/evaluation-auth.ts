@@ -2,11 +2,23 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import { createError, getHeader, type H3Event } from "nitro/h3";
 
+import {
+  EVALUATION_GRANT_PREFIX,
+  verifyEvaluationGrant,
+} from "./evaluation-grants.mjs";
+
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
 export type EvaluationPrincipal = {
   keyDigest: string;
   fingerprint: string;
+  kind: "api_key" | "captcha_grant";
+  grantId?: string;
+};
+
+type EvaluationGrantBinding = {
+  releaseId?: string;
+  pathname?: string;
 };
 
 function configuredDigests(): Buffer[] {
@@ -23,7 +35,7 @@ function bearerToken(event: H3Event): string {
   return match ? match[1] : "";
 }
 
-export function requireEvaluationPrincipal(event: H3Event): EvaluationPrincipal {
+function requireApiKeyPrincipal(token: string): EvaluationPrincipal {
   const accepted = configuredDigests();
   if (!accepted.length) {
     throw createError({
@@ -31,7 +43,6 @@ export function requireEvaluationPrincipal(event: H3Event): EvaluationPrincipal 
       statusMessage: "Evaluation authentication is not configured",
     });
   }
-  const token = bearerToken(event);
   if (!token || token.length > 512) {
     throw createError({ statusCode: 401, statusMessage: "A valid evaluation API key is required" });
   }
@@ -44,7 +55,46 @@ export function requireEvaluationPrincipal(event: H3Event): EvaluationPrincipal 
     throw createError({ statusCode: 401, statusMessage: "A valid evaluation API key is required" });
   }
   const keyDigest = digest.toString("hex");
-  return { keyDigest, fingerprint: keyDigest.slice(0, 12) };
+  return { keyDigest, fingerprint: keyDigest.slice(0, 12), kind: "api_key" };
+}
+
+export function optionalEvaluationApiPrincipal(event: H3Event): EvaluationPrincipal | null {
+  const token = bearerToken(event);
+  if (!token) return null;
+  if (token.startsWith(EVALUATION_GRANT_PREFIX + ".")) {
+    throw createError({ statusCode: 401, statusMessage: "Use a fresh human-verification challenge for each upload" });
+  }
+  return requireApiKeyPrincipal(token);
+}
+
+export function requireEvaluationPrincipal(
+  event: H3Event,
+  binding: EvaluationGrantBinding = {},
+): EvaluationPrincipal {
+  const token = bearerToken(event);
+  if (!token) {
+    throw createError({ statusCode: 401, statusMessage: "A valid evaluation credential is required" });
+  }
+  if (!token.startsWith(EVALUATION_GRANT_PREFIX + ".")) {
+    return requireApiKeyPrincipal(token);
+  }
+  const secret = String(process.env.TMLB_EVALUATION_GRANT_SECRET || "");
+  let payload;
+  try {
+    payload = verifyEvaluationGrant(token, binding, secret);
+  } catch {
+    throw createError({ statusCode: 503, statusMessage: "Browser evaluation grants are not configured" });
+  }
+  if (!payload) {
+    throw createError({ statusCode: 401, statusMessage: "The browser evaluation grant is invalid or expired" });
+  }
+  const keyDigest = createHash("sha256").update(token, "utf8").digest("hex");
+  return {
+    keyDigest,
+    fingerprint: "captcha:" + String(payload.jti).slice(0, 12),
+    kind: "captcha_grant",
+    grantId: String(payload.jti),
+  };
 }
 
 function runSignature(runId: string, keyDigest: string): string {

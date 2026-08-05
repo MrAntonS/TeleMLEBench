@@ -4,6 +4,7 @@ import { setPublicApiHeaders } from "../../../lib/http";
 import {
   fetchPublicRelease,
   listReleaseDescriptors,
+  type PublicRelease,
   type ReleaseDescriptor,
 } from "../../../lib/releases";
 
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const settled = await Promise.allSettled(
     descriptors.map((descriptor) => fetchPublicRelease(descriptor)),
   );
-  const items = [];
+  const items: PublicRelease[] = [];
   const errors: Array<{ release_id: string; code: "manifest_unavailable" }> = [];
   settled.forEach((result, index) => {
     if (result.status === "fulfilled") items.push(result.value);
