@@ -1216,9 +1216,9 @@
         observatoryPanel(stats, sourceProviders.length) +
       '</div></section>' +
       '<section class="ow-editorial tml-section"><div class="ow-editorial-label"><div class="ow-kicker"><span></span> WHY OPENWIRELESSML EXISTS</div>' +
-        '<h2>Why OpenWirelessML exists</h2></div>' +
-        '<div class="ow-editorial-copy"><p>OpenWirelessML was built to make the public telecom ML record coherent by linking source metadata, exact dataset versions, publication state, and release lineage in one catalog.</p>' +
-        '<p>That makes it easier to choose data responsibly, understand how a result was produced, and see what is still missing.</p></div>' +
+        '<h2>Why OpenWirelessML Exists</h2></div>' +
+        '<div class="ow-editorial-copy"><p>The telecom ML research landscape is currently fractured by scattered datasets and a reproducibility crisis. OpenWirelessML solves this by centralizing fragmented resources and enforcing a rigid, transparent pipeline.</p>' +
+        '<p>We provide standardized dataset splitting, baseline reproductions for instant verification, and an unbroken, auditable computational lineage for every prediction—replacing opaque scores with cryptographic certainty.</p></div>' +
       '</section>' +
       '<section class="ow-ledger-section tml-section"><div class="ow-ledger-copy">' +
         '<div class="ow-kicker"><span></span> PHILOSOPHY</div><h2>Progress is evidence.</h2>' +
