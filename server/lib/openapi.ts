@@ -106,9 +106,10 @@ export const openApiDocument = {
       },
       Release: {
         type: "object",
-        required: ["id", "dataset_id", "dataset_version_id", "task_id", "status", "split", "files", "evaluation"],
+        required: ["id", "dataset_id", "dataset_version_id", "dataset_aliases", "task_id", "status", "split", "files", "evaluation"],
         properties: {
           id: { type: "string" }, dataset_id: { type: "string" }, dataset_version_id: { type: "string" },
+          dataset_aliases: { type: "array", items: { type: "string" } },
           task_id: { type: "string" }, release_version: { type: "string" }, status: { const: "published" },
           target_fields: { type: "array", items: { type: "string" } },
           split: { type: "object" }, files: { type: "array", items: { $ref: "#/components/schemas/ReleaseFile" } },

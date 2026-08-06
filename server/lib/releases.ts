@@ -23,6 +23,7 @@ export type PublicRelease = {
   id: string;
   dataset_id: string;
   dataset_version_id: string;
+  dataset_aliases: string[];
   task_id: string;
   release_version: string;
   status: "published";
@@ -267,6 +268,7 @@ export function normalizePublicManifest(
     id: descriptor.id,
     dataset_id: descriptor.datasetId,
     dataset_version_id: descriptor.datasetVersionId,
+    dataset_aliases: [...descriptor.aliases],
     task_id: String(rawManifest.task_id || descriptor.id),
     release_version: String(split.view || "telemlebench-v1"),
     status: "published",

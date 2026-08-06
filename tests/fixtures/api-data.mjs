@@ -34,7 +34,7 @@ export const dataset = {
   paper_count: 1,
   reproduction_count: 1,
   verified_run_count: 3,
-  release_count: 1,
+  release_count: 0,
   task: 'mobility / handover',
   task_families: ['mobility / handover'],
   task_definition: 'Predict handover success from pre-event radio and mobility KPIs.',
@@ -142,6 +142,22 @@ export const dataset = {
       }
     }
   ]
+};
+
+export const unreleasedDataset = {
+  ...dataset,
+  canonical_id: 'doi:10.1234/catalog-only',
+  slug: 'catalog-only',
+  name: 'Catalog-only Telecom Dataset',
+  description: 'A reviewed catalog record that does not yet have a downloadable task release.',
+  paper_count: 99,
+  releases: [],
+  versions: [{ id: 'version-catalog-only-1', version: '1.0.0' }],
+  review: {
+    basis: 'qualification',
+    decision: 'approved',
+    policy_version: 'fixture-catalog-only'
+  }
 };
 
 export const files = [
@@ -377,4 +393,22 @@ export const releaseManifest = {
       sha256: '5'.repeat(64)
     }
   ]
+};
+
+export const publicRelease = {
+  id: 'release-radio-kpi-v1',
+  dataset_id: 'fixture-canonical-id',
+  dataset_version_id: 'fixture-version-id',
+  dataset_aliases: [dataset.slug],
+  task_id: 'task-radio-kpi-handover',
+  release_version: 'telemlebench-v1',
+  status: 'published',
+  split: {
+    ratios: [0.7, 0.15, 0.15],
+    seed: 42,
+    strategy: 'group',
+    counts: { train: 70, validation: 15, test: 15 }
+  },
+  files: [],
+  evaluation: { available: true }
 };

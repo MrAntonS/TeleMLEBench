@@ -38,6 +38,21 @@ test('preserves the pre-redesign white and blue visual contract', async ({ page 
   assertNoClientErrors();
 });
 
+test('featured datasets are backed by published downloadable releases', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const featured = page.locator('.tml-section').filter({
+    has: page.getByRole('heading', { name: 'Featured datasets' })
+  });
+  await expect(featured.getByRole('link', { name: new RegExp(datasetName) })).toBeVisible();
+  await expect(featured.getByText('Download ready', { exact: true })).toBeVisible();
+  await expect(featured.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
+  const published = page.locator('.tml-stats > div').filter({ hasText: 'Published releases' });
+  await expect(published).toContainText('1');
+  assertNoClientErrors();
+});
+
 test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));

@@ -8,10 +8,12 @@ import {
   dataset,
   files,
   paper,
+  publicRelease,
   releaseManifest,
   reproduction,
   reproductionSummary,
-  sources
+  sources,
+  unreleasedDataset
 } from '../tests/fixtures/api-data.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -46,8 +48,9 @@ function matchApi(pathname) {
 
 function populatedResponse(apiPath) {
   if (apiPath === '/datasets') {
-    return { items: [dataset], total: 1, next_cursor: null };
+    return { items: [unreleasedDataset, dataset], total: 2, next_cursor: null };
   }
+  if (apiPath === '/releases') return { items: [publicRelease], total: 1, errors: [] };
   if (apiPath === `/datasets/${dataset.slug}`) return dataset;
   if (apiPath === `/datasets/${dataset.slug}/files`) {
     return { items: files, total: files.length, next_cursor: null };
@@ -77,7 +80,7 @@ function populatedResponse(apiPath) {
 }
 
 function emptyResponse(apiPath) {
-  if (apiPath === '/datasets' || apiPath === '/papers' || apiPath === '/reproductions') {
+  if (apiPath === '/datasets' || apiPath === '/papers' || apiPath === '/reproductions' || apiPath === '/releases') {
     return { items: [], total: 0, next_cursor: null };
   }
   if (apiPath === '/catalog/coverage') {

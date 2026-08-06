@@ -5,6 +5,8 @@
     route: { name: 'home' },
     datasets: [],
     datasetsLoaded: false,
+    publishedReleases: [],
+    releaseCatalogLoaded: false,
     stats: null,
     detail: null,
     papers: [],
@@ -35,6 +37,7 @@
   var LEGACY_API_OVERRIDE = Boolean(new URLSearchParams(window.location.search).get('api'));
   var USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_KEY && !LEGACY_API_OVERRIDE);
   var API_BASE = resolveApiBase();
+  var RELEASE_API_BASE = String(window.TMLB_EVALUATION_API_BASE || '').trim().replace(/\/+$/, '');
   var LOOPBACK_PERMISSION_MODE =
     window.location.protocol === 'https:' && isLoopbackApiBase(API_BASE);
   if (LOOPBACK_PERMISSION_MODE) state.localConnection = 'checking';
@@ -183,6 +186,20 @@
 
   function list(payload) {
     return Array.isArray(payload) ? payload : (payload && Array.isArray(payload.items) ? payload.items : []);
+  }
+
+  function loadPublishedReleaseCatalog() {
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base) return Promise.resolve(null);
+    return fetch(base + '/releases', {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    }).then(function (res) {
+      if (!res.ok) throw new Error('Release registry request failed (' + res.status + ')');
+      return res.json();
+    }).catch(function () {
+      return null;
+    });
   }
 
   function loadDatasetPages() {
@@ -688,6 +705,56 @@
     };
   }
 
+  function datasetVersionIds(dataset) {
+    var raw = dataset && dataset.raw && typeof dataset.raw === 'object'
+      ? dataset.raw : {};
+    var versions = Array.isArray(raw.versions)
+      ? raw.versions
+      : (Array.isArray(raw.tmlb_dataset_versions) ? raw.tmlb_dataset_versions : []);
+    return versions.map(function (version) {
+      return text(version && version.id, '').toLowerCase();
+    }).filter(Boolean);
+  }
+
+  function releaseMatchesDataset(release, dataset) {
+    var datasetId = text(dataset && dataset.id, '').toLowerCase();
+    var datasetSlug = text(dataset && dataset.slug, '').toLowerCase();
+    var releaseDatasetId = text(release && release.dataset_id, '').toLowerCase();
+    var releaseVersionId = text(release && release.dataset_version_id, '').toLowerCase();
+    var aliases = Array.isArray(release && release.dataset_aliases)
+      ? release.dataset_aliases.map(function (alias) {
+        return text(alias, '').toLowerCase();
+      }).filter(Boolean)
+      : [];
+    return Boolean(
+      (datasetId && datasetId === releaseDatasetId) ||
+      (releaseVersionId && datasetVersionIds(dataset).indexOf(releaseVersionId) >= 0) ||
+      (datasetSlug && aliases.indexOf(datasetSlug) >= 0)
+    );
+  }
+
+  function applyPublishedReleases(datasets, releases) {
+    datasets.forEach(function (dataset) {
+      dataset.releaseCount = 0;
+      dataset.publishedReleases = [];
+    });
+    releases.forEach(function (release) {
+      var dataset = datasets.find(function (candidate) {
+        return releaseMatchesDataset(release, candidate);
+      });
+      if (!dataset) return;
+      dataset.publishedReleases.push(release);
+      dataset.releaseCount = dataset.publishedReleases.length;
+    });
+  }
+
+  function featuredDatasets() {
+    if (!state.releaseCatalogLoaded) return state.datasets.slice(0, 6);
+    return state.datasets.filter(function (dataset) {
+      return dataset.releaseCount > 0;
+    });
+  }
+
   function normalizePaper(item) {
     return {
       id: text(item.paper_id || item.arxiv_id || item.doi || item.id, ''),
@@ -741,7 +808,8 @@
     return Promise.all([
       loadDatasetPages(),
       optional('/stats'),
-      optional('/catalog/coverage')
+      optional('/catalog/coverage'),
+      loadPublishedReleaseCatalog()
     ]).then(function (values) {
       state.datasets = list(values[0]).map(normalizeDataset).filter(isPublicMl)
         .sort(function (left, right) {
@@ -749,6 +817,11 @@
             (right.fileCount - left.fileCount) ||
             left.name.localeCompare(right.name);
         });
+      state.releaseCatalogLoaded = values[3] !== null;
+      state.publishedReleases = list(values[3]);
+      if (state.releaseCatalogLoaded) {
+        applyPublishedReleases(state.datasets, state.publishedReleases);
+      }
       state.datasetsLoaded = true;
       state.stats = Object.assign(
         {},
@@ -1026,7 +1099,9 @@
     return '<a class="tml-card tml-dataset-card" href="#/dataset/' +
       encodeURIComponent(d.slug) + '">' +
       '<div class="tml-card-top"><span class="tml-category">' +
-        esc(category) + '</span>' + statusBadge(d.access) + '</div>' +
+        esc(category) + '</span>' +
+        (d.releaseCount > 0 ? statusBadge('Download ready', 'verified') : statusBadge(d.access)) +
+        '</div>' +
       '<h3>' + esc(d.name) + '</h3>' +
       '<p class="tml-clamp2">' + esc(d.description) + '</p>' +
       '<div class="tml-review-status">' + reviewBadge(d.review) + '</div>' +
@@ -1079,7 +1154,7 @@
 
   function homePage() {
     var stats = state.stats || {};
-    var featured = state.datasets.slice(0, 6);
+    var featured = featuredDatasets();
     return '<main id="main">' +
       '<section class="tml-herosec">' +
         '<h1 class="tml-hero">Every telecom-ML dataset, with its review trail visible.</h1>' +
@@ -1095,7 +1170,12 @@
         '</div>' +
         '<div class="tml-stats">' +
           statBlock(state.datasets.length || stats.approved_static, 'Datasets') +
-          statBlock(stats.published || stats.releases, 'Published releases') +
+          statBlock(
+            state.releaseCatalogLoaded
+              ? state.publishedReleases.length
+              : (stats.published || stats.releases),
+            'Published releases'
+          ) +
           statBlock(
             stats.linked_papers != null
               ? stats.linked_papers
@@ -1109,7 +1189,9 @@
         '<h2>Featured datasets</h2><a href="#/datasets">Browse all →</a></div>' +
       (state.loading ? loading() : state.error ? errorBox() : featured.length
         ? '<div class="tml-cardgrid">' + featured.map(datasetCard).join('') + '</div>'
-        : '<div class="tml-state"><h3>No AI-reviewed ML records yet</h3><p>Candidates appear after deterministic source checks and evidence-bound AI relevance and usability review. Human audits follow publication.</p><a class="tml-button" href="#/coverage">Inspect coverage</a></div>') +
+        : state.releaseCatalogLoaded
+          ? '<div class="tml-state"><h3>No downloadable releases yet</h3><p>Prepared datasets appear here after their public 70/15/15 split manifests are available.</p><a class="tml-button" href="#/datasets">Browse the catalog</a></div>'
+          : '<div class="tml-state"><h3>No AI-reviewed ML records yet</h3><p>Candidates appear after deterministic source checks and evidence-bound AI relevance and usability review. Human audits follow publication.</p><a class="tml-button" href="#/coverage">Inspect coverage</a></div>') +
       '</section></main>';
   }
 
