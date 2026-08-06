@@ -102,7 +102,7 @@ const RELEASES: readonly ReleaseDescriptor[] = [
     id: "radioml2016-10a-modulation-classification-v1",
     datasetId: "10.5281/zenodo.18397069",
     datasetVersionId: "dsv_765b73be81844f30db00ed66",
-    aliases: ["radioml2016-10a", "radioml-2016.10a"],
+    aliases: ["radioml2016-10a", "radioml-2016.10a", "radioml-2016-10a"],
     metric: "accuracy",
     maximumPredictionBytes: 32 * 1024 * 1024,
   },
