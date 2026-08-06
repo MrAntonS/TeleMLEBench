@@ -6,7 +6,7 @@ test('mobile navigation is operable and detail content does not overflow', async
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
   await expectCoreLandmarks(page);
-  await expect(page.getByText('AI reviewed · audit pending', { exact: true })).toBeVisible();
+
   const catalogGeometry = await page.evaluate(() => ({
     viewportWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth

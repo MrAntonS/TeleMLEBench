@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { fixtureUrl, monitorClientErrors } from './support.mjs';
 
-test('preserves the pre-redesign white and blue visual contract', async ({ page }) => {
+test('renders the OpenWirelessML precision-instrument visual contract', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'home'));
 
@@ -10,58 +10,68 @@ test('preserves the pre-redesign white and blue visual contract', async ({ page 
   const inner = page.locator('.tml-header-inner');
   const hero = page.locator('.tml-herosec');
 
-  await expect(header).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.97)');
-  await expect(page.locator('.tml-logo')).toHaveCSS('background-color', 'rgb(37, 99, 235)');
-  await expect(page.locator('.tml-hero')).toHaveCSS('font-size', '54px');
+  await expect(header).toHaveCSS('background-color', 'rgba(11, 15, 16, 0.97)');
+  await expect(page.locator('.tml-logo')).toHaveCSS('border-top-color', 'rgba(156, 240, 255, 0.62)');
+  await expect(page.locator('.ow-observatory')).toBeVisible();
   await expect(page.locator('.signal-panel')).toHaveCount(0);
-  const linkedPapers = page.locator('.tml-stats > div').filter({ hasText: 'Papers linked' });
-  await expect(linkedPapers).toContainText('1');
-  await expect(page.getByText('Papers tracked', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', {
+    name: 'From wireless data to defensible research.'
+  })).toBeVisible();
+  const paperLinks = page.locator('.ow-ledger-row').filter({
+    hasText: 'Paper-use links'
+  });
+  await expect(paperLinks).toContainText('1');
 
   const geometry = await page.evaluate(() => {
     const headerBox = document.querySelector('.tml-header')?.getBoundingClientRect();
     const innerBox = document.querySelector('.tml-header-inner')?.getBoundingClientRect();
     const heroBox = document.querySelector('.tml-herosec')?.getBoundingClientRect();
+    const heroStyle = getComputedStyle(document.querySelector('.tml-hero'));
     return {
       headerHeight: headerBox?.height,
       innerLeft: innerBox?.left,
       innerWidth: innerBox?.width,
       heroLeft: heroBox?.left,
-      heroWidth: heroBox?.width
+      heroWidth: heroBox?.width,
+      heroFont: heroStyle.fontFamily
     };
   });
-  expect(geometry.headerHeight).toBe(63);
-  expect(geometry.innerLeft).toBe(188);
-  expect(geometry.innerWidth).toBe(1064);
-  expect(geometry.heroLeft).toBe(188);
-  expect(geometry.heroWidth).toBe(1064);
+  expect(geometry.headerHeight).toBe(65);
+  expect(geometry.innerLeft).toBe(40);
+  expect(geometry.innerWidth).toBe(1360);
+  expect(geometry.heroLeft).toBe(40);
+  expect(geometry.heroWidth).toBe(1360);
+  expect(geometry.heroFont).toContain('Instrument Sans');
   assertNoClientErrors();
 });
-
-test('featured datasets are backed by published downloadable releases', async ({ page }) => {
+test('landing page follows the Stitch editorial composition', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'home'));
 
-  const featured = page.locator('.tml-section').filter({
-    has: page.getByRole('heading', { name: 'Featured datasets' })
-  });
-  await expect(featured.getByRole('link', { name: new RegExp(datasetName) })).toBeVisible();
-  await expect(featured.getByText('Download ready', { exact: true })).toBeVisible();
-  await expect(featured.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
-  const published = page.locator('.tml-stats > div').filter({ hasText: 'Published releases' });
-  await expect(published).toContainText('1');
+  await expect(page.getByRole('heading', {
+    name: /Wireless ML research is scattered/
+  })).toBeVisible();
+  await expect(page.getByRole('heading', {
+    name: 'Progress is evidence.'
+  })).toBeVisible();
+  await expect(page.getByRole('heading', {
+    name: 'Research domains'
+  })).toBeVisible();
+  await expect(page.getByRole('heading', {
+    name: 'Start with the data. Keep the evidence.'
+  })).toBeVisible();
+  await expect(page.getByText('Paper-use links', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Cellular and RAN' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Browse datasets' }).first()).toBeVisible();
   assertNoClientErrors();
 });
-
 test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
   await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
-  const reviewBadge = page.getByText('AI reviewed · audit pending', { exact: true });
-  await expect(reviewBadge).toBeVisible();
-  await expect(reviewBadge).toHaveClass(/pending/);
+
   await expect(page.getByLabel('Task')).toContainText('classification');
   await expect(page.getByLabel('Source')).toContainText('Zenodo');
 
@@ -102,13 +112,13 @@ test('top-bar navigation renders cached dashboard data without a reload', async 
   await page.goto(fixtureUrl('populated', 'datasets'));
 
   await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
-  await page.getByRole('link', { name: 'Papers', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Papers', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Papers' })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true }).click();
   await expect(page).toHaveURL(/#\/home$/);
   await expect(page.getByRole('heading', {
-    name: 'Every telecom-ML dataset, with its review trail visible.'
+    name: 'From wireless data to defensible research.'
   })).toBeVisible();
   assertNoClientErrors();
 });

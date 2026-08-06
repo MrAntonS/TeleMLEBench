@@ -1,6 +1,6 @@
-# TeleMLEBench frontend
+# OpenWirelessML frontend
 
-TeleMLEBench is a dependency-free public frontend for a source-first catalog of
+OpenWirelessML is a dependency-free public frontend for a source-first catalog of
 telecom ML datasets, paper-use evidence, and controlled reproduction reports.
 
 The interface is intentionally evidence-led. It does not expose prediction

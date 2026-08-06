@@ -70,7 +70,7 @@ expect(app.includes('normalizeReview'), 'dataset review provenance normalization
 expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending status is missing');
 expect(app.includes('Human audits run retroactively'), 'retroactive human audit policy is not communicated');
 expect(!app.includes('after all human publication gates'), 'obsolete human-first publication wording remains');
-expect(app.includes('signal-path'), 'provenance signal-path signature is missing');
+expect(app.includes('CATALOG_OBSERVATORY'), 'catalog observatory signature is missing');
 expect(
   workflow.includes('cp index.html app.js config.js dist/'),
   'Pages does not publish the Supabase runtime configuration'
@@ -124,4 +124,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('TeleMLEBench static frontend contract passed.');
+console.log('OpenWirelessML static frontend contract passed.');

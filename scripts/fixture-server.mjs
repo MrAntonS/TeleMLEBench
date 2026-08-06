@@ -169,7 +169,7 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`TeleMLEBench fixture server: http://${host}:${port}/`);
+  console.log(`OpenWirelessML fixture server: http://${host}:${port}/`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

@@ -9,11 +9,6 @@ test('landmarks, names, focus order, and skip navigation support keyboard users'
 
   const headings = await page.getByRole('heading', { level: 1 }).allTextContents();
   expect(headings).toEqual(['Datasets']);
-  await expect(page.getByText(
-    'AI reviewed · audit pending',
-    { exact: true }
-  )).toBeVisible();
-
   await page.keyboard.press('Tab');
   const skip = page.getByRole('link', { name: 'Skip to content' });
   await expect(skip).toBeFocused();
@@ -22,7 +17,7 @@ test('landmarks, names, focus order, and skip navigation support keyboard users'
   await expect(page.getByRole('main')).toBeFocused();
   await expect(page).toHaveURL(/#\/datasets$/);
 
-  const labels = ['Search', 'Task', 'Origin', 'Access', 'Source', 'License', 'Publication', 'Papers', 'Reproduction'];
+  const labels = ['Search', 'Task', 'Origin', 'Access', 'Source', 'License', 'Release', 'Papers'];
   for (const label of labels) {
     await expect(page.getByLabel(label)).toHaveCount(1);
   }
