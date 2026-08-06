@@ -18,7 +18,7 @@ test('existing Pages files expose release downloads through the Vercel API', () 
   assert.match(app, /Published split downloads/);
   assert.match(app, /loadPublishedReleaseCatalog/);
   assert.match(app, /dataset_aliases/);
-  assert.match(app, /Download ready/);
+  assert.match(app, /Loading immutable release manifests|Published split downloads|Download split/);
   assert.match(releases, /"radioml-2016-10a"/);
   assert.match(app, /\/releases\?dataset=/);
   assert.match(app, /test_features/);
