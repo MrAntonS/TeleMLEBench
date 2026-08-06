@@ -1216,8 +1216,8 @@
         observatoryPanel(stats, sourceProviders.length) +
       '</div></section>' +
       '<section class="ow-editorial tml-section"><div class="ow-editorial-label"><div class="ow-kicker"><span></span> WHY OPENWIRELESSML EXISTS</div>' +
-        '<h2>Wireless ML research is scattered across repositories, papers, and private notebooks.</h2></div>' +
-        '<div class="ow-editorial-copy"><p>OpenWirelessML keeps the public research record close to the dataset. A source record, an exact version, a prepared task release, and a paper-use relationship remain distinct but connected.</p>' +
+        '<h2>Why OpenWirelessML exists</h2></div>' +
+        '<div class="ow-editorial-copy"><p>OpenWirelessML was built to make the public telecom ML record coherent by linking source metadata, exact dataset versions, publication state, and release lineage in one catalog.</p>' +
         '<p>That makes it easier to choose data responsibly, understand how a result was produced, and see what is still missing.</p></div>' +
       '</section>' +
       '<section class="ow-ledger-section tml-section"><div class="ow-ledger-copy">' +
