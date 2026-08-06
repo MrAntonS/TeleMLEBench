@@ -35,3 +35,10 @@ test('SDK API keys remain hash-verified server-side', () => {
   assert.match(auth, /TMLB_EVALUATION_API_KEY_SHA256S/);
   assert.match(auth, /timingSafeEqual/);
 });
+
+test('workflow validates stored prediction size instead of transfer length', () => {
+  const step = read('workflows/score-predictions/steps.ts');
+  assert.match(step, /head\(input\.predictionPath\)/);
+  assert.match(step, /predictionMetadata\.size !== input\.predictionSize/);
+  assert.doesNotMatch(step, /predictionBlob\.blob\.size/);
+});

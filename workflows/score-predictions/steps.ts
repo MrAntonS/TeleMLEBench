@@ -1,4 +1,4 @@
-import { del, get } from "@vercel/blob";
+import { del, get, head } from "@vercel/blob";
 import { Readable } from "node:stream";
 
 import {
@@ -145,11 +145,12 @@ export async function scorePredictionStep(
     descriptor.datasetVersionId,
   );
 
-  const [labelResponse, predictionBlob] = await Promise.all([
+  const [labelResponse, predictionMetadata, predictionBlob] = await Promise.all([
     fetch(privateEvaluatorArtifactUrl(labelMetadata.pathname), {
       headers: { Authorization: `Bearer ${hfToken}` },
       cache: "no-store",
     }),
+    head(input.predictionPath),
     get(input.predictionPath, { access: "private", useCache: false }),
   ]);
   if (!labelResponse.ok || !labelResponse.body) {
@@ -164,8 +165,9 @@ export async function scorePredictionStep(
       completed_at: now(),
     };
   }
-  if (predictionBlob.blob.size !== input.predictionSize ||
-      predictionBlob.blob.size > descriptor.maximumPredictionBytes) {
+  if (predictionMetadata.pathname !== input.predictionPath ||
+      predictionMetadata.size !== input.predictionSize ||
+      predictionMetadata.size > descriptor.maximumPredictionBytes) {
     return {
       ...RESULT_BASE,
       status: "rejected",
