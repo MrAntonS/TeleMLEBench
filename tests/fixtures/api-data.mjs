@@ -409,6 +409,26 @@ export const publicRelease = {
     strategy: 'group',
     counts: { train: 70, validation: 15, test: 15 }
   },
-  files: [],
+  files: [
+    {
+      role: 'train',
+      byte_size: 3145728,
+      sha256: 'a'.repeat(64),
+      download_endpoint: '/releases/release-radio-kpi-v1/files/train.csv'
+    },
+    {
+      role: 'validation',
+      byte_size: 674816,
+      sha256: 'b'.repeat(64),
+      download_endpoint: '/releases/release-radio-kpi-v1/files/validation.csv'
+    },
+    {
+      role: 'test_features',
+      byte_size: 674816,
+      sha256: 'c'.repeat(64),
+      download_endpoint: '/releases/release-radio-kpi-v1/files/test.csv'
+    }
+  ],
+  manifest_endpoint: '/releases/release-radio-kpi-v1/manifest',
   evaluation: { available: true }
 };

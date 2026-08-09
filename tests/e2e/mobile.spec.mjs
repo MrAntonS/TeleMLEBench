@@ -30,6 +30,9 @@ test('mobile navigation is operable and detail content does not overflow', async
 
   await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
   await expect(page.getByRole('heading', { level: 1, name: 'Metro LTE KPI Handover Dataset' })).toBeVisible();
+  // Wait for the async injected release panel so overflow measurement includes it.
+  await expect(page.locator('article.tml-release-unit').first()).toBeVisible();
+  await expect(page.locator('.tml-evaluator').first()).toBeVisible();
   const viewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 1);

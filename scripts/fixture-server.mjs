@@ -76,6 +76,9 @@ function populatedResponse(apiPath) {
   if (apiPath === `/releases/${releaseManifest.release_id}/manifest`) {
     return releaseManifest;
   }
+  if (apiPath === '/evaluations/config') {
+    return { enabled: false, turnstile_site_key: '' };
+  }
   return undefined;
 }
 
@@ -140,17 +143,26 @@ function serveStatic(response, pathname) {
     response.end('Not found');
     return;
   }
-  fs.readFile(target, (error, body) => {
+  fs.readFile(target, 'utf8', (error, content) => {
     if (error) {
       response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       response.end('Not found');
       return;
     }
+    // Point the evaluation API to the local fixture server so that
+    // injected release/evaluator UI fetches go through deterministic
+    // test infrastructure instead of the production Vercel API.
+    if (relative === 'config.js') {
+      content = content.replace(
+        /(TMLB_EVALUATION_API_BASE\s*=\s*)'[^']*'/,
+        "$1'/api/v1'"
+      );
+    }
     response.writeHead(200, {
       'Cache-Control': 'no-store',
       'Content-Type': contentTypes[path.extname(target)] || 'application/octet-stream'
     });
-    response.end(body);
+    response.end(content);
   });
 }
 

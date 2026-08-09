@@ -49,7 +49,7 @@ test('landing page follows the Stitch editorial composition', async ({ page }) =
   await page.goto(fixtureUrl('populated', 'home'));
 
   await expect(page.getByRole('heading', {
-    name: /Wireless ML research is scattered/
+    name: 'Why OpenWirelessML Exists'
   })).toBeVisible();
   await expect(page.getByRole('heading', {
     name: 'Progress is evidence.'
@@ -82,7 +82,7 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Dataset schema' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'handover_success' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tasks and immutable releases' })).toBeVisible();
-  await expect(page.getByText('release-radio-kpi-v1', { exact: true })).toBeVisible();
+  await expect(page.getByText('release-radio-kpi-v1', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('70 / 15 / 15')).toBeVisible();
   await expect(page.getByText('train.csv')).toBeVisible();
   await expect(page.getByRole('link', { name: /Provider file/ })).toHaveCount(1);
@@ -179,6 +179,91 @@ test('empty and unavailable catalogs state different facts', async ({ page }) =>
   await expect(page.getByText('API request failed (503)')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
   await expect(page.getByText('No matching dataset records')).toHaveCount(0);
+});
+
+test('injected release panel matches dark precision-instrument theme', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
+
+  const panel = page.locator('.tml-release-download-panel');
+  await expect(panel).toBeVisible();
+
+  await expect(page.getByRole('heading', { name: 'Published split downloads' })).toBeVisible();
+
+  const unit = page.locator('article.tml-release-unit').first();
+  await expect(unit).toBeVisible();
+  await expect(unit).toContainText('release-radio-kpi-v1');
+  await expect(unit).toContainText('70 train · 15 validation · 15 test');
+
+  // Release unit uses the dark surface (low red channel, not white/light).
+  const unitBg = await unit.evaluate((el) =>
+    getComputedStyle(el).backgroundColor
+  );
+  const bgRed = Number((unitBg.match(/rgba?\((\d+)/) || [])[1]);
+  expect(bgRed).toBeLessThan(60);
+
+  // Square corners matching the precision-instrument theme.
+  const unitRadius = await unit.evaluate((el) =>
+    getComputedStyle(el).borderBottomLeftRadius
+  );
+  expect(unitRadius).toBe('2px');
+
+  // Panel accent line uses a cyan-family colour, not the old blue #2563eb.
+  const panelBeforeBg = await panel.evaluate((el) => {
+    const s = getComputedStyle(el, '::before');
+    return s.backgroundColor;
+  });
+  const accentGreen = Number((panelBeforeBg.match(/rgba?\(\d+,\s*(\d+)/) || [])[1]);
+  expect(accentGreen).toBeGreaterThan(150);
+
+  // Flow step container: dark background, low red channel.
+  const flow = page.locator('.tml-release-flow').first();
+  const flowBg = await flow.evaluate((el) =>
+    getComputedStyle(el).backgroundColor
+  );
+  const flowRed = Number((flowBg.match(/rgba?\((\d+)/) || [])[1]);
+  expect(flowRed).toBeLessThan(60);
+
+  // Download file tile: dark surface.
+  const fileCard = page.locator('.tml-release-file').first();
+  const fileBg = await fileCard.evaluate((el) =>
+    getComputedStyle(el).backgroundColor
+  );
+  const fileRed = Number((fileBg.match(/rgba?\((\d+)/) || [])[1]);
+  expect(fileRed).toBeLessThan(60);
+
+  // Submit button uses accent cyan background and mono font.
+  const submitBtn = page.locator('.tml-evaluator-submit').first();
+  const submitBg = await submitBtn.evaluate((el) =>
+    getComputedStyle(el).backgroundColor
+  );
+  const sbMatch = submitBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  // Accent cyan (#9cf0ff) has high green (240) and blue (255),
+  // whereas the old light-theme button (#2563eb) has green=99.
+  expect(Number(sbMatch[2])).toBeGreaterThan(200); // green high (cyan, not old blue)
+  expect(Number(sbMatch[3])).toBeGreaterThan(200); // blue high
+
+  const submitFont = await submitBtn.evaluate((el) =>
+    getComputedStyle(el).fontFamily
+  );
+  expect(submitFont.toLowerCase()).toContain('ibm plex mono');
+
+  // Evaluator heading uses dark-theme ink colour, not near-black body text.
+  const evaluatorHeading = page.locator('.tml-evaluator h4').first();
+  await expect(evaluatorHeading).toContainText('Verify predictions');
+  const headingColor = await evaluatorHeading.evaluate((el) =>
+    getComputedStyle(el).color
+  );
+  expect(headingColor).not.toBe('rgb(20, 22, 26)');
+
+  // File download link uses mono font and border styling.
+  const downloadLink = page.locator('.tml-release-file a').first();
+  const linkFont = await downloadLink.evaluate((el) =>
+    getComputedStyle(el).fontFamily
+  );
+  expect(linkFont.toLowerCase()).toContain('ibm plex mono');
+
+  assertNoClientErrors();
 });
 
 const datasetName = 'Metro LTE KPI Handover Dataset';
