@@ -153,6 +153,8 @@ export const unreleasedDataset = {
   paper_count: 99,
   releases: [],
   tasks: [],
+  task: 'channel estimation',
+  task_families: ['channel estimation'],
   versions: [{ id: 'version-catalog-only-1', version: '1.0.0' }],
   review: {
     basis: 'qualification',

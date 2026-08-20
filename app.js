@@ -1233,7 +1233,8 @@
         '<p>An index of supported telecommunications research areas, organized for finding relevant machine-learning data.</p></div>' +
         '<div class="ow-domain-index">' + domains.map(function (domain) {
           var count = domainRecordCount(domain[1]);
-          return '<a href="#/datasets" class="ow-domain-item"><span>' + esc(domain[0]) +
+          return '<a href="#/datasets?query=' + encodeURIComponent(domain[1]) +
+            '" class="ow-domain-item"><span>' + esc(domain[0]) +
             '</span><span><strong>' + esc(number(count)) +
             ' records</strong><b>+</b></span></a>';
         }).join('') + '</div>' +
@@ -1722,17 +1723,30 @@
   }
 
   function parseRoute() {
-    var raw = (window.location.hash || '#/home').replace(/^#\/?/, '');
-    var parts = raw.split('/').filter(Boolean);
+    var hash = window.location.hash || '#/home';
+    var raw = hash.replace(/^#\/?/, '');
+    var question = raw.indexOf('?');
+    var path = question >= 0 ? raw.slice(0, question) : raw;
+    var queryString = question >= 0 ? raw.slice(question + 1) : '';
+    var params = new URLSearchParams(queryString);
+    var parts = path.split('/').filter(Boolean);
     var allowed = ['home','datasets','papers','reproductions','methodology','coverage','contribute'];
     if (parts[0] === 'dataset' && parts[1]) return { name:'dataset', slug:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'paper' && parts[1]) return { name:'paper', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'reproduction' && parts[1]) return { name:'reproduction', id:decodeURIComponent(parts.slice(1).join('/')) };
-    return { name:allowed.indexOf(parts[0]) >= 0 ? parts[0] : 'home' };
+    var name = allowed.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
+    if (name === 'datasets' && params.has('query')) {
+      return { name:'datasets', query: params.get('query') || '' };
+    }
+    return { name:name };
   }
 
   function syncRoute() {
-    state.route = parseRoute();
+    var route = parseRoute();
+    if (route.name === 'datasets' && typeof route.query === 'string') {
+      state.filters.query = route.query;
+    }
+    state.route = route;
     state.navOpen = false;
     state.error = '';
     window.scrollTo(0, 0);

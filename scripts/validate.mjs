@@ -65,6 +65,14 @@ expect(
 );
 expect(app.includes('#/paper/'), 'paper detail route is missing');
 expect(app.includes('#/reproduction/'), 'reproduction detail route is missing');
+expect(
+  app.includes("#/datasets?query=' + encodeURIComponent(domain[1])"),
+  'research domain links do not deep-link their filter term'
+);
+expect(
+  app.includes("params.has('query')"),
+  'datasets route does not parse a deep-link query'
+);
 expect(app.includes('Exact usage evidence'), 'paper evidence rendering is missing');
 expect(app.includes('static trainable ML'), 'ML-only scope is not communicated');
 expect(app.includes('normalizeReview'), 'dataset review provenance normalization is missing');

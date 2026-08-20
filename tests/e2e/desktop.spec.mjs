@@ -115,6 +115,32 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   assertNoClientErrors();
 });
 
+test('research domain link deep-links the datasets filter and keeps the term visible and editable', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const mobilityLink = page.getByRole('link', { name: 'Mobility / Localization' });
+  await expect(mobilityLink).toHaveAttribute('href', '#/datasets?query=mobility');
+  await mobilityLink.click();
+
+  await expect(page).toHaveURL(/#\/datasets\?query=mobility$/);
+  await expect(page.getByLabel('Search')).toHaveValue('mobility');
+  await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
+  assertNoClientErrors();
+});
+
+test('datasets deep-link query filters directly from the hash URL on load', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(`${fixtureUrl('populated', 'datasets')}?query=mobility`);
+
+  await expect(page).toHaveURL(/#\/datasets\?query=mobility$/);
+  await expect(page.getByLabel('Search')).toHaveValue('mobility');
+  await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
+  assertNoClientErrors();
+});
+
 test('top-bar navigation renders cached dashboard data without a reload', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
