@@ -21,5 +21,5 @@ export async function expectCoreLandmarks(page) {
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
   await expect(page.getByRole('contentinfo')).toHaveCount(1);
-  await expect(page).toHaveTitle(/OpenWirelessML/);
+  await expect(page).toHaveTitle(/OpenWirelessLearning/);
 }

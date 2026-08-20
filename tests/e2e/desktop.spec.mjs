@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { fixtureUrl, monitorClientErrors } from './support.mjs';
 
-test('renders the OpenWirelessML precision-instrument visual contract', async ({ page }) => {
+test('renders the OpenWirelessLearning precision-instrument visual contract', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'home'));
 
@@ -49,7 +49,7 @@ test('landing page follows the Stitch editorial composition', async ({ page }) =
   await page.goto(fixtureUrl('populated', 'home'));
 
   await expect(page.getByRole('heading', {
-    name: 'Why OpenWirelessML exists'
+    name: 'Why OWL exists'
   })).toBeVisible();
   await expect(page.getByRole('heading', {
     name: 'What the catalog includes'
@@ -64,7 +64,7 @@ test('landing page follows the Stitch editorial composition', async ({ page }) =
   await expect(page.getByRole('link', { name: 'Cellular and RAN' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Browse datasets' }).first()).toBeVisible();
   await expect(page.getByText('Catalog totals', { exact: true })).toBeVisible();
-  await expect(page.getByText('Wireless ML catalog', { exact: true })).toBeVisible();
+  await expect(page.getByText('Open Wireless Learning', { exact: true })).toBeVisible();
   await expect(page.getByText('PUBLIC INDEX')).toHaveCount(0);
   await expect(page.getByText('CATALOG SCOPE')).toHaveCount(0);
   await expect(page.getByText('PUBLIC RECORD')).toHaveCount(0);

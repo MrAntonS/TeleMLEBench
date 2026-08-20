@@ -26,5 +26,5 @@ http.createServer((request, response) => {
     response.writeHead(200, { 'Content-Type':types[path.extname(target)] || 'application/octet-stream', 'Cache-Control':'no-store' }).end(body);
   });
 }).listen(port, '127.0.0.1', () => {
-  console.log(`OpenWirelessML preview: http://127.0.0.1:${port}/`);
+  console.log(`OpenWirelessLearning preview: http://127.0.0.1:${port}/`);
 });

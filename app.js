@@ -989,7 +989,7 @@
   function header() {
     return '<header class="tml-header"><div class="tml-header-inner">' +
       '<a class="tml-brand" href="#/home">' + logo() +
-        '<span class="tml-brand-copy"><strong>OpenWirelessML</strong><small>Wireless ML catalog</small></span></a>' +
+        '<span class="tml-brand-copy"><strong>OWL</strong><small>Open Wireless Learning</small></span></a>' +
       '<button class="tml-nav-toggle" data-action="toggle-nav" aria-expanded="' +
         (state.navOpen ? 'true' : 'false') + '" aria-label="Toggle navigation">Menu</button>' +
       '<nav class="tml-nav ' + (state.navOpen ? 'open' : '') + '" aria-label="Main navigation">' +
@@ -1006,7 +1006,7 @@
 
   function footer() {
     return '<footer class="tml-footer"><div class="tml-footer-inner">' +
-      '<div><strong>OpenWirelessML</strong><span>A public catalog of wireless ML datasets, prepared releases, and research evidence.</span></div>' +
+      '<div><strong>OpenWirelessLearning</strong><span>A public catalog of wireless ML datasets, prepared releases, and research evidence.</span></div>' +
       '<div class="tml-footer-links"><a href="#/datasets">Datasets</a>' +
         '<a href="#/papers">Papers</a><a href="#/coverage">Coverage</a>' +
         '<a href="https://github.com/MrAntonS/TeleMLEBench" target="_blank" rel="noopener">GitHub ↗</a></div>' +
@@ -1203,7 +1203,7 @@
       '<section class="tml-herosec"><div class="ow-hero-grid">' +
         '<div class="ow-hero-copy">' +
           '<h1 class="tml-hero">Wireless ML datasets, prepared releases, and research evidence.</h1>' +
-          '<p class="tml-hero-copy">OpenWirelessML is a public catalog for conventional wireless and telecom machine learning. ' +
+          '<p class="tml-hero-copy">OWL is a public catalog for conventional wireless and telecom machine learning. ' +
             'Find the source record, understand the dataset version, inspect prepared releases, and follow the papers that use the data.</p>' +
           '<div class="ow-hero-actions"><a class="tml-button primary" href="#/datasets">Browse datasets</a>' +
             '<a class="tml-button" href="#/methodology">Read the methodology</a></div>' +
@@ -1212,8 +1212,8 @@
         observatoryPanel(stats, sourceProviders.length) +
       '</div></section>' +
       '<section class="ow-editorial tml-section"><div class="ow-editorial-label">' +
-        '<h2>Why OpenWirelessML exists</h2></div>' +
-        '<div class="ow-editorial-copy"><p>Wireless and telecom ML datasets are scattered across repositories, and it is difficult to trace dataset versions, intended tasks, and their use in papers. OpenWirelessML brings these records together so their provenance stays visible.</p>' +
+        '<h2>Why OWL exists</h2></div>' +
+        '<div class="ow-editorial-copy"><p>Wireless and telecom ML datasets are scattered across repositories, and it is difficult to trace dataset versions, intended tasks, and their use in papers. OWL brings these records together so their provenance stays visible.</p>' +
         '<p>Prepared releases provide documented splits and checksums. Reproduction reports show what ran and how it was scored.</p></div>' +
       '</section>' +
       '<section class="ow-ledger-section tml-section"><div class="ow-ledger-copy">' +
@@ -1328,7 +1328,7 @@
   }
 
   function fileRows(detail) {
-    if (!detail.files.length) return '<div class="empty"><h3>No provider file manifest</h3><p class="muted">This record remains source-linked until the provider exposes or OpenWirelessML verifies a file inventory.</p></div>';
+    if (!detail.files.length) return '<div class="empty"><h3>No provider file manifest</h3><p class="muted">This record remains source-linked until the provider exposes or OWL verifies a file inventory.</p></div>';
     return detail.files.slice(0, 30).map(function (f) {
       var url = safeUrl(f.content_url || f.url || f.download_url);
       var open = f.restricted === false || f.is_restricted === false || detail.dataset.access === 'open';
@@ -1395,7 +1395,7 @@
       ? detail.schema : {};
     var fields = Array.isArray(schema.fields) ? schema.fields : [];
     if (!fields.length) {
-      return '<div class="empty"><h3>No metadata schema available</h3><p class="muted">The provider has not exposed field-level metadata yet. OpenWirelessML does not invent columns from filenames or assume the last column is a target.</p></div>';
+      return '<div class="empty"><h3>No metadata schema available</h3><p class="muted">The provider has not exposed field-level metadata yet. OWL does not invent columns from filenames or assume the last column is a target.</p></div>';
     }
     return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Field</th><th>Type / shape</th><th>Role</th><th>Description</th></tr></thead><tbody>' +
       fields.map(function (field) {
@@ -1643,15 +1643,15 @@
 
   function methodologyPage() {
     return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">Source, release, paper, and reproduction records stay separate and traceable.</p>' +
-      '<p>OpenWirelessML separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
+      '<p>OWL separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
       '<div class="steps">' +
         '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then apply deterministic source checks and AI semantic review. Legal and sensitivity gates separately control payload acquisition and release. Human audits run retroactively and can correct or withdraw a record.</p></div></article>' +
-        '<article class="step"><div><h3>Immutable release</h3><p>Mirror only when redistribution is allowed. Hash the raw snapshot, assign stable sample IDs, publish a documented task adapter, and preserve the provider split alongside the OpenWirelessML view.</p></div></article>' +
+        '<article class="step"><div><h3>Immutable release</h3><p>Mirror only when redistribution is allowed. Hash the raw snapshot, assign stable sample IDs, publish a documented task adapter, and preserve the provider split alongside the OWL view.</p></div></article>' +
         '<article class="step"><div><h3>Leakage-aware split</h3><p>Use 70/15/15 and seed 42. Time, subscriber, device, cell, site, route, session, or spatial dependencies stay together. Stratified rows are only a proven-safe fallback.</p></div></article>' +
         '<article class="step"><div><h3>Paper-use evidence</h3><p>Find papers from direct identifiers, aliases, and citation graphs. Store the exact passage showing training or evaluation use; a citation alone is not accepted.</p></div></article>' +
         '<article class="step"><div><h3>Controlled reproduction</h3><p>Run paper-only and artifact-assisted tracks independently. Keep missing facts and assumptions explicit, isolate generated code, hide test labels from the training process, and recompute metrics on the server.</p></div></article>' +
       '</div>' +
-      '<h2>What the platform does not claim</h2><p>OpenWirelessML does not infer that every execution gap is caused by a paper. It first rules out platform faults, unavailable inputs, unsupported representations, invalid scoring, and generated-code failures. Only comparable, server-scored, faithful attempts support conclusions about reporting completeness.</p>' +
+      '<h2>What the platform does not claim</h2><p>OWL does not infer that every execution gap is caused by a paper. It first rules out platform faults, unavailable inputs, unsupported representations, invalid scoring, and generated-code failures. Only comparable, server-scored, faithful attempts support conclusions about reporting completeness.</p>' +
       '<h2>Active scope</h2><p>The public catalog focuses on static datasets used for conventional telecom ML. LLM benchmarks, LLM training corpora, software, generators, model artifacts, papers, and supplementary figures remain available for audit but do not appear as active datasets.</p>' +
     '</div></main>';
   }
@@ -1718,7 +1718,7 @@
       coverage:'Coverage',
       contribute:'Contribute'
     };
-    return (labels[state.route.name] ? labels[state.route.name] + ' — ' : '') + 'OpenWirelessML';
+    return (labels[state.route.name] ? labels[state.route.name] + ' — ' : '') + 'OpenWirelessLearning';
   }
 
   function parseRoute() {

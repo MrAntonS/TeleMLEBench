@@ -185,7 +185,7 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`OpenWirelessML fixture server: http://${host}:${port}/`);
+  console.log(`OpenWirelessLearning fixture server: http://${host}:${port}/`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

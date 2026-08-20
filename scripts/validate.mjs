@@ -112,9 +112,9 @@ for (const marker of forbiddenUi) {
 
 // Direct, truthful hero and section copy (positive contracts).
 const directCopy = [
-  'Wireless ML catalog',
+  'Open Wireless Learning',
   'Wireless ML datasets, prepared releases, and research evidence.',
-  'Why OpenWirelessML exists',
+  'Why OWL exists',
   'it is difficult to trace dataset versions, intended tasks, and their use in papers',
   'Prepared releases provide documented splits and checksums. Reproduction reports show what ran and how it was scored.',
   'What the catalog includes',
@@ -171,7 +171,7 @@ const removedPseudoLabels = [
   'PUBLIC RESEARCH CATALOG',
   'PUBLIC DATASET CATALOG',
   'PUBLIC SCOPE',
-  'WHY OPENWIRELESSML EXISTS',
+  'WHY OPENWIRELESSLEARNING EXISTS',
   'CATALOG SCOPE',
   'CLASSIFICATION',
   'PUBLIC RECORD',
@@ -202,4 +202,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('OpenWirelessML static frontend contract passed.');
+console.log('OpenWirelessLearning static frontend contract passed.');
