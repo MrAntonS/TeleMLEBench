@@ -152,6 +152,7 @@ export const unreleasedDataset = {
   description: 'A reviewed catalog record that does not yet have a downloadable task release.',
   paper_count: 99,
   releases: [],
+  tasks: [],
   versions: [{ id: 'version-catalog-only-1', version: '1.0.0' }],
   review: {
     basis: 'qualification',

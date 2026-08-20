@@ -15,7 +15,7 @@ test('renders the OpenWirelessML precision-instrument visual contract', async ({
   await expect(page.locator('.ow-observatory')).toBeVisible();
   await expect(page.locator('.signal-panel')).toHaveCount(0);
   await expect(page.getByRole('heading', {
-    name: 'From wireless data to defensible research.'
+    name: 'Wireless ML datasets, prepared releases, and research evidence.'
   })).toBeVisible();
   const paperLinks = page.locator('.ow-ledger-row').filter({
     hasText: 'Paper-use links'
@@ -49,20 +49,25 @@ test('landing page follows the Stitch editorial composition', async ({ page }) =
   await page.goto(fixtureUrl('populated', 'home'));
 
   await expect(page.getByRole('heading', {
-    name: 'Why OpenWirelessML Exists'
+    name: 'Why OpenWirelessML exists'
   })).toBeVisible();
   await expect(page.getByRole('heading', {
-    name: 'Progress is evidence.'
+    name: 'What the catalog includes'
   })).toBeVisible();
   await expect(page.getByRole('heading', {
     name: 'Research domains'
   })).toBeVisible();
   await expect(page.getByRole('heading', {
-    name: 'Start with the data. Keep the evidence.'
+    name: 'Browse the catalog.'
   })).toBeVisible();
   await expect(page.getByText('Paper-use links', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Cellular and RAN' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Browse datasets' }).first()).toBeVisible();
+  await expect(page.getByText('Catalog totals', { exact: true })).toBeVisible();
+  await expect(page.getByText('Wireless ML catalog', { exact: true })).toBeVisible();
+  await expect(page.getByText('PUBLIC INDEX')).toHaveCount(0);
+  await expect(page.getByText('CATALOG SCOPE')).toHaveCount(0);
+  await expect(page.getByText('PUBLIC RECORD')).toHaveCount(0);
   assertNoClientErrors();
 });
 test('catalog leads to a complete dataset evidence page', async ({ page }) => {
@@ -70,6 +75,9 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   await page.goto(fixtureUrl('populated', 'datasets'));
 
   await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  await expect(page.getByText('PUBLIC DATA INDEX')).toHaveCount(0);
+  await expect(page.getByText('VISIBLE RECORDS')).toHaveCount(0);
+  await expect(page.locator('.tml-result-line')).toContainText('dataset records');
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
 
   await expect(page.getByLabel('Task')).toContainText('classification');
@@ -83,7 +91,7 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   await expect(page.getByRole('cell', { name: 'handover_success' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tasks and immutable releases' })).toBeVisible();
   await expect(page.getByText('release-radio-kpi-v1', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('70 / 15 / 15')).toBeVisible();
+  await expect(page.getByText('1 release', { exact: true })).toBeVisible();
   await expect(page.getByText('train.csv')).toBeVisible();
   await expect(page.getByRole('link', { name: /Provider file/ })).toHaveCount(1);
   await expect(page.getByText('metadata only', { exact: true })).toBeVisible();
@@ -118,7 +126,7 @@ test('top-bar navigation renders cached dashboard data without a reload', async 
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true }).click();
   await expect(page).toHaveURL(/#\/home$/);
   await expect(page.getByRole('heading', {
-    name: 'From wireless data to defensible research.'
+    name: 'Wireless ML datasets, prepared releases, and research evidence.'
   })).toBeVisible();
   assertNoClientErrors();
 });
@@ -159,6 +167,7 @@ test('reproduction detail distinguishes claims, missing facts, controls, and tru
   await expect(page.getByRole('cell', { name: '2026' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'yes' })).toHaveCount(3);
   await expect(page.getByText('3 / 3')).toBeVisible();
+  await expect(page.getByText('3 runs · recorded seeds: 42, 123, 2026')).toBeVisible();
   assertNoClientErrors();
 });
 
@@ -179,6 +188,39 @@ test('empty and unavailable catalogs state different facts', async ({ page }) =>
   await expect(page.getByText('API request failed (503)')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
   await expect(page.getByText('No matching dataset records')).toHaveCount(0);
+});
+
+test('catalog-only dataset marks no prepared release and shows the no-release empty state', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'datasets'));
+
+  const catalogOnlyCard = page.locator('.tml-dataset-card').filter({
+    hasText: 'Catalog-only Telecom Dataset'
+  });
+  await expect(catalogOnlyCard).toBeVisible();
+  await expect(catalogOnlyCard).toContainText('No prepared release');
+
+  await catalogOnlyCard.click();
+  await expect(page).toHaveURL(/#\/dataset\/catalog-only$/);
+
+  const releasePanel = page.locator('.card.panel').filter({
+    hasText: 'Tasks and immutable releases'
+  });
+  await expect(releasePanel).toBeVisible();
+  await expect(releasePanel).not.toContainText('70 / 15 / 15');
+  await expect(releasePanel.getByRole('heading', { name: 'No immutable task release' })).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('contribute page states GitHub-based corrections and private server-verified scoring', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'contribute'));
+
+  await expect(page.getByRole('heading', { name: 'Catalog contributions' })).toBeVisible();
+  await expect(page.getByText('Dataset and evidence corrections are made through GitHub issues and pull requests')).toBeVisible();
+  await expect(page.getByText('Published supervised releases also accept authenticated prediction uploads for private, server-verified scoring')).toBeVisible();
+  await expect(page.getByText(/There are no platform accounts/)).toHaveCount(0);
+  assertNoClientErrors();
 });
 
 test('injected release panel matches dark precision-instrument theme', async ({ page }) => {

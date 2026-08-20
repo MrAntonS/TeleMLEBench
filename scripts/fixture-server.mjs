@@ -52,6 +52,10 @@ function populatedResponse(apiPath) {
   }
   if (apiPath === '/releases') return { items: [publicRelease], total: 1, errors: [] };
   if (apiPath === `/datasets/${dataset.slug}`) return dataset;
+  if (apiPath === `/datasets/${unreleasedDataset.slug}`) return unreleasedDataset;
+  if (apiPath === `/datasets/${unreleasedDataset.slug}/files`) {
+    return { items: [], total: 0, next_cursor: null };
+  }
   if (apiPath === `/datasets/${dataset.slug}/files`) {
     return { items: files, total: files.length, next_cursor: null };
   }

@@ -220,7 +220,7 @@
     progress.max = 100;
     progress.value = 0;
     wrap.appendChild(progress);
-    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not leaderboard publication.');
+    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not published to a leaderboard.');
     status.setAttribute('role', 'status');
     status.setAttribute('aria-live', 'polite');
     wrap.appendChild(status);
@@ -403,15 +403,6 @@
     }
   }
 
-  function updateContributionCopy() {
-    if (location.hash !== '#/contribute') return;
-    Array.from(document.querySelectorAll('main p')).forEach(function (paragraph) {
-      if (paragraph.textContent.indexOf('There are no platform accounts, prediction uploads') >= 0) {
-        paragraph.textContent = 'Dataset and evidence corrections remain GitHub-based. Published supervised releases also accept authenticated prediction uploads for private server-verified scoring.';
-      }
-    });
-  }
-
   var scheduled = false;
   function schedule() {
     if (scheduled) return;
@@ -419,7 +410,6 @@
     requestAnimationFrame(function () {
       scheduled = false;
       addReleasePanel();
-      updateContributionCopy();
     });
   }
   new MutationObserver(schedule).observe(document.getElementById('app'), { childList: true, subtree: true });

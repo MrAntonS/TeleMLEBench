@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenWirelessML — wireless ML dataset hub</title>
-<meta name="description" content="An open catalog of wireless ML datasets, prepared releases, paper-use evidence, and controlled research studies.">
+<title>OpenWirelessML — wireless ML dataset catalog</title>
+<meta name="description" content="An open catalog of wireless ML datasets, prepared releases, paper-use evidence, and reproduction reports.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
@@ -451,7 +451,7 @@
   :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
   h1,h2,h3{font-family:var(--display);color:var(--ink);}
   a{color:inherit;}
-  .mono,.id,.row-meta,.eyebrow,.ow-kicker{font-family:var(--mono);}
+  .mono,.id,.row-meta,.eyebrow{font-family:var(--mono);}
 
   .shell{min-height:100vh;background:transparent;}
   .tml-header{
@@ -542,19 +542,9 @@
     border-left:1px solid rgba(144,144,150,.12);
   }
   .ow-hero-copy{position:relative;z-index:1;}
-  .ow-kicker{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    color:var(--accent);
-    font-size:10px;
-    font-weight:500;
-    letter-spacing:.12em;
-  }
-  .ow-kicker span{width:18px;height:1px;background:currentColor;}
   .tml-hero{
     max-width:720px;
-    margin:22px 0 26px;
+    margin:0 0 26px;
     color:var(--ink);
     font-size:clamp(54px,5.2vw,82px);
     font-weight:650;
@@ -571,19 +561,9 @@
   }
   .ow-hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px;}
   .ow-scope-note{
-    display:flex;
-    align-items:center;
-    gap:10px;
     margin:34px 0 0;
     color:var(--subtle);
     font-size:12px;
-  }
-  .ow-scope-note span{
-    padding:5px 7px;
-    border:1px solid var(--line);
-    color:#c8cdd1;
-    font:500 8px var(--mono);
-    letter-spacing:.08em;
   }
 
   .tml-button,.btn{
@@ -641,16 +621,6 @@
     font:500 9px var(--mono);
     letter-spacing:.1em;
   }
-  .ow-live{color:var(--accent);}
-  .ow-live i{
-    display:inline-block;
-    width:5px;
-    height:5px;
-    margin-right:7px;
-    border-radius:50%;
-    background:var(--accent);
-    box-shadow:0 0 0 4px rgba(156,240,255,.08);
-  }
   .ow-spectrum{
     position:relative;
     min-height:390px;
@@ -662,7 +632,6 @@
   }
   .ow-spectrum svg{display:block;width:100%;height:auto;overflow:visible;}
   .ow-grid-lines{fill:none;stroke:#5e656a;stroke-width:.7;opacity:.27;}
-  .ow-band-labels,.ow-axis{fill:#777f85;font:500 8px var(--mono);letter-spacing:.1em;}
   .ow-trace-glow{
     fill:none;
     stroke:var(--accent);
@@ -835,11 +804,8 @@
   .container{width:min(var(--max),calc(100% - 80px));}
   .page .container{width:100%;}
   .ow-page-heading{display:flex;align-items:end;justify-content:space-between;gap:40px;margin-bottom:34px;}
-  .ow-page-heading h1,.tml-page-title,.tml-page>h1{margin:18px 0 0;color:var(--ink);font-size:48px;font-weight:620;}
+  .ow-page-heading h1,.tml-page-title,.tml-page>h1{margin:0;color:var(--ink);font-size:48px;font-weight:620;}
   .tml-page-intro{max-width:760px;margin-top:14px;color:#9fa6ab;font-size:16px;line-height:1.65;}
-  .ow-page-readout{min-width:130px;padding:15px;border:1px solid rgba(144,144,150,.28);}
-  .ow-page-readout span{display:block;color:#747c81;font:500 8px var(--mono);letter-spacing:.1em;}
-  .ow-page-readout strong{display:block;margin-top:8px;color:var(--accent);font:500 25px var(--mono);}
 
   .tml-filter-search{
     max-width:none;
@@ -1051,7 +1017,6 @@
     .tml-page,.page{padding:48px 0 72px;}
     .ow-page-heading{align-items:flex-start;flex-direction:column;}
     .ow-page-heading h1,.tml-page-title,.tml-page>h1{font-size:38px;}
-    .ow-page-readout{display:none;}
     .tml-filters{grid-template-columns:1fr;}
     .detail-body,.detail-title{grid-template-columns:1fr;}
     .detail-title h1{font-size:38px !important;}
@@ -1079,7 +1044,7 @@
     padding-bottom:86px;
   }
   .ow-editorial-label h2,.ow-ledger-copy h2,.ow-domain-intro h2{
-    margin:18px 0 0;
+    margin:0;
     color:var(--ink);
     font-size:clamp(32px,3.2vw,49px);
     line-height:1.08;
@@ -1112,7 +1077,7 @@
     padding-bottom:96px;
     background:rgba(11,15,16,.42);
   }
-  .ow-ledger-copy p{font-size:16px;}
+  .ow-ledger-copy p{font-size:16px;margin-top:22px;}
   .ow-ledger{
     position:relative;
     border:1px solid rgba(144,144,150,.4);
@@ -1129,7 +1094,7 @@
   }
   .ow-ledger-head,.ow-ledger-row{
     display:grid;
-    grid-template-columns:minmax(0,1fr) 92px 150px;
+    grid-template-columns:minmax(0,1fr) 92px;
     align-items:center;
     gap:12px;
   }
@@ -1152,7 +1117,6 @@
   .ow-ledger-row:hover{background:rgba(156,240,255,.045);}
   .ow-ledger-name{color:#dce0e2;}
   .ow-ledger-row strong{color:var(--accent);font:500 17px var(--mono);}
-  .ow-ledger-state{color:#7b858a;font-size:8px;letter-spacing:.065em;}
   .ow-domain-section{
     display:grid;
     grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);
@@ -1192,7 +1156,6 @@
     gap:10px;
     color:#747d82;
   }
-  .ow-domain-item small{font:500 8px var(--mono);letter-spacing:.06em;}
   .ow-domain-item strong{font:400 9px var(--mono);white-space:nowrap;}
   .ow-domain-item b{color:var(--accent);font:400 18px/1 var(--body);}
   .ow-final-cta{
@@ -1220,7 +1183,6 @@
     .ow-editorial-copy{padding-top:28px;}
     .ow-ledger{margin-top:36px;}
     .ow-ledger-head,.ow-ledger-row{grid-template-columns:minmax(0,1fr) 58px;}
-    .ow-ledger-head span:last-child,.ow-ledger-state{display:none;}
     .ow-domain-index{grid-template-columns:1fr;margin-top:34px;}
     .ow-domain-item{min-height:64px;}
     .ow-final-cta{padding:86px 20px;}

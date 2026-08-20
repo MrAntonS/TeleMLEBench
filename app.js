@@ -989,24 +989,24 @@
   function header() {
     return '<header class="tml-header"><div class="tml-header-inner">' +
       '<a class="tml-brand" href="#/home">' + logo() +
-        '<span class="tml-brand-copy"><strong>OpenWirelessML</strong><small>PUBLIC RESEARCH CATALOG</small></span></a>' +
+        '<span class="tml-brand-copy"><strong>OpenWirelessML</strong><small>Wireless ML catalog</small></span></a>' +
       '<button class="tml-nav-toggle" data-action="toggle-nav" aria-expanded="' +
         (state.navOpen ? 'true' : 'false') + '" aria-label="Toggle navigation">Menu</button>' +
       '<nav class="tml-nav ' + (state.navOpen ? 'open' : '') + '" aria-label="Main navigation">' +
         navLink('home', 'Home') +
         navLink('datasets', 'Datasets') +
         navLink('papers', 'Papers') +
-        navLink('reproductions', 'Studies') +
+        navLink('reproductions', 'Reproductions') +
         navLink('coverage', 'Coverage') +
         navLink('contribute', 'Contribute') +
-        navLink('methodology', 'About') +
+        navLink('methodology', 'Methodology') +
       '</nav>' +
     '</div></header>';
   }
 
   function footer() {
     return '<footer class="tml-footer"><div class="tml-footer-inner">' +
-      '<div><strong>OpenWirelessML</strong><span>Open wireless ML data, prepared for research.</span></div>' +
+      '<div><strong>OpenWirelessML</strong><span>A public catalog of wireless ML datasets, prepared releases, and research evidence.</span></div>' +
       '<div class="tml-footer-links"><a href="#/datasets">Datasets</a>' +
         '<a href="#/papers">Papers</a><a href="#/coverage">Coverage</a>' +
         '<a href="https://github.com/MrAntonS/TeleMLEBench" target="_blank" rel="noopener">GitHub ↗</a></div>' +
@@ -1085,19 +1085,16 @@
     var papers = stats.linked_papers != null
       ? stats.linked_papers
       : (stats.papers != null ? stats.papers : 0);
-    return '<aside class="ow-observatory" aria-label="OpenWirelessML catalog observatory">' +
-      '<div class="ow-panel-head"><span>CATALOG_OBSERVATORY</span><span class="ow-live"><i></i> PUBLIC INDEX</span></div>' +
+    return '<aside class="ow-observatory" aria-label="Catalog totals">' +
+      '<div class="ow-panel-head"><span>Catalog totals</span></div>' +
       '<div class="ow-spectrum">' +
-        '<svg viewBox="0 0 640 330" role="img" aria-label="Abstract wireless spectrum illustration">' +
+        '<svg viewBox="0 0 640 330" aria-hidden="true" focusable="false">' +
           '<g class="ow-grid-lines"><path d="M0 55H640M0 110H640M0 165H640M0 220H640M0 275H640"/>' +
           '<path d="M80 0V330M160 0V330M240 0V330M320 0V330M400 0V330M480 0V330M560 0V330"/></g>' +
-          '<g class="ow-band-labels"><text x="16" y="28">RF / IQ</text><text x="155" y="28">CHANNEL</text>' +
-          '<text x="304" y="28">MOBILITY</text><text x="470" y="28">NETWORK</text></g>' +
           '<path class="ow-trace-glow" d="M0 218 C45 218 56 210 82 210 C112 210 112 126 144 126 C177 126 184 250 218 250 C254 250 263 78 302 78 C337 78 346 189 382 189 C418 189 432 145 466 145 C503 145 520 227 556 227 C592 227 600 174 640 174"/>' +
           '<path class="ow-trace" d="M0 218 C45 218 56 210 82 210 C112 210 112 126 144 126 C177 126 184 250 218 250 C254 250 263 78 302 78 C337 78 346 189 382 189 C418 189 432 145 466 145 C503 145 520 227 556 227 C592 227 600 174 640 174"/>' +
           '<g class="ow-markers"><circle cx="144" cy="126" r="5"/><circle cx="302" cy="78" r="5"/>' +
           '<circle cx="466" cy="145" r="5"/><circle cx="640" cy="174" r="5"/></g>' +
-          '<g class="ow-axis"><text x="0" y="322">STATIC DATASETS</text><text x="520" y="322">OPEN INDEX</text></g>' +
         '</svg>' +
         '<div class="ow-reticle ow-reticle-a"></div><div class="ow-reticle ow-reticle-b"></div>' +
       '</div>' +
@@ -1118,7 +1115,7 @@
     var category = d.task === 'Needs task adapter' ? d.domain : d.task;
     var releaseLabel = d.releaseCount > 0
       ? d.releaseCount + (d.releaseCount === 1 ? ' public release' : ' public releases')
-      : 'Source record';
+      : 'No prepared release';
     return '<a class="tml-card tml-dataset-card" href="#/dataset/' +
       encodeURIComponent(d.slug) + '">' +
       '<div class="tml-card-top"><span class="tml-category">' +
@@ -1184,67 +1181,66 @@
       : (stats.papers != null ? stats.papers : 0);
     var records = state.datasets.length || stats.approved_static || 0;
     var domains = [
-      ['Cellular and RAN', 'IDX_01', 'cellular'],
-      ['Channel / MIMO / CSI', 'IDX_02', 'channel'],
-      ['RF / IQ / Spectrum', 'IDX_03', 'rf'],
-      ['Mobility / Localization', 'IDX_04', 'mobility'],
-      ['Traffic / KPI / QoE', 'IDX_05', 'traffic'],
-      ['IoT / Network Security', 'IDX_06', 'security'],
-      ['Satellite / NTN', 'IDX_07', 'satellite'],
-      ['Optical Networking', 'IDX_08', 'optical']
+      ['Cellular and RAN', 'cellular'],
+      ['Channel / MIMO / CSI', 'channel'],
+      ['RF / IQ / Spectrum', 'rf'],
+      ['Mobility / Localization', 'mobility'],
+      ['Traffic / KPI / QoE', 'traffic'],
+      ['IoT / Network Security', 'security'],
+      ['Satellite / NTN', 'satellite'],
+      ['Optical Networking', 'optical']
     ];
     function domainRecordCount(term) {
       return state.datasets.filter(function (d) {
         return [d.domain, d.task, d.description].join(' ').toLowerCase().indexOf(term) >= 0;
       }).length;
     }
-    function ledgerRow(label, value, stateLabel) {
+    function ledgerRow(label, value) {
       return '<div class="ow-ledger-row"><span class="ow-ledger-name">' + esc(label) +
-        '</span><strong>' + esc(number(value)) + '</strong><span class="ow-ledger-state">' +
-        esc(stateLabel) + '</span></div>';
+        '</span><strong>' + esc(number(value)) + '</strong></div>';
     }
     return '<main id="main">' +
       '<section class="tml-herosec"><div class="ow-hero-grid">' +
-        '<div class="ow-hero-copy"><div class="ow-kicker"><span></span> RESEARCH PUBLICATION 014</div>' +
-          '<h1 class="tml-hero">From wireless data to <em>defensible research.</em></h1>' +
+        '<div class="ow-hero-copy">' +
+          '<h1 class="tml-hero">Wireless ML datasets, prepared releases, and research evidence.</h1>' +
           '<p class="tml-hero-copy">OpenWirelessML is a public catalog for conventional wireless and telecom machine learning. ' +
             'Find the source record, understand the dataset version, inspect prepared releases, and follow the papers that use the data.</p>' +
           '<div class="ow-hero-actions"><a class="tml-button primary" href="#/datasets">Browse datasets</a>' +
             '<a class="tml-button" href="#/methodology">Read the methodology</a></div>' +
-          '<p class="ow-scope-note"><span>PUBLIC SCOPE</span> Static datasets, documented tasks, paper-use evidence, and controlled studies.</p>' +
+          '<p class="ow-scope-note">Includes static datasets, documented tasks, paper-use evidence, and reproduction reports.</p>' +
         '</div>' +
         observatoryPanel(stats, sourceProviders.length) +
       '</div></section>' +
-      '<section class="ow-editorial tml-section"><div class="ow-editorial-label"><div class="ow-kicker"><span></span> WHY OPENWIRELESSML EXISTS</div>' +
-        '<h2>Why OpenWirelessML Exists</h2></div>' +
-        '<div class="ow-editorial-copy"><p>The telecom ML research landscape is currently fractured by scattered datasets and a reproducibility crisis. OpenWirelessML solves this by centralizing fragmented resources and enforcing a rigid, transparent pipeline.</p>' +
-        '<p>We provide standardized dataset splitting, baseline reproductions for instant verification, and an unbroken, auditable computational lineage for every prediction—replacing opaque scores with cryptographic certainty.</p></div>' +
+      '<section class="ow-editorial tml-section"><div class="ow-editorial-label">' +
+        '<h2>Why OpenWirelessML exists</h2></div>' +
+        '<div class="ow-editorial-copy"><p>Wireless and telecom ML datasets are scattered across repositories, and it is difficult to trace dataset versions, intended tasks, and their use in papers. OpenWirelessML brings these records together so their provenance stays visible.</p>' +
+        '<p>Prepared releases provide documented splits and checksums. Reproduction reports show what ran and how it was scored.</p></div>' +
       '</section>' +
       '<section class="ow-ledger-section tml-section"><div class="ow-ledger-copy">' +
-        '<div class="ow-kicker"><span></span> PHILOSOPHY</div><h2>Progress is evidence.</h2>' +
-        '<p>OpenWirelessML reports completed public states, not guesses. Candidate metadata, unavailable releases, and unrun studies stay visible as such.</p>' +
-        '<p>When a count appears here, it comes from a public catalog record or an immutable research artifact—not a theoretical benchmark.</p></div>' +
-        '<div class="ow-ledger" aria-label="OpenWirelessML public catalog state">' +
-          '<div class="ow-ledger-head"><span>PUBLIC RECORD</span><span>COUNT</span><span>STATE</span></div>' +
-          ledgerRow('Dataset records', records, 'CATALOGED') +
-          ledgerRow('Prepared releases', releases, 'PUBLIC MANIFESTS') +
-          ledgerRow('Paper-use links', linkedPapers, 'EXACT EVIDENCE') +
-          ledgerRow('Source families', sourceProviders.length, 'INDEXED') +
+        '<h2>What the catalog includes</h2>' +
+        '<p>Each count reflects a public catalog record or a prepared artifact, not an estimate.</p>' +
+        '<p>Candidate metadata and unavailable records remain visible and are labeled separately.</p></div>' +
+        '<div class="ow-ledger" aria-label="Catalog record counts">' +
+          '<div class="ow-ledger-head"><span>Record</span><span>Count</span></div>' +
+          ledgerRow('Dataset records', records) +
+          ledgerRow('Prepared releases', releases) +
+          ledgerRow('Paper-use links', linkedPapers) +
+          ledgerRow('Source families', sourceProviders.length) +
         '</div>' +
       '</section>' +
       '<section class="ow-domain-section tml-section"><div class="ow-domain-intro">' +
-        '<div class="ow-kicker"><span></span> CLASSIFICATION</div><h2>Research domains</h2>' +
+        '<h2>Research domains</h2>' +
         '<p>An index of supported telecommunications research areas, organized for finding relevant machine-learning data.</p></div>' +
         '<div class="ow-domain-index">' + domains.map(function (domain) {
-          var count = domainRecordCount(domain[2]);
+          var count = domainRecordCount(domain[1]);
           return '<a href="#/datasets" class="ow-domain-item"><span>' + esc(domain[0]) +
-            '</span><span><small>' + esc(domain[1]) + '</small><strong>' + esc(number(count)) +
+            '</span><span><strong>' + esc(number(count)) +
             ' records</strong><b>+</b></span></a>';
         }).join('') + '</div>' +
       '</section>' +
-      '<section class="ow-final-cta"><div class="ow-kicker"><span></span> OPENWIRELESSML / PUBLIC CATALOG</div>' +
-        '<h2>Start with the data.<br><em>Keep the evidence.</em></h2>' +
-        '<p>Browse the catalog or read how OpenWirelessML separates source metadata, releases, papers, and controlled studies.</p>' +
+      '<section class="ow-final-cta">' +
+        '<h2>Browse the catalog.</h2>' +
+        '<p>Find wireless ML datasets, prepared releases, linked papers, and reproduction reports. Read how the catalog keeps metadata, releases, and evidence separate.</p>' +
         '<div class="ow-hero-actions"><a class="tml-button primary" href="#/datasets">Browse datasets</a>' +
           '<a class="tml-button" href="#/methodology">Read the methodology</a></div>' +
       '</section></main>';
@@ -1288,10 +1284,8 @@
   function datasetsPage() {
     var results = filteredDatasets();
     return '<main id="main" class="tml-page">' +
-      '<div class="ow-page-heading"><div><div class="ow-kicker"><span></span> PUBLIC DATA INDEX</div>' +
-        '<h1>Datasets</h1><p class="tml-page-intro">Browse static wireless and network ML datasets across repositories. ' +
-          'Each record keeps its source, task context, public files, prepared releases, and linked papers together.</p></div>' +
-        '<div class="ow-page-readout"><span>VISIBLE RECORDS</span><strong>' + esc(number(results.length)) + '</strong></div></div>' +
+      '<div class="ow-page-heading"><div><h1>Datasets</h1><p class="tml-page-intro">Browse static wireless and network ML datasets across repositories. ' +
+        'Each record keeps its source, task context, public files, prepared releases, and linked papers together.</p></div></div>' +
       '<div class="tml-filter-search" role="search">' +
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
         '<label class="sr-only" for="filter-query">Search</label>' +
@@ -1450,21 +1444,29 @@
     if (state.error || !state.detail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
     var x = state.detail;
     var d = x.dataset;
+    var releaseBadge = x.releases.length
+      ? '<span class="id">' + esc(number(x.releases.length)) +
+        (x.releases.length === 1 ? ' release' : ' releases') + '</span>'
+      : '';
+    var reproBadge = x.reproductions.length
+      ? '<span class="id">' + esc(number(x.reproductions.length)) +
+        (x.reproductions.length === 1 ? ' report' : ' reports') + '</span>'
+      : '';
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
         '<div class="detail-title"><div><div class="eyebrow">' + esc(d.task) + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(d.description) + '</p></div>' +
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
         '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">Metadata-derived ML task</div><h2 style="margin-top:10px">' + esc(text(d.taskProfile && d.taskProfile.primary_task_name, 'What this data supports')) + '</h2></div>' + statusBadge(d.taskProfile ? 'suggested' : d.downloadStatus) + '</div>' +
-          '<p class="definition">' + esc(d.taskDefinition || 'No reviewed task definition is published yet. The dataset remains discoverable, but no target or task view should be inferred from column order.') + '</p>' +
+          '<p class="definition">' + esc(d.taskDefinition || 'No reviewed task definition is available. A target is not assumed from column order.') + '</p>' +
           metadataTaskRows(x) +
           '<div class="tag-row">' + [d.task,d.domain,d.origin].concat(d.tags.slice(0,4)).filter(Boolean).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('') + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Tasks and immutable releases</h2><span class="id">70 / 15 / 15 · seed 42</span></div>' + taskReleaseRows(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Tasks and immutable releases</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Papers linked by dataset-use evidence</h2><span class="id">Machine checked</span></div><div class="paper-list">' + paperRows(x.papers) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Reproduction reports</h2><span class="id">Attributable outcomes</span></div><div class="repro-list">' + reproductionRows(x.reproductions) + '</div></section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Reproduction reports</h2>' + reproBadge + '</div><div class="repro-list">' + reproductionRows(x.reproductions) + '</div></section>' +
       '</div><aside>' +
         '<section class="card panel"><h3>Record facts</h3><dl class="kv">' +
           '<dt>Canonical ID</dt><dd class="mono">' + esc(d.id) + '</dd>' +
@@ -1479,7 +1481,7 @@
           '<dt>Last verified</dt><dd>' + esc(date(d.lastVerified)) + '</dd>' +
           '<dt>DOI</dt><dd class="mono">' + esc(d.doi || 'Not recorded') + '</dd>' +
         '</dl></section>' +
-        '<section class="card panel"><h3>Standard release policy</h3><p class="muted" style="line-height:1.65;font-size:13px">The platform split is 70/15/15 with seed 42. Temporal, group, route, site, user, or spatial separation takes precedence over row stratification. No release is implied until a reviewed task adapter exists.</p><a class="btn btn-link" href="#/methodology">Read methodology →</a></section>' +
+        '<section class="card panel"><h3>Standard release policy</h3><p class="muted" style="line-height:1.65;font-size:13px">The default platform split is 70/15/15 with seed 42. Temporal, group, route, site, user, or spatial separation takes precedence over row stratification. No release is implied until a reviewed task adapter exists.</p><a class="btn btn-link" href="#/methodology">Read methodology →</a></section>' +
       '</aside></div></div></section></main>';
   }
 
@@ -1536,7 +1538,7 @@
   }
 
   function reproductionsPage() {
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Controlled studies</h1><p class="tml-page-intro">Claim-specific reproduction attempts with attributable outcomes.</p></div><p class="section-copy">Paper-only and artifact-assisted tracks stay separate. Each report records what ran, what information was available, and whether the result can be compared with the paper.</p></div>' +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Reproductions</h1><p class="tml-page-intro">Reproduction reports that record what ran and how it was scored.</p></div><p class="section-copy">Paper-only and artifact-assisted tracks stay separate. Each report records what ran, what information was available, and whether the result can be compared with the paper.</p></div>' +
       '<div class="evidence" style="margin-bottom:20px"><strong>How to read this page:</strong> an unavailable study is not a failed reproduction. Missing data, unsupported tasks, runtime faults, and under-specified methods remain distinct outcomes.</div>' +
       (state.loading ? loading('Loading reproduction records…') : state.error ? errorBox() : reproductionRows(state.reproductions)) +
     '</div></main>';
@@ -1553,6 +1555,20 @@
     var methodFacts = Array.isArray(report.method_facts) ? report.method_facts : [];
     var score = report.score_summary || {};
     var attempts = Array.isArray(report.attempts) ? report.attempts : [];
+    var runCount = 0;
+    var runSeeds = [];
+    attempts.forEach(function (attempt) {
+      var runs = Array.isArray(attempt.runs) ? attempt.runs : [];
+      runCount += runs.length;
+      runs.forEach(function (run) {
+        if (run.training_seed != null) runSeeds.push(run.training_seed);
+      });
+    });
+    var uniqueSeeds = Array.from(new Set(runSeeds.map(String)));
+    var executionSummary = runCount
+      ? number(runCount) + ' run' + (runCount === 1 ? '' : 's') +
+        (uniqueSeeds.length ? ' · recorded seeds: ' + uniqueSeeds.join(', ') : '')
+      : '';
     var controls = Array.isArray(report.controls) ? report.controls : [];
     var conditions = claim.conditions && typeof claim.conditions === 'object'
       ? JSON.stringify(claim.conditions, null, 2) : text(claim.conditions, 'Not recorded');
@@ -1577,7 +1593,7 @@
       '<div class="breadcrumbs"><a href="#/reproductions">Reproductions</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
       '<div class="detail-title"><div><div class="eyebrow">Controlled reproduction report</div><h1>' +
       esc(text(paper.title || report.paper_title || claim.title, 'Experimental claim')) + '</h1><p>' +
-      esc(text(dataset.name || report.dataset_name, 'Dataset, paper, task, protocol, model, implementation, and seed remain distinct execution dimensions.')) +
+      esc(text(dataset.name || report.dataset_name, 'Dataset not recorded')) +
       '</p></div><div class="detail-actions">' + statusBadge(report.outcome || report.status) + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
       '<section class="card panel"><div class="panel-head"><h2>Claim and conditions</h2><span class="id">' +
@@ -1586,7 +1602,7 @@
       '</dd><dt>Direction</dt><dd>' + esc(claim.higher_is_better === true ? 'Higher is better' : claim.higher_is_better === false ? 'Lower is better' : 'Not recorded') +
       '</dd><dt>Evidence</dt><dd>' + esc(evidenceText(claim.evidence) || 'Not recorded') + '</dd></dl>' +
       '<div class="loading-example"><div class="row-meta">Claim conditions</div><pre><code>' + esc(conditions) + '</code></pre></div></section>' +
-      '<section class="card panel"><div class="panel-head"><h2>Method facts and missing-information ledger</h2><span class="id">' +
+      '<section class="card panel"><div class="panel-head"><h2>Method facts and missing information</h2><span class="id">' +
       esc(number(methodFacts.length)) + ' facts</span></div>' +
       (methodFacts.length ? methodFacts.map(function (fact) {
         var value = fact.value && typeof fact.value === 'object'
@@ -1598,7 +1614,8 @@
           '</div></div>' + statusBadge(fact.status || 'missing') + '</div>';
       }).join('') : '<div class="empty"><h3>No reviewed method facts</h3><p class="muted">A run without an explicit fact ledger cannot support a claim about paper underspecification.</p></div>') +
       '</section>' +
-      '<section class="card panel"><div class="panel-head"><h2>Repeated executions</h2><span class="id">Seeds 42 · 123 · 2026</span></div>' +
+      '<section class="card panel"><div class="panel-head"><h2>Repeated executions</h2>' +
+      (executionSummary ? '<span class="id">' + esc(executionSummary) + '</span>' : '') + '</div>' +
       (runRows || '<div class="empty"><h3>No attempt records</h3><p class="muted">A configured cohort is not presented as a completed result.</p></div>') +
       '</section></div><aside>' +
       '<section class="card panel"><h3>Protocol facts</h3><dl class="kv">' +
@@ -1625,7 +1642,7 @@
   }
 
   function methodologyPage() {
-    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">One transparent evidence chain, with separate source, release, paper, and reproduction records.</p>' +
+    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">Source, release, paper, and reproduction records stay separate and traceable.</p>' +
       '<p>OpenWirelessML separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
       '<div class="steps">' +
         '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then apply deterministic source checks and AI semantic review. Legal and sensitivity gates separately control payload acquisition and release. Human audits run retroactively and can correct or withdraw a record.</p></div></article>' +
@@ -1644,7 +1661,7 @@
     var summary = c.summary || {};
     var s = summary.counts || summary;
     var sync = summary.sync || {};
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Sources</h1><p class="tml-page-intro">Coverage is bounded, versioned, and inspectable.</p></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
+    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Coverage</h1><p class="tml-page-intro">Coverage reports which sources are indexed and what remains incomplete.</p></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
       (state.loading ? loading('Loading source coverage…') : state.error ? errorBox() :
         '<div class="grid coverage-grid">' +
           '<article class="card coverage-card"><strong>' + esc(number(s.discovered != null ? s.discovered : s.datasets)) + '</strong><h3>Discovered candidates</h3><p>Raw candidates before relevance, usability, license, and publication review.</p></article>' +
@@ -1663,7 +1680,7 @@
   }
 
   function contributePage() {
-    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Catalog contributions</h1><p class="tml-page-intro">Improve the public record through GitHub issues and pull requests.</p><p>There are no platform accounts, prediction uploads, hidden-label scores, or private dispute forms.</p>' +
+    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Catalog contributions</h1><p class="tml-page-intro">Improve the public record through GitHub issues and pull requests.</p><p>Dataset and evidence corrections are made through GitHub issues and pull requests. Published supervised releases also accept authenticated prediction uploads for private, server-verified scoring.</p>' +
       '<div class="grid card-grid" style="margin-top:28px">' +
         '<article class="card panel"><h3>Suggest a dataset</h3><p class="muted">Provide a landing page, stable identifier, license, task description, and why it contains static telecom ML data.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Open an issue ↗</a></article>' +
         '<article class="card panel"><h3>Link a paper</h3><p class="muted">Name the dataset version and quote the passage showing actual training or evaluation use.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Submit evidence ↗</a></article>' +
@@ -2144,7 +2161,7 @@
     progress.max = 100;
     progress.value = 0;
     wrap.appendChild(progress);
-    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not leaderboard publication.');
+    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not published to a leaderboard.');
     status.setAttribute('role', 'status');
     status.setAttribute('aria-live', 'polite');
     wrap.appendChild(status);
@@ -2326,15 +2343,6 @@
     }
   }
 
-  function updateContributionCopy() {
-    if (location.hash !== '#/contribute') return;
-    Array.from(document.querySelectorAll('main p')).forEach(function (paragraph) {
-      if (paragraph.textContent.indexOf('There are no platform accounts, prediction uploads') >= 0) {
-        paragraph.textContent = 'Dataset and evidence corrections remain GitHub-based. Published supervised releases also accept authenticated prediction uploads for private server-verified scoring.';
-      }
-    });
-  }
-
   var scheduled = false;
   function schedule() {
     if (scheduled) return;
@@ -2342,7 +2350,6 @@
     requestAnimationFrame(function () {
       scheduled = false;
       addReleasePanel();
-      updateContributionCopy();
     });
   }
   new MutationObserver(schedule).observe(document.getElementById('app'), { childList: true, subtree: true });

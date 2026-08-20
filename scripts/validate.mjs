@@ -11,6 +11,7 @@ const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'pages.
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const fixtureServer = fs.readFileSync(path.join(root, 'scripts', 'fixture-server.mjs'), 'utf8');
 const playwrightConfig = fs.readFileSync(path.join(root, 'playwright.config.mjs'), 'utf8');
+const enhancements = fs.readFileSync(path.join(root, 'public', 'app-enhancements.js'), 'utf8');
 
 const failures = [];
 const expect = (condition, message) => { if (!condition) failures.push(message); };
@@ -70,7 +71,7 @@ expect(app.includes('normalizeReview'), 'dataset review provenance normalization
 expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending status is missing');
 expect(app.includes('Human audits run retroactively'), 'retroactive human audit policy is not communicated');
 expect(!app.includes('after all human publication gates'), 'obsolete human-first publication wording remains');
-expect(app.includes('CATALOG_OBSERVATORY'), 'catalog observatory signature is missing');
+expect(app.includes('Catalog totals'), 'catalog totals panel is missing');
 expect(
   workflow.includes('cp index.html app.js config.js dist/'),
   'Pages does not publish the Supabase runtime configuration'
@@ -107,6 +108,83 @@ const forbiddenUi = [
 ];
 for (const marker of forbiddenUi) {
   expect(!app.includes(marker), `unsupported public UI remains: ${marker}`);
+}
+
+// Direct, truthful hero and section copy (positive contracts).
+const directCopy = [
+  'Wireless ML catalog',
+  'Wireless ML datasets, prepared releases, and research evidence.',
+  'Why OpenWirelessML exists',
+  'it is difficult to trace dataset versions, intended tasks, and their use in papers',
+  'Prepared releases provide documented splits and checksums. Reproduction reports show what ran and how it was scored.',
+  'What the catalog includes',
+  'Browse the catalog.',
+  'Find wireless ML datasets, prepared releases, linked papers, and reproduction reports. Read how the catalog keeps metadata, releases, and evidence separate.',
+  "navLink('methodology', 'Methodology')",
+  '<h1 class="tml-page-title">Coverage</h1>',
+  'No prepared release',
+  "x.reproductions.length === 1 ? ' report' : ' reports'",
+  'esc(executionSummary)'
+];
+for (const marker of directCopy) {
+  expect(app.includes(marker), `direct catalog copy is missing: ${marker}`);
+}
+expect(index.includes('wireless ML dataset catalog'), 'index title does not use direct dataset catalog wording');
+expect(enhancements.includes('are not published to a leaderboard'), 'enhancements evaluator copy drifted from app.js');
+expect(!enhancements.includes('updateContributionCopy'), 'removed contribution patch still exists in enhancements');
+expect(!enhancements.includes('leaderboard publication'), 'obsolete leaderboard-publication wording remains in enhancements');
+
+// Removed phrases and functions must not return (negative contracts).
+const removedMarkers = [
+  'RESEARCH PUBLICATION 014',
+  'From wireless data to defensible research.',
+  'reproducibility crisis',
+  'rigid, transparent',
+  'instant verification',
+  'cryptographic certainty',
+  'Progress is evidence.',
+  'Start with the data.',
+  'IDX_01',
+  'IDX_02',
+  'IDX_03',
+  'IDX_04',
+  'IDX_05',
+  'IDX_06',
+  'IDX_07',
+  'IDX_08',
+  '70 / 15 / 15',
+  'Seeds 42',
+  'There are no platform accounts',
+  'leaderboard publication',
+  'updateContributionCopy',
+  'Controlled studies',
+  "navLink('reproductions', 'Studies')",
+  'Attributable outcomes'
+];
+for (const marker of removedMarkers) {
+  expect(!app.includes(marker), `removed phrase or function returned: ${marker}`);
+}
+
+// Removed decorative pseudo-labels must not return (negative contracts).
+const removedPseudoLabels = [
+  'PUBLIC INDEX',
+  'PUBLIC RESEARCH CATALOG',
+  'PUBLIC DATASET CATALOG',
+  'PUBLIC SCOPE',
+  'WHY OPENWIRELESSML EXISTS',
+  'CATALOG SCOPE',
+  'CLASSIFICATION',
+  'PUBLIC RECORD',
+  'CATALOGED',
+  'PUBLIC MANIFESTS',
+  'EXACT EVIDENCE',
+  'PUBLIC DATA INDEX',
+  'VISIBLE RECORDS',
+  'STATIC DATASETS',
+  'OPEN INDEX'
+];
+for (const marker of removedPseudoLabels) {
+  expect(!app.includes(marker), `removed pseudo-label returned: ${marker}`);
 }
 
 for (const obsolete of ['data.js', 'TeleMLEBench.standalone.html', 'build_standalone.py', path.join('src', 'TeleMLEBench.source.html')]) {
