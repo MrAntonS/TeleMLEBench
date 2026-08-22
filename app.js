@@ -28,6 +28,9 @@
       papers: 'all',
       reproduction: 'all'
     },
+    finder: {
+      query: ''
+    },
     navOpen: false
   };
 
@@ -1078,32 +1081,105 @@
       : label;
   }
 
-  function observatoryPanel(stats, sourceCount) {
-    var releases = state.releaseCatalogLoaded
-      ? state.publishedReleases.length
-      : (stats.published || stats.releases || 0);
-    var papers = stats.linked_papers != null
-      ? stats.linked_papers
-      : (stats.papers != null ? stats.papers : 0);
-    return '<aside class="ow-observatory" aria-label="Catalog totals">' +
-      '<div class="ow-panel-head"><span>Catalog totals</span></div>' +
-      '<div class="ow-spectrum">' +
-        '<svg viewBox="0 0 640 330" aria-hidden="true" focusable="false">' +
-          '<g class="ow-grid-lines"><path d="M0 55H640M0 110H640M0 165H640M0 220H640M0 275H640"/>' +
-          '<path d="M80 0V330M160 0V330M240 0V330M320 0V330M400 0V330M480 0V330M560 0V330"/></g>' +
-          '<path class="ow-trace-glow" d="M0 218 C45 218 56 210 82 210 C112 210 112 126 144 126 C177 126 184 250 218 250 C254 250 263 78 302 78 C337 78 346 189 382 189 C418 189 432 145 466 145 C503 145 520 227 556 227 C592 227 600 174 640 174"/>' +
-          '<path class="ow-trace" d="M0 218 C45 218 56 210 82 210 C112 210 112 126 144 126 C177 126 184 250 218 250 C254 250 263 78 302 78 C337 78 346 189 382 189 C418 189 432 145 466 145 C503 145 520 227 556 227 C592 227 600 174 640 174"/>' +
-          '<g class="ow-markers"><circle cx="144" cy="126" r="5"/><circle cx="302" cy="78" r="5"/>' +
-          '<circle cx="466" cy="145" r="5"/><circle cx="640" cy="174" r="5"/></g>' +
-        '</svg>' +
-        '<div class="ow-reticle ow-reticle-a"></div><div class="ow-reticle ow-reticle-b"></div>' +
-      '</div>' +
-      '<div class="ow-readouts">' +
-        '<div><span>DATASETS</span><strong>' + esc(number(state.datasets.length || stats.approved_static)) + '</strong></div>' +
-        '<div><span>RELEASES</span><strong>' + esc(number(releases)) + '</strong></div>' +
-        '<div><span>PAPERS</span><strong>' + esc(number(papers)) + '</strong></div>' +
-        '<div><span>SOURCES</span><strong>' + esc(number(sourceCount)) + '</strong></div>' +
-      '</div>' +
+  var FINDER_TOPICS = [
+    { label: 'Channel / MIMO / CSI' },
+    { label: 'RF / IQ / Spectrum' },
+    { label: 'Mobility / Localization' },
+    { label: 'Traffic / KPI / QoE' }
+  ];
+
+  function datasetCorpus(d) {
+    return [d.name, d.description, d.task, d.domain, d.source, d.license]
+      .concat(d.tasks, d.sourceProviders, d.tags).join(' ').toLowerCase();
+  }
+
+  // Shared query matcher for the homepage finder and the full catalog.
+  // Slash-separated groups match with OR semantics (topic aliases); ordinary
+  // space-separated terms within a group must all match (AND). A slash is never
+  // a required literal token.
+  function queryMatches(query, corpus) {
+    var q = String(query == null ? '' : query).trim().toLowerCase();
+    if (!q) return true;
+    return q.split('/').some(function (segment) {
+      var terms = segment.trim().split(/\s+/).filter(Boolean);
+      return terms.length > 0 && terms.every(function (term) {
+        return corpus.indexOf(term) >= 0;
+      });
+    });
+  }
+
+  function matchesQuery(d, query) {
+    return queryMatches(query, datasetCorpus(d));
+  }
+
+  function preparedReleaseLabel(d) {
+    return d.releaseCount > 0
+      ? d.releaseCount + (d.releaseCount === 1 ? ' prepared release' : ' prepared releases')
+      : 'No prepared release';
+  }
+
+  function linkedPaperLabel(d) {
+    if (d.paperCount === 0) return 'No linked papers';
+    return d.paperCount + (d.paperCount === 1 ? ' linked paper' : ' linked papers');
+  }
+
+  function finderResultItem(d) {
+    var category = d.task === 'Needs task adapter' ? d.domain : d.task;
+    return '<li class="ow-finder-result">' +
+      '<a class="ow-finder-link" href="#/dataset/' + encodeURIComponent(d.slug) + '">' +
+        '<span class="ow-finder-kicker"><span class="ow-finder-category">' + esc(category) + '</span>' +
+          '<span class="ow-finder-access">' + esc(d.access) + '</span></span>' +
+        '<span class="ow-finder-name">' + esc(d.name) + '</span>' +
+        '<span class="ow-finder-meta"><span class="ow-finder-source">' + esc(d.source) + '</span>' +
+          '<span class="ow-finder-counts"><span>' + esc(preparedReleaseLabel(d)) + '</span>' +
+            '<span>' + esc(linkedPaperLabel(d)) + '</span></span></span>' +
+      '</a></li>';
+  }
+
+  function finderPanel() {
+    var q = state.finder.query || '';
+    var topics = FINDER_TOPICS.map(function (topic, index) {
+      var active = q.trim().toLowerCase() === topic.label.toLowerCase();
+      return '<button type="button" class="ow-finder-topic' + (active ? ' active' : '') + '"' +
+        ' data-action="finder-topic" data-topic-index="' + index + '"' +
+        ' aria-pressed="' + (active ? 'true' : 'false') + '">' + esc(topic.label) + '</button>';
+    }).join('');
+    var body = '';
+    if (state.loading) {
+      body = loading('Loading the dataset index…');
+    } else if (state.error) {
+      body = '<div class="ow-finder-state error" role="status"><p>' + esc(state.error) + '</p>' +
+        '<button class="tml-button" data-action="retry">Retry</button></div>';
+    } else if (!q.trim()) {
+      body = '<div class="ow-finder-state" role="status"><p>Type a term or choose a topic to search the dataset catalog.</p></div>';
+    } else {
+      var matches = state.datasets.filter(function (d) { return matchesQuery(d, q); });
+      if (!matches.length) {
+        body = '<div class="ow-finder-state" role="status"><p>No matching datasets for “' + esc(q) + '”.</p>' +
+          '<a class="tml-button primary" href="#/datasets" data-action="browse-all-finder">Browse all</a></div>';
+      } else {
+        var shown = matches.slice(0, 3);
+        body = '<p class="ow-finder-status" role="status">' + esc(number(matches.length)) +
+          ' matching dataset' + (matches.length === 1 ? '' : 's') +
+          (matches.length > 3 ? ' · showing ' + number(shown.length) : '') + '</p>' +
+          '<ul class="ow-finder-results">' + shown.map(finderResultItem).join('') + '</ul>' +
+          '<a class="ow-finder-viewall" href="#/datasets?query=' + encodeURIComponent(q) +
+            '" data-action="view-all-finder">View all ' + esc(number(matches.length)) +
+            ' in the catalog →</a>';
+      }
+    }
+    return '<aside class="ow-finder" aria-label="Dataset finder">' +
+      '<div class="ow-panel-head"><span>Dataset finder</span></div>' +
+      '<form class="ow-finder-form" role="search" aria-label="Find a dataset" data-finder-form>' +
+        '<label class="sr-only" for="finder-query">Search datasets</label>' +
+        '<div class="ow-finder-search">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
+          '<input id="finder-query" data-finder-input type="search" value="' + esc(q) +
+            '" placeholder="Search datasets, tasks, domains, or sources…" autocomplete="off" spellcheck="false">' +
+        '</div>' +
+        '<div class="ow-finder-topics" role="group" aria-label="Browse by topic">' + topics + '</div>' +
+      '</form>' +
+      '<div class="ow-finder-body">' + body + '</div>' +
     '</aside>';
   }
   function statBlock(value, label) {
@@ -1133,7 +1209,7 @@
         '<span>' + esc(d.access) + '</span></div></a>';
   }
   function loading(message) {
-    return '<div class="tml-state"><span class="tml-spinner" aria-hidden="true"></span>' +
+    return '<div class="tml-state" role="status"><span class="tml-spinner" aria-hidden="true"></span>' +
       '<p>' + esc(message || 'Loading evidence…') + '</p></div>';
   }
 
@@ -1209,7 +1285,7 @@
             '<a class="tml-button" href="#/methodology">Read the methodology</a></div>' +
           '<p class="ow-scope-note">Includes static datasets, documented tasks, paper-use evidence, and reproduction reports.</p>' +
         '</div>' +
-        observatoryPanel(stats, sourceProviders.length) +
+        finderPanel() +
       '</div></section>' +
       '<section class="ow-editorial tml-section"><div class="ow-editorial-label">' +
         '<h2>Why OWL exists</h2></div>' +
@@ -1265,11 +1341,8 @@
 
   function filteredDatasets() {
     var f = state.filters;
-    var q = f.query.trim().toLowerCase();
     return state.datasets.filter(function (d) {
-      var corpus = [d.name, d.description, d.task, d.domain, d.source, d.license]
-        .concat(d.tasks, d.sourceProviders, d.tags).join(' ').toLowerCase();
-      return (!q || corpus.indexOf(q) >= 0) &&
+      return matchesQuery(d, f.query) &&
         (f.task === 'all' || d.tasks.indexOf(f.task) >= 0) &&
         (f.origin === 'all' || d.origin === f.origin) &&
         (f.access === 'all' || d.access === f.access) &&
@@ -1803,6 +1876,13 @@
     else { state.datasetsLoaded = false; loadCore(); }
   }
 
+  function resetNonQueryFilters() {
+    state.filters = {
+      query: state.filters.query, task:'all', origin:'all', access:'all', source:'all',
+      license:'all', publication:'all', papers:'all', reproduction:'all'
+    };
+  }
+
   app.addEventListener('click', function (event) {
     var target = event.target.closest('[data-action]');
     if (!target) return;
@@ -1812,7 +1892,25 @@
       render();
     } else if (action === 'retry') retry();
     else if (action === 'connect-local') connectLocalBackend();
-    else if (action === 'clear-filters') {
+    else if (action === 'finder-topic') {
+      var topicIndex = Number(target.getAttribute('data-topic-index'));
+      var topic = FINDER_TOPICS[topicIndex];
+      if (topic) {
+        var wasActive = state.finder.query.trim().toLowerCase() === topic.label.toLowerCase();
+        state.finder.query = wasActive ? '' : topic.label;
+        render();
+        var topicButton = document.querySelector('[data-topic-index="' + topicIndex + '"]');
+        if (topicButton) topicButton.focus();
+      }
+    } else if (action === 'view-all-finder') {
+      resetNonQueryFilters();
+    } else if (action === 'browse-all-finder') {
+      state.finder.query = '';
+      state.filters = {
+        query:'', task:'all', origin:'all', access:'all', source:'all',
+        license:'all', publication:'all', papers:'all', reproduction:'all'
+      };
+    } else if (action === 'clear-filters') {
       state.filters = {
         query:'', task:'all', origin:'all', access:'all', source:'all',
         license:'all', publication:'all', papers:'all', reproduction:'all'
@@ -1821,16 +1919,43 @@
     }
   });
 
+  app.addEventListener('submit', function (event) {
+    var form = event.target.closest('[data-finder-form]');
+    if (!form) return;
+    event.preventDefault();
+    resetNonQueryFilters();
+    var q = state.finder.query.trim();
+    window.location.hash = '#/datasets' + (q ? '?query=' + encodeURIComponent(q) : '');
+  });
+
   app.addEventListener('input', function (event) {
+    if (event.target.hasAttribute('data-finder-input')) {
+      state.finder.query = event.target.value;
+      var caret = event.target.selectionStart;
+      render();
+      var finderEl = document.getElementById('finder-query');
+      if (finderEl) { finderEl.focus(); finderEl.setSelectionRange(caret, caret); }
+      return;
+    }
     var key = event.target.getAttribute('data-filter');
     if (!key) return;
     state.filters[key] = event.target.value;
-    var caret = event.target.selectionStart;
+    var filterCaret = event.target.selectionStart;
     render();
     if (key === 'query') {
       var input = document.getElementById('filter-query');
-      if (input) { input.focus(); input.setSelectionRange(caret, caret); }
+      if (input) { input.focus(); input.setSelectionRange(filterCaret, filterCaret); }
     }
+  });
+
+  app.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+    if (!event.target.hasAttribute('data-finder-input')) return;
+    if (!state.finder.query) return;
+    state.finder.query = '';
+    render();
+    var finderEl = document.getElementById('finder-query');
+    if (finderEl) { finderEl.focus(); finderEl.setSelectionRange(0, 0); }
   });
 
   app.addEventListener('change', function (event) {

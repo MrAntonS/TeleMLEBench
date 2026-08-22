@@ -38,3 +38,21 @@ test('mobile navigation is operable and detail content does not overflow', async
   expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 1);
   assertNoClientErrors();
 });
+
+test('homepage finder does not overflow horizontally on mobile with a populated result', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+  await expectCoreLandmarks(page);
+
+  const finder = page.locator('.ow-finder');
+  await expect(finder).toBeVisible();
+  await finder.getByLabel('Search datasets').fill('handover');
+  await expect(finder.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+
+  const geometry = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth
+  }));
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+  assertNoClientErrors();
+});

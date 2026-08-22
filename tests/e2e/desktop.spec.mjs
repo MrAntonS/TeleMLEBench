@@ -12,7 +12,7 @@ test('renders the OpenWirelessLearning precision-instrument visual contract', as
 
   await expect(header).toHaveCSS('background-color', 'rgba(11, 15, 16, 0.97)');
   await expect(page.locator('.tml-logo')).toHaveCSS('border-top-color', 'rgba(156, 240, 255, 0.62)');
-  await expect(page.locator('.ow-observatory')).toBeVisible();
+  await expect(page.locator('.ow-finder')).toBeVisible();
   await expect(page.locator('.signal-panel')).toHaveCount(0);
   await expect(page.getByRole('heading', {
     name: 'Wireless ML datasets, prepared releases, and research evidence.'
@@ -63,11 +63,175 @@ test('landing page follows the Stitch editorial composition', async ({ page }) =
   await expect(page.getByText('Paper-use links', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Cellular and RAN' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Browse datasets' }).first()).toBeVisible();
-  await expect(page.getByText('Catalog totals', { exact: true })).toBeVisible();
+  await expect(page.getByText('Dataset finder', { exact: true })).toBeVisible();
   await expect(page.getByText('Open Wireless Learning', { exact: true })).toBeVisible();
   await expect(page.getByText('PUBLIC INDEX')).toHaveCount(0);
   await expect(page.getByText('CATALOG SCOPE')).toHaveCount(0);
   await expect(page.getByText('PUBLIC RECORD')).toHaveCount(0);
+  assertNoClientErrors();
+});
+test('homepage finder exposes a labelled native search and exactly four topic buttons', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  await expect(finder).toBeVisible();
+
+  await expect(finder.getByRole('search', { name: 'Find a dataset' })).toBeVisible();
+  const input = finder.getByLabel('Search datasets');
+  await expect(input).toBeVisible();
+  await expect(input).toHaveAttribute('type', 'search');
+
+  // No fake combobox/listbox/option roles inside the finder.
+  await expect(finder.locator('[role="combobox"], [role="listbox"], [role="option"]')).toHaveCount(0);
+
+  const topics = finder.getByRole('group', { name: 'Browse by topic' }).getByRole('button');
+  await expect(topics).toHaveCount(4);
+  await expect(topics).toHaveText([
+    'Channel / MIMO / CSI',
+    'RF / IQ / Spectrum',
+    'Mobility / Localization',
+    'Traffic / KPI / QoE'
+  ]);
+  assertNoClientErrors();
+});
+test('finder topic button stays on home, fills the search, shows a result, and toggles off', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  const input = finder.getByLabel('Search datasets');
+  const mobility = finder.getByRole('button', { name: 'Mobility / Localization' });
+
+  await mobility.click();
+  await expect(page).toHaveURL(/#\/home$/);
+  await expect(input).toHaveValue('Mobility / Localization');
+  await expect(mobility).toHaveAttribute('aria-pressed', 'true');
+
+  await expect(finder.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+  await expect(finder.getByRole('status')).toContainText('matching dataset');
+
+  await mobility.click();
+  await expect(input).toHaveValue('');
+  await expect(mobility).toHaveAttribute('aria-pressed', 'false');
+  await expect(finder.getByText('Type a term or choose a topic')).toBeVisible();
+  assertNoClientErrors();
+});
+test('typed finder query shows metadata and navigates to the dataset detail page', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  await finder.getByLabel('Search datasets').fill('handover');
+
+  const result = finder.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ });
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('Zenodo');
+  await expect(result).toContainText('open');
+  await expect(result).toContainText('prepared release');
+  await expect(result).toContainText('linked paper');
+
+  await result.click();
+  await expect(page).toHaveURL(/#\/dataset\/radio-kpi$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Metro LTE KPI Handover Dataset' })).toBeVisible();
+  assertNoClientErrors();
+});
+test('finder no-match state links Browse all to the full catalog', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  await finder.getByLabel('Search datasets').fill('zzz-absent-dataset');
+
+  await expect(finder.getByText(/No matching datasets for/)).toBeVisible();
+  const browseAll = finder.getByRole('link', { name: 'Browse all' });
+  await expect(browseAll).toBeVisible();
+  await browseAll.click();
+
+  await expect(page).toHaveURL(/#\/datasets$/);
+  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  assertNoClientErrors();
+});
+test('finder View all preserves the query and clears stale non-query filters', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'datasets'));
+  await page.getByLabel('Task').selectOption('classification');
+  await expect(page.getByLabel('Task')).toHaveValue('classification');
+
+  // Navigate home through the app shell so in-memory filter state persists.
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('heading', {
+    name: 'Wireless ML datasets, prepared releases, and research evidence.'
+  })).toBeVisible();
+
+  const finder = page.locator('.ow-finder');
+  await finder.getByLabel('Search datasets').fill('KPI');
+
+  await finder.getByRole('link', { name: /View all .* in the catalog/ }).click();
+  await expect(page).toHaveURL(/#\/datasets\?query=KPI$/);
+  await expect(page.getByLabel('Search')).toHaveValue('KPI');
+  await expect(page.getByLabel('Task')).toHaveValue('all');
+  await expect(page.locator('.tml-result-line')).toContainText('2 dataset records');
+  assertNoClientErrors();
+});
+test('finder Enter submit deep-links the encoded query and catalog input/results agree', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const query = 'mobility / handover';
+  await page.locator('.ow-finder').getByLabel('Search datasets').fill(query);
+  await page.locator('.ow-finder').getByLabel('Search datasets').press('Enter');
+
+  await expect(page).toHaveURL(new RegExp('#/datasets\\?query=' + encodeURIComponent(query) + '$'));
+  await expect(page.getByLabel('Search')).toHaveValue(query);
+  await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+  assertNoClientErrors();
+});
+test('Escape clears the finder query while keeping the input focused', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const input = page.locator('.ow-finder').getByLabel('Search datasets');
+  await input.fill('handover');
+  await expect(input).toHaveValue('handover');
+
+  await input.press('Escape');
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  assertNoClientErrors();
+});
+test('finder inline output caps at three while reporting the full total', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.route('**/api/v1/datasets*', async (route) => {
+    const items = Array.from({ length: 5 }, (_, index) => ({
+      canonical_id: 'doi:10.1234/qoe-' + (index + 1),
+      slug: 'qoe-' + (index + 1),
+      name: 'QoE Probe Dataset ' + (index + 1),
+      description: 'Synthetic QoE measurements used to verify finder result capping.',
+      task: 'qoe estimation',
+      task_types: ['regression'],
+      access_status: 'open',
+      license: 'CC-BY-4.0',
+      sources: [{ provider: 'Zenodo' }],
+      tags: ['QoE'],
+      paper_count: index + 1,
+      release_count: 0
+    }));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items, total: items.length, next_cursor: null })
+    });
+  });
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  await finder.getByLabel('Search datasets').fill('QoE');
+
+  await expect(finder.getByRole('status')).toContainText('5 matching datasets');
+  await expect(finder.getByRole('status')).toContainText('showing 3');
+  await expect(finder.locator('.ow-finder-results .ow-finder-result')).toHaveCount(3);
+  await expect(finder.getByRole('link', { name: /View all 5 in the catalog/ })).toBeVisible();
   assertNoClientErrors();
 });
 test('catalog leads to a complete dataset evidence page', async ({ page }) => {

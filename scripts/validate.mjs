@@ -79,7 +79,50 @@ expect(app.includes('normalizeReview'), 'dataset review provenance normalization
 expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending status is missing');
 expect(app.includes('Human audits run retroactively'), 'retroactive human audit policy is not communicated');
 expect(!app.includes('after all human publication gates'), 'obsolete human-first publication wording remains');
-expect(app.includes('Catalog totals'), 'catalog totals panel is missing');
+
+// Homepage dataset finder (positive contracts).
+expect(app.includes('aria-label="Dataset finder"'), 'finder panel label is missing');
+expect(app.includes('role="search"'), 'finder search region is missing');
+expect(app.includes('aria-label="Find a dataset"'), 'finder search region label is missing');
+expect(app.includes('for="finder-query"'), 'finder input label is missing');
+expect(app.includes('data-finder-input'), 'finder search input hook is missing');
+expect(app.includes('type="search"'), 'finder input type is not a native search field');
+expect(app.includes('data-action="finder-topic"'), 'finder topic button action is missing');
+expect(app.includes('data-action="view-all-finder"'), 'finder catalog handoff marker is missing');
+expect(app.includes('data-action="browse-all-finder"'), 'finder browse-all handoff marker is missing');
+expect(app.includes('matchesQuery'), 'shared query matcher is missing');
+expect(app.includes('queryMatches'), 'shared OR/AND query tokenizer is missing');
+expect(app.includes('datasetCorpus'), 'shared query corpus builder is missing');
+expect(app.includes('resetNonQueryFilters'), 'finder handoff does not reset stale filters');
+expect(app.includes('matches.slice(0, 3)'), 'finder inline output is not capped at three results');
+for (const topic of [
+  'Channel / MIMO / CSI',
+  'RF / IQ / Spectrum',
+  'Mobility / Localization',
+  'Traffic / KPI / QoE'
+]) {
+  expect(app.includes(topic), `finder topic label is missing: ${topic}`);
+}
+
+// Removed decorative observatory graph must not return (negative contracts).
+for (const marker of [
+  'ow-observatory',
+  'ow-spectrum',
+  'ow-trace',
+  'ow-grid-lines',
+  'ow-markers',
+  'ow-reticle',
+  'ow-readouts',
+  'owTrace',
+  'Catalog totals',
+  'observatoryPanel',
+  'viewBox="0 0 640 330"'
+]) {
+  expect(
+    !app.includes(marker) && !index.includes(marker),
+    `removed observatory graph marker returned: ${marker}`
+  );
+}
 expect(
   workflow.includes('cp index.html app.js config.js dist/'),
   'Pages does not publish the Supabase runtime configuration'
