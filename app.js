@@ -1136,14 +1136,12 @@
       '</a></li>';
   }
 
-  function finderPanel() {
+  function topicIsActive(topic, query) {
+    return String(query || '').trim().toLowerCase() === topic.label.toLowerCase();
+  }
+
+  function finderBody() {
     var q = state.finder.query || '';
-    var topics = FINDER_TOPICS.map(function (topic, index) {
-      var active = q.trim().toLowerCase() === topic.label.toLowerCase();
-      return '<button type="button" class="ow-finder-topic' + (active ? ' active' : '') + '"' +
-        ' data-action="finder-topic" data-topic-index="' + index + '"' +
-        ' aria-pressed="' + (active ? 'true' : 'false') + '">' + esc(topic.label) + '</button>';
-    }).join('');
     var body = '';
     if (state.loading) {
       body = loading('Loading the dataset index…');
@@ -1168,6 +1166,17 @@
             ' in the catalog →</a>';
       }
     }
+    return body;
+  }
+
+  function finderPanel() {
+    var q = state.finder.query || '';
+    var topics = FINDER_TOPICS.map(function (topic, index) {
+      var active = topicIsActive(topic, q);
+      return '<button type="button" class="ow-finder-topic' + (active ? ' active' : '') + '"' +
+        ' data-action="finder-topic" data-topic-index="' + index + '"' +
+        ' aria-pressed="' + (active ? 'true' : 'false') + '">' + esc(topic.label) + '</button>';
+    }).join('');
     return '<aside class="ow-finder" aria-label="Dataset finder">' +
       '<div class="ow-panel-head"><span>Dataset finder</span></div>' +
       '<form class="ow-finder-form" role="search" aria-label="Find a dataset" data-finder-form>' +
@@ -1179,8 +1188,29 @@
         '</div>' +
         '<div class="ow-finder-topics" role="group" aria-label="Browse by topic">' + topics + '</div>' +
       '</form>' +
-      '<div class="ow-finder-body">' + body + '</div>' +
+      '<div class="ow-finder-body">' + finderBody() + '</div>' +
     '</aside>';
+  }
+
+  // Repaints only the query-dependent parts of the finder. The <form> holding
+  // the search box is left in place: replacing the field the user is typing into
+  // drops focus and swallows the keystrokes that land during the rebuild.
+  // syncInput is for programmatic query changes (topic toggle, Escape), where
+  // the field is not the thing driving the update.
+  function updateFinderPanel(syncInput) {
+    var panel = document.querySelector('.ow-finder');
+    if (!panel) { render(); return; }
+    var q = state.finder.query || '';
+    var input = panel.querySelector('[data-finder-input]');
+    if (syncInput && input && input.value !== q) input.value = q;
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-topic-index]'), function (button) {
+      var topic = FINDER_TOPICS[Number(button.getAttribute('data-topic-index'))];
+      var active = Boolean(topic) && topicIsActive(topic, q);
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    var body = panel.querySelector('.ow-finder-body');
+    if (body) body.innerHTML = finderBody();
   }
   function statBlock(value, label) {
     return '<div><div class="mono tml-stat-value">' + esc(number(value)) +
@@ -1355,6 +1385,37 @@
     });
   }
 
+  function datasetResults(results) {
+    return state.loading ? loading() : state.error ? errorBox() : results.length
+      ? '<div class="tml-cardgrid">' + results.map(datasetCard).join('') + '</div>'
+      : '<div class="tml-state"><h3>No matching dataset records</h3><p>Clear one or more filters to widen the catalog.</p><button class="tml-button" data-action="clear-filters">Clear filters</button></div>';
+  }
+
+  // Repaints only the filter-dependent regions of the datasets page. The filter
+  // controls are left in place: their option lists come from the whole catalog
+  // rather than the filtered results, and replacing the control the user is
+  // driving drops focus - for the search box it also swallows keystrokes.
+  function updateDatasetResults() {
+    var container = document.getElementById('datasets-results');
+    if (!container) { render(); return; }
+    var results = filteredDatasets();
+    var counted = document.getElementById('datasets-result-count');
+    if (counted) counted.textContent = number(results.length) + ' dataset records';
+    container.innerHTML = datasetResults(results);
+  }
+
+  // Pushes reset filter state back onto the live controls so clearing filters
+  // does not need a full re-render either.
+  function syncDatasetFilterControls() {
+    var controls = document.querySelectorAll('.tml-page [data-filter]');
+    if (!controls.length) return false;
+    Array.prototype.forEach.call(controls, function (control) {
+      var key = control.getAttribute('data-filter');
+      if (key in state.filters) control.value = state.filters[key];
+    });
+    return true;
+  }
+
   function datasetsPage() {
     var results = filteredDatasets();
     return '<main id="main" class="tml-page">' +
@@ -1375,11 +1436,9 @@
         '<div class="field"><label for="filter-publication">Release</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Prepared release available'},{value:'source-only',label:'Source record only'}], state.filters.publication) + '</select></div>' +
         '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Linked paper use'},{value:'none',label:'No linked paper use'}], state.filters.papers) + '</select></div>' +
       '</div>' +
-      '<div class="tml-result-line"><span>' + esc(number(results.length)) +
+      '<div class="tml-result-line"><span id="datasets-result-count">' + esc(number(results.length)) +
         ' dataset records</span><span>Scope: static trainable ML for wireless systems</span></div>' +
-      (state.loading ? loading() : state.error ? errorBox() : results.length
-        ? '<div class="tml-cardgrid">' + results.map(datasetCard).join('') + '</div>'
-        : '<div class="tml-state"><h3>No matching dataset records</h3><p>Clear one or more filters to widen the catalog.</p><button class="tml-button" data-action="clear-filters">Clear filters</button></div>') +
+      '<div id="datasets-results">' + datasetResults(results) + '</div>' +
       '</main>';
   }
   function externalButton(url, label) {
@@ -1876,11 +1935,17 @@
     else { state.datasetsLoaded = false; loadCore(); }
   }
 
-  function resetNonQueryFilters() {
-    state.filters = {
-      query: state.filters.query, task:'all', origin:'all', access:'all', source:'all',
+  function emptyFilters() {
+    return {
+      query:'', task:'all', origin:'all', access:'all', source:'all',
       license:'all', publication:'all', papers:'all', reproduction:'all'
     };
+  }
+
+  function resetNonQueryFilters() {
+    var query = state.filters.query;
+    state.filters = emptyFilters();
+    state.filters.query = query;
   }
 
   app.addEventListener('click', function (event) {
@@ -1896,26 +1961,18 @@
       var topicIndex = Number(target.getAttribute('data-topic-index'));
       var topic = FINDER_TOPICS[topicIndex];
       if (topic) {
-        var wasActive = state.finder.query.trim().toLowerCase() === topic.label.toLowerCase();
-        state.finder.query = wasActive ? '' : topic.label;
-        render();
-        var topicButton = document.querySelector('[data-topic-index="' + topicIndex + '"]');
-        if (topicButton) topicButton.focus();
+        state.finder.query = topicIsActive(topic, state.finder.query) ? '' : topic.label;
+        updateFinderPanel(true);
       }
     } else if (action === 'view-all-finder') {
       resetNonQueryFilters();
     } else if (action === 'browse-all-finder') {
       state.finder.query = '';
-      state.filters = {
-        query:'', task:'all', origin:'all', access:'all', source:'all',
-        license:'all', publication:'all', papers:'all', reproduction:'all'
-      };
+      state.filters = emptyFilters();
     } else if (action === 'clear-filters') {
-      state.filters = {
-        query:'', task:'all', origin:'all', access:'all', source:'all',
-        license:'all', publication:'all', papers:'all', reproduction:'all'
-      };
-      render();
+      state.filters = emptyFilters();
+      if (state.route.name === 'datasets' && syncDatasetFilterControls()) updateDatasetResults();
+      else render();
     }
   });
 
@@ -1928,24 +1985,24 @@
     window.location.hash = '#/datasets' + (q ? '?query=' + encodeURIComponent(q) : '');
   });
 
+  function applyFilter(event) {
+    var key = event.target.getAttribute('data-filter');
+    if (!key || !(key in state.filters)) return;
+    state.filters[key] = event.target.value;
+    // Repaint the results only. A full render() would replace the control being
+    // used, dropping focus mid-interaction - and for the search box it also
+    // swallows every keystroke that lands during the rebuild.
+    if (state.route.name === 'datasets') updateDatasetResults();
+    else render();
+  }
+
   app.addEventListener('input', function (event) {
     if (event.target.hasAttribute('data-finder-input')) {
       state.finder.query = event.target.value;
-      var caret = event.target.selectionStart;
-      render();
-      var finderEl = document.getElementById('finder-query');
-      if (finderEl) { finderEl.focus(); finderEl.setSelectionRange(caret, caret); }
+      updateFinderPanel(false);
       return;
     }
-    var key = event.target.getAttribute('data-filter');
-    if (!key) return;
-    state.filters[key] = event.target.value;
-    var filterCaret = event.target.selectionStart;
-    render();
-    if (key === 'query') {
-      var input = document.getElementById('filter-query');
-      if (input) { input.focus(); input.setSelectionRange(filterCaret, filterCaret); }
-    }
+    applyFilter(event);
   });
 
   app.addEventListener('keydown', function (event) {
@@ -1953,16 +2010,14 @@
     if (!event.target.hasAttribute('data-finder-input')) return;
     if (!state.finder.query) return;
     state.finder.query = '';
-    render();
-    var finderEl = document.getElementById('finder-query');
-    if (finderEl) { finderEl.focus(); finderEl.setSelectionRange(0, 0); }
+    updateFinderPanel(true);
   });
 
   app.addEventListener('change', function (event) {
-    var key = event.target.getAttribute('data-filter');
-    if (!key) return;
-    state.filters[key] = event.target.value;
-    render();
+    // Text inputs already applied their value on `input`; handling `change` too
+    // would redo the work on every Enter press and blur.
+    if (event.target.tagName === 'INPUT') return;
+    applyFilter(event);
   });
 
   var skipLink = document.querySelector('[data-skip-link]');

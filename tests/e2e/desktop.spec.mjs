@@ -305,6 +305,114 @@ test('datasets deep-link query filters directly from the hash URL on load', asyn
   assertNoClientErrors();
 });
 
+test('catalog search keeps focus and caret while filtering as you type', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'datasets'));
+
+  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  const search = page.getByLabel('Search');
+  await search.click();
+
+  // Typed character by character rather than filled: a full re-render per
+  // keystroke detaches the input, dropping focus and swallowing the rest.
+  await page.keyboard.type('metro', { delay: 30 });
+
+  await expect(search).toHaveValue('metro');
+  await expect(search).toBeFocused();
+  await expect(search).toHaveJSProperty('selectionStart', 5);
+  await expect(page.locator('#datasets-result-count')).toHaveText('1 dataset records');
+  await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
+
+  // Caret edits inside the existing text must survive the results repaint too.
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.type('z');
+  await expect(search).toHaveValue('metzro');
+  await expect(search).toBeFocused();
+  await expect(search).toHaveJSProperty('selectionStart', 4);
+  await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Clear filters' }).click();
+  await expect(search).toHaveValue('');
+  await expect(page.locator('#datasets-result-count')).toHaveText('2 dataset records');
+  assertNoClientErrors();
+});
+
+test('catalog search stays editable after a deep-linked query', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(`${fixtureUrl('populated', 'datasets')}?query=metro`);
+
+  const search = page.getByLabel('Search');
+  await expect(search).toHaveValue('metro');
+  await search.click();
+  await page.keyboard.type('zz', { delay: 30 });
+
+  await expect(search).toHaveValue('metrozz');
+  await expect(search).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('catalog dropdown filters are patched in place, not re-rendered', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'datasets'));
+
+  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  const release = page.locator('#filter-publication');
+  // Tag the live controls: if a filter change survives with the tags intact,
+  // the page patched its results instead of rebuilding the controls.
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-filter]').forEach((node) => { node.dataset.tagged = 'yes'; });
+  });
+
+  await release.selectOption('released');
+  await expect(release).toHaveAttribute('data-tagged', 'yes');
+  await expect(page.getByLabel('Search')).toHaveAttribute('data-tagged', 'yes');
+  await expect(release).toHaveValue('released');
+  await expect(page.locator('#datasets-result-count')).toHaveText('1 dataset records');
+
+  await page.getByLabel('Papers').selectOption('none');
+  await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Clear filters' }).click();
+  await expect(release).toHaveValue('all');
+  await expect(page.getByLabel('Papers')).toHaveValue('all');
+  await expect(page.locator('#datasets-result-count')).toHaveText('2 dataset records');
+  assertNoClientErrors();
+});
+
+test('homepage finder keeps focus and caret while typing', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'home'));
+
+  const finder = page.locator('.ow-finder');
+  const input = finder.getByLabel('Search datasets');
+  await input.click();
+  await page.evaluate(() => {
+    document.querySelector('[data-finder-input]').dataset.tagged = 'yes';
+  });
+
+  await page.keyboard.type('handover', { delay: 30 });
+
+  await expect(input).toHaveValue('handover');
+  await expect(input).toBeFocused();
+  await expect(input).toHaveJSProperty('selectionStart', 8);
+  await expect(input).toHaveAttribute('data-tagged', 'yes');
+  await expect(finder.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
+
+  // A topic toggle changes the query programmatically; the field must take the
+  // new value without being replaced.
+  await finder.getByRole('button', { name: 'Mobility / Localization' }).click();
+  await expect(input).toHaveValue('Mobility / Localization');
+  await expect(input).toHaveAttribute('data-tagged', 'yes');
+  await input.press('Escape');
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await expect(input).toHaveAttribute('data-tagged', 'yes');
+  assertNoClientErrors();
+});
+
 test('top-bar navigation renders cached dashboard data without a reload', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
