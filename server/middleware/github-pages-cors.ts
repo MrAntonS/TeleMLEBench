@@ -8,6 +8,7 @@ import {
 } from "nitro/h3";
 
 const ALLOWED_ORIGINS = new Set([
+  "https://owl.publicvm.com",
   "https://mrantons.github.io",
 ]);
 

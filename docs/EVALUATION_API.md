@@ -128,7 +128,7 @@ Required production secrets/resources:
 - one or more SHA-256 evaluation-key digests in
   `TMLB_EVALUATION_API_KEY_SHA256S` for SDK clients;
 - `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, and
-  `TURNSTILE_EXPECTED_HOSTNAME=mrantons.github.io`;
+  `TURNSTILE_EXPECTED_HOSTNAME=owl.publicvm.com`;
 - a random server-only `TMLB_EVALUATION_GRANT_SECRET` of at least 32 bytes.
 
 Vercel Workflow generates queue-only consumer functions. The score step uses
