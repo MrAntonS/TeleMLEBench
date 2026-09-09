@@ -2223,6 +2223,9 @@
     var metrics = training.validation_metrics || {};
     var metricNames = Object.keys(metrics);
     var features = Array.isArray(training.selected_features) ? training.selected_features : [];
+    var allColumns = Array.isArray(training.feature_columns) ? training.feature_columns : [];
+    var libVersions = training.library_versions && typeof training.library_versions === 'object' ? training.library_versions : {};
+    var libNames = Object.keys(libVersions);
     var target = training.target_column || '';
     var testRows = b.sampleCount;
     var fileCard = function (role) {
@@ -2237,14 +2240,30 @@
     var importLine = b.model === 'logistic_regression'
       ? 'from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression'
       : '# estimator for ' + b.model + ' (recipe ' + b.recipe + ')\nmodel = fit_model';
+    // The reference pipeline imputes, then scales, on the FULL feature set
+    // before selecting FEATURES — the snippet mirrors that order exactly, so
+    // the fitted imputer and scaler match the published run bit for bit.
+    var recordUrl = 'https://telemlebench.vercel.app/api/v1/baselines?release_id=' + b.release;
+    var columnsLine;
+    if (allColumns.length > 24) {
+      columnsLine = 'ALL_COLUMNS = [\n' +
+        allColumns.slice(0, 8).map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') +
+        '\n    # ... ' + (allColumns.length - 8) + ' more — full list in the record:\n]\n' +
+        'import json, urllib.request\n' +
+        'record = json.load(urllib.request.urlopen(\n' +
+        '    ' + JSON.stringify(recordUrl) + '))\n' +
+        'ALL_COLUMNS = record["items"][0]["training"]["feature_columns"]';
+    } else if (allColumns.length) {
+      columnsLine = 'ALL_COLUMNS = [\n' +
+        allColumns.map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') + '\n]';
+    } else {
+      columnsLine = 'ALL_COLUMNS = [c for c in train.columns if c not in ("sample_id", TARGET)]';
+    }
     var featuresLine;
     if (features.length > 24) {
       featuresLine = 'FEATURES = [\n' +
         features.slice(0, 8).map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') +
         '\n    # ... ' + (features.length - 8) + ' more — full list below, or fetch them:\n]\n' +
-        'import json, urllib.request\n' +
-        'record = json.load(urllib.request.urlopen(\n' +
-        '    "https://telemlebench.vercel.app/api/v1/baselines?release_id=' + b.release + '"))\n' +
         'FEATURES = record["items"][0]["training"]["selected_features"]';
     } else if (features.length) {
       featuresLine = 'FEATURES = [\n' +
@@ -2252,21 +2271,39 @@
     } else {
       featuresLine = 'FEATURES = [c for c in train.columns if c not in ("sample_id", TARGET)]';
     }
-    var snippet = 'import pandas as pd\n' + importLine + '(\n' +
+    var snippet = 'import pandas as pd\n' +
+      'from sklearn.experimental import enable_iterative_imputer  # noqa: F401\n' +
+      'from sklearn.impute import IterativeImputer\n' +
+      'from sklearn.preprocessing import LabelEncoder, StandardScaler\n' +
+      importLine + '(\n' +
       paramNames.map(function (name) {
         return '    ' + name + '=' + pyValue(params[name]) + ',';
       }).join('\n') + '\n)\n\n' +
-      'train = pd.read_csv("train.csv")\n' +
-      'valid = pd.read_csv("validation.csv")\n' +
-      'test = pd.read_csv("test_features.csv")  # no labels\n\n' +
+      'SEED = ' + (b.seed != null ? b.seed : 42) + '\n' +
+      'train = pd.read_csv("train.csv", dtype={"sample_id": str})\n' +
+      'valid = pd.read_csv("validation.csv", dtype={"sample_id": str})\n' +
+      'test = pd.read_csv("test_features.csv", dtype={"sample_id": str})  # no labels\n\n' +
       (target ? 'TARGET = ' + JSON.stringify(target) + '\n' : '') +
-      featuresLine + '\n' +
-      'model.fit(train[FEATURES], train[TARGET])\n' +
+      columnsLine + '\n' +
+      featuresLine + '\n\n' +
+      'enc = LabelEncoder()\n' +
+      'y_train = enc.fit_transform(train[TARGET])\n' +
+      'y_valid = enc.transform(valid[TARGET])\n\n' +
+      'imp = IterativeImputer(max_iter=10, random_state=SEED, skip_complete=True, keep_empty_features=True)\n' +
+      'X_train = imp.fit_transform(train[ALL_COLUMNS].to_numpy(dtype="float64"))\n' +
+      'X_valid = imp.transform(valid[ALL_COLUMNS].to_numpy(dtype="float64"))\n' +
+      'X_test = imp.transform(test[ALL_COLUMNS].to_numpy(dtype="float64"))\n\n' +
+      'scaler = StandardScaler()\n' +
+      'X_train = scaler.fit_transform(X_train)\n' +
+      'X_valid = scaler.transform(X_valid)\n' +
+      'X_test = scaler.transform(X_test)\n\n' +
+      'cols = [ALL_COLUMNS.index(c) for c in FEATURES]\n' +
+      'model.fit(X_train[:, cols], y_train)\n' +
       (metricNames.length
-        ? 'print("validation ' + metricNames[0] + ':", model.score(valid[FEATURES], valid[TARGET]))\n# expected: ' + metrics[metricNames[0]] + '\n'
+        ? 'print("validation ' + metricNames[0] + ':", model.score(X_valid[:, cols], y_valid))\n# expected: ' + metrics[metricNames[0]] + '\n'
         : '') +
       '\n' +
-      'pred = model.predict(test[FEATURES])\n' +
+      'pred = enc.inverse_transform(model.predict(X_test[:, cols]))\n' +
       'pd.DataFrame({"sample_id": test["sample_id"], "prediction": pred}).to_csv(\n' +
       '    "test_predictions.csv", index=False)  # exactly sample_id,prediction in test order\n' +
       '# upload test_predictions.csv on the dataset page; expected hidden-test\n' +
@@ -2301,6 +2338,11 @@
               }).join('') + '</dl>'
             : '<p class="muted">Hyperparameters are not recorded for this baseline.</p>') +
           '<div class="loading-example"><div class="row-meta">Replicate</div><pre><code>' + esc(snippet) + '</code></pre></div>' +
+          (libNames.length
+            ? '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Tested with ' +
+              esc(libNames.map(function (k) { return k + ' ' + libVersions[k]; }).join(' · ')) +
+              '. Other versions can flip borderline rows — the predictions hash in step 3 is the arbiter, not the score alone.</p>'
+            : '') +
           (features.length
             ? '<details class="guide-details"><summary>Full selected-feature list (' + esc(number(features.length)) + ')</summary>' +
               '<p class="mono" style="font-size:11px;line-height:1.7;overflow-wrap:anywhere">' + esc(features.join(', ')) + '</p></details>'

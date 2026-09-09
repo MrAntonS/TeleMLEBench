@@ -84,6 +84,16 @@ async function trainingFromFacts(path) {
     training.selected_feature_count = facts.selected_features.length;
     training.selected_features = facts.selected_features;
   }
+  if (Array.isArray(facts.feature_columns)) {
+    training.feature_columns = facts.feature_columns;
+  }
+  if (facts.library_versions && typeof facts.library_versions === 'object') {
+    training.library_versions = {};
+    for (const [key, entry] of Object.entries(facts.library_versions)) {
+      const flat = String(key).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      if (flat && typeof entry !== 'object') training.library_versions[flat] = String(entry);
+    }
+  }
   if (facts.n_train) training.n_train = facts.n_train;
   if (facts.n_validation) training.n_validation = facts.n_validation;
   if (facts.validation_metrics && typeof facts.validation_metrics === 'object') {

@@ -75,9 +75,12 @@ test('training provenance is optional, whitelisted, and strictly validated', () 
     params: { C: 1.0, class_weight: 'balanced', max_iter: 2000, random_state: 42, solver: 'lbfgs' },
     target_column: 'FLOOR',
     selected_feature_count: 416,
+    selected_features: ['WAP002', 'WAP004'],
+    feature_columns: ['WAP001', 'WAP002', 'WAP004'],
     n_train: 14741,
     n_validation: 3160,
     validation_metrics: { accuracy: 0.6933544303797469, macro_f1: 0.4860473549552755 },
+    library_versions: { sklearn: '1.7.2', pandas: '2.3.3' },
   };
   const baseline = buildPublicBaseline({
     descriptor,
@@ -92,6 +95,8 @@ test('training provenance is optional, whitelisted, and strictly validated', () 
   assert.throws(() => assertTrainingBlock({}), /training\.params is required/);
   assert.throws(() => assertTrainingBlock({ params: { ok: 1, evil: { nested: true } } }), /must be a string, number, boolean, or null/);
   assert.throws(() => assertTrainingBlock({ params: { ok: 1 }, n_train: -5 }), /positive integer/);
+  assert.throws(() => assertTrainingBlock({ params: { ok: 1 }, feature_columns: ['a', 'bad name!'] }), /invalid entry/);
+  assert.throws(() => assertTrainingBlock({ params: { ok: 1 }, library_versions: { sklearn: 1.7 } }), /short version strings/);
 });
 
 test('seeded UJI baseline carries the replication training facts', () => {

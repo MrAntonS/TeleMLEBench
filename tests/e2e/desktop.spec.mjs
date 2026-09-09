@@ -530,6 +530,8 @@ test('baseline row links to a replication guide with exact training steps', asyn
   await expect(page.getByRole('heading', { name: /Train this exact model/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Predict and score/ })).toBeVisible();
   await expect(page.getByText('solver', { exact: true })).toBeVisible();
+  await expect(page.getByText('IterativeImputer')).toBeVisible();
+  await expect(page.getByText('StandardScaler')).toBeVisible();
   await expect(page.locator('aside').getByText('0.900000', { exact: true })).toBeVisible();
   await expect(page.locator('.tml-release-file a').first()).toBeVisible();
   assertNoClientErrors();
