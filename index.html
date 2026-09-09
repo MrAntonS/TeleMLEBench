@@ -1113,6 +1113,59 @@
   .repro-table th,.repro-table td{border-bottom:1px solid rgba(144,144,150,.2);}
   .repro-table th{color:#777f84;font-family:var(--mono);}
   .repro-table td{color:#c8cdd0;}
+
+  /* Detail page: schema browser */
+  .schema-facts,.schema-roles{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+  .schema-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:15px 0 4px;}
+  .schema-tools input{
+    flex:1;min-width:200px;height:38px;padding:8px 11px;
+    border:1px solid rgba(144,144,150,.36);border-radius:2px;
+    background:#111617;color:#d8dcdf;font:12px var(--mono);
+  }
+  .schema-tools input:focus{outline:1px solid var(--accent);border-color:var(--accent);}
+  .schema-extra{display:none;}
+  .schema-table td:first-child{white-space:nowrap;}
+
+  /* Detail page: scores leaderboard with the baseline reference row */
+  .lb-table td{vertical-align:middle;}
+  .lb-table a{color:var(--ink);text-decoration:none;}
+  .lb-table a:hover{color:var(--accent);}
+  .lb-baseline td{
+    background:rgba(156,240,255,.055);
+    box-shadow:inset 3px 0 0 var(--accent);
+    border-bottom:1px solid rgba(156,240,255,.32);
+  }
+  .lb-tag{
+    display:inline-block;padding:3px 8px;
+    border:1px solid var(--accent);border-radius:2px;
+    background:var(--accent);color:#001f24;
+    font:600 8px var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  }
+
+  /* Detail page + papers page: polished paper cards */
+  .paper-cards{display:grid;gap:12px;}
+  .paper-card{
+    padding:18px 19px;
+    border:1px solid rgba(144,144,150,.25);border-radius:3px;
+    background:#14191b;
+  }
+  .paper-card:hover{border-color:rgba(156,240,255,.4);}
+  .paper-card-meta{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    color:var(--subtle);font:500 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;
+  }
+  .paper-venue{color:var(--accent);overflow-wrap:anywhere;}
+  .paper-year{flex:none;}
+  .paper-card h3{margin:10px 0 6px;font-size:16px;line-height:1.4;}
+  .paper-card h3 a{color:var(--ink);text-decoration:none;}
+  .paper-card h3 a:hover{color:var(--accent);}
+  .paper-authors{margin:0 0 11px;color:var(--subtle);font-size:12px;line-height:1.5;}
+  .paper-evidence{
+    margin:0;padding:12px 14px;
+    border-left:2px solid var(--accent);background:rgba(156,240,255,.045);
+    color:#b8c3c6;font-size:12px;line-height:1.6;font-style:italic;
+  }
+
   .prose{max-width:920px;}
   .prose p,.prose li{color:#a5acb1;}
   .steps{gap:8px;}

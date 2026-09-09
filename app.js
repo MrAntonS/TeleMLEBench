@@ -1087,6 +1087,22 @@
     });
   }
 
+  function loadPublicReleaseForDataset(slug) {
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base || !slug) return Promise.resolve(null);
+    return fetch(base + '/releases?dataset=' + encodeURIComponent(slug), {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    }).then(function (res) {
+      if (!res.ok) throw new Error('Release request failed (' + res.status + ')');
+      return res.json();
+    }).then(function (payload) {
+      return list(payload)[0] || null;
+    }).catch(function () {
+      return null;
+    });
+  }
+
   function loadDetail(slug) {
     state.loading = true;
     state.error = '';
@@ -1098,7 +1114,8 @@
       optional('/datasets/' + encodeURIComponent(slug) + '/files?limit=500'),
       optional('/reproductions?dataset=' + encodeURIComponent(slug) + '&limit=100'),
       optional('/datasets/' + encodeURIComponent(slug) + '/baselines?limit=100'),
-      loadPublicBaselinesForDataset(slug)
+      loadPublicBaselinesForDataset(slug),
+      loadPublicReleaseForDataset(slug)
     ]).then(function (values) {
       var raw = values[0] || {};
       var dataset = normalizeDataset(raw);
@@ -1139,7 +1156,8 @@
         tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
         papers: detailPapers,
         reproductions: reproductionItems,
-        baselines: publicItems.concat(legacyBaselines)
+        baselines: publicItems.concat(legacyBaselines),
+        publicRelease: values[5] || null
       };
     }).catch(function (err) {
       state.error = err.message || 'The dataset could not be loaded.';
@@ -1761,16 +1779,6 @@
     }).join('');
   }
 
-  function fileRows(detail) {
-    if (!detail.files.length) return '<div class="empty"><h3>No provider file manifest</h3><p class="muted">This record remains source-linked until the provider exposes or OWL verifies a file inventory.</p></div>';
-    return detail.files.slice(0, 30).map(function (f) {
-      var url = safeUrl(f.content_url || f.url || f.download_url);
-      var open = f.restricted === false || f.is_restricted === false || detail.dataset.access === 'open';
-      return '<div class="file-row"><div><div class="row-title mono">' + esc(text(f.filename || f.name || f.path, 'unnamed file')) + '</div><div class="row-meta">' + esc(bytes(f.byte_size || f.size)) + (f.checksum ? ' · checksum indexed' : ' · checksum not listed') + '</div></div>' +
-        (url && open ? '<a class="btn btn-light" href="' + esc(url) + '" target="_blank" rel="noopener">Provider file ↗</a>' : statusBadge(f.restricted ? 'restricted' : 'metadata only')) + '</div>';
-    }).join('');
-  }
-
   function taskReleaseRows(detail) {
     if (!detail.tasks.length && !detail.releases.length) {
       return '<div class="empty"><h3>No immutable task release</h3><p class="muted">No target, sample boundary, leakage policy, and split assignment have passed publication review for this version.</p></div>';
@@ -1824,40 +1832,196 @@
     }).join('') + '</div>';
   }
 
-  function schemaRows(detail) {
-    var schema = detail.schema && typeof detail.schema === 'object'
-      ? detail.schema : {};
-    var fields = Array.isArray(schema.fields) ? schema.fields : [];
-    if (!fields.length) {
-      return '<div class="empty"><h3>No metadata schema available</h3><p class="muted">The provider has not exposed field-level metadata yet. OWL does not invent columns from filenames or assume the last column is a target.</p></div>';
+  // The task line comes from the reviewed task profile when one exists; when
+  // the public catalog has no profile, the published release manifest is the
+  // authoritative fallback (it fixes the task, target, and split). Nothing on
+  // the page may fall back to the literal string "unknown".
+  function prettifyTaskId(taskId, release) {
+    var value = String(taskId || '').toLowerCase().replace(/-v\d+$/, '');
+    var aliases = ((release && release.dataset_aliases) || [])
+      .concat([release && release.id, release && release.dataset_id]);
+    aliases.forEach(function (alias) {
+      var a = String(alias || '').toLowerCase().replace(/-v\d+$/, '');
+      if (a && a.length > 2) value = value.split(a).join('-');
+    });
+    value = value.replace(/^task-/, '').replace(/[-_]+/g, ' ').trim();
+    return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+  }
+
+  function derivedTaskLabel(detail) {
+    var profile = detail.taskProfile;
+    if (profile && profile.primary_task_name) return text(profile.primary_task_name, '');
+    var release = detail.publicRelease;
+    if (release) return prettifyTaskId(release.task_id || release.id, release);
+    var task = detail.dataset && detail.dataset.task;
+    return task && task !== 'Needs task adapter' ? task : '';
+  }
+
+  function taskSentence(detail) {
+    var release = detail.publicRelease;
+    var targets = release && Array.isArray(release.target_fields) ? release.target_fields : [];
+    if (release && targets.length) {
+      var counts = (release.split && release.split.counts) || {};
+      var metric = (release.evaluation && release.evaluation.metric) || 'hidden-label scoring';
+      return 'Predict ' + targets.join(', ') +
+        (release.feature_count ? ' from ' + number(release.feature_count) + ' features' : '') +
+        '. Scored by ' + metric + ' on a ' +
+        text(release.split && release.split.strategy, 'reviewed') +
+        '-separated 70/15/15 split (seed 42): ' +
+        number(counts.train) + ' train · ' + number(counts.validation) +
+        ' validation · ' + number(counts.test) + ' test.';
     }
-    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Field</th><th>Type / shape</th><th>Role</th><th>Description</th></tr></thead><tbody>' +
-      fields.map(function (field) {
-        var typeShape = text(field.data_type, 'unknown') +
-          (field.shape ? ' · ' + field.shape : '');
-        return '<tr><td class="mono"><strong>' + esc(text(field.name, 'unnamed')) +
-          '</strong></td><td>' + esc(typeShape) + '</td><td>' +
-          esc(text(field.role, 'unknown')) + '</td><td>' +
-          esc(text(field.description, 'No field description recorded.')) +
-          '<div class="row-meta">' + esc(text(field.basis, 'inferred')) +
-          ' metadata</div></td></tr>';
-      }).join('') + '</tbody></table></div>' +
-      '<dl class="kv" style="margin-top:14px">' +
-        '<dt>Sample unit</dt><dd>' + esc(text(schema.sample_unit, 'Not established')) + '</dd>' +
-        '<dt>Grouping keys</dt><dd class="mono">' + esc(Array.isArray(schema.grouping_keys) && schema.grouping_keys.length ? schema.grouping_keys.join(', ') : 'Not established') + '</dd>' +
-        '<dt>Time key</dt><dd class="mono">' + esc(text(schema.time_key, 'Not established')) + '</dd>' +
-      '</dl>';
+    return detail.dataset.taskDefinition ||
+      'No reviewed task definition is available. A target is never assumed from column order.';
+  }
+
+  var SCHEMA_PREVIEW = 25;
+
+  function schemaBlock(detail) {
+    var schema = detail.schema && typeof detail.schema === 'object' ? detail.schema : {};
+    var fields = Array.isArray(schema.fields) ? schema.fields : [];
+    var release = detail.publicRelease;
+    var facts = [];
+    if (release && Array.isArray(release.target_fields) && release.target_fields.length) {
+      facts.push('target ' + release.target_fields.join(', '));
+    }
+    if (release && release.feature_count) facts.push(number(release.feature_count) + ' features');
+    if (schema.sample_unit) facts.push('sample: ' + schema.sample_unit);
+    if (Array.isArray(schema.grouping_keys) && schema.grouping_keys.length) {
+      facts.push('groups: ' + schema.grouping_keys.join(', '));
+    }
+    if (schema.time_key) facts.push('time: ' + schema.time_key);
+    var factsHtml = facts.length
+      ? '<div class="schema-facts">' + facts.map(function (f) {
+        return '<span class="tag">' + esc(f) + '</span>';
+      }).join('') + '</div>'
+      : '';
+    if (!fields.length) {
+      return factsHtml +
+        '<p class="muted" style="margin-top:12px">Field-level provider metadata is not published for this record. ' +
+        'The release above fixes the target, feature count, and split contract; OWL does not invent columns from filenames.</p>';
+    }
+    var roles = {};
+    fields.forEach(function (field) {
+      var role = text(field.role, 'feature').toLowerCase();
+      roles[role] = (roles[role] || 0) + 1;
+    });
+    var roleChips = Object.keys(roles).sort().map(function (role) {
+      return '<span class="tag">' + esc(number(roles[role])) + ' ' + esc(role) + '</span>';
+    }).join('');
+    var rows = fields.map(function (field, index) {
+      var typeShape = text(field.data_type, 'unknown') + (field.shape ? ' · ' + field.shape : '');
+      return '<tr data-schema-row' + (index >= SCHEMA_PREVIEW ? ' class="schema-extra"' : '') + '>' +
+        '<td class="mono"><strong>' + esc(text(field.name, 'unnamed')) + '</strong></td>' +
+        '<td>' + esc(typeShape) + '</td>' +
+        '<td>' + esc(text(field.role, 'unknown')) + '</td>' +
+        '<td>' + esc(text(field.description, '')) + '</td></tr>';
+    }).join('');
+    var tools = '<div class="schema-tools">' +
+      '<input type="search" data-schema-filter aria-label="Filter schema fields" placeholder="Filter ' +
+      esc(number(fields.length)) + ' fields…">' +
+      (fields.length > SCHEMA_PREVIEW
+        ? '<button type="button" class="btn btn-light" data-action="schema-show-all">Show all ' +
+          esc(number(fields.length)) + ' fields</button>'
+        : '') + '</div>';
+    return factsHtml +
+      '<div class="schema-roles">' + roleChips + '</div>' + tools +
+      '<div style="overflow-x:auto"><table class="repro-table schema-table"><thead><tr><th>Field</th><th>Type / shape</th><th>Role</th><th>Description</th></tr></thead><tbody>' +
+      rows + '</tbody></table></div>';
+  }
+
+  function taskAndDataSection(detail) {
+    var label = derivedTaskLabel(detail);
+    return '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">ML task</div>' +
+      '<h2 style="margin-top:10px">' + esc(label || 'What this data supports') + '</h2></div>' +
+      statusBadge(detail.taskProfile ? 'suggested' : (detail.publicRelease ? 'release-defined' : 'unreleased')) + '</div>' +
+      '<p class="definition">' + esc(taskSentence(detail)) + '</p>' +
+      metadataTaskRows(detail) +
+      schemaBlock(detail) +
+      '<p class="muted" style="margin-top:14px;font-size:11px;line-height:1.6">The default platform split is 70/15/15 with seed 42. ' +
+      'Temporal, group, route, site, user, or spatial separation takes precedence over row stratification. ' +
+      '<a class="btn-link" href="#/methodology">Read methodology →</a></p></section>';
+  }
+
+  // One leaderboard per dataset: every trusted score on the release metric,
+  // sorted descending. The baseline row is the visual reference line — rows
+  // above it beat the baseline, rows below it do not.
+  function scoresLeaderboard(detail) {
+    var entries = [];
+    (Array.isArray(detail.baselines) ? detail.baselines : []).forEach(function (b) {
+      if (!b.verified || b.value == null) return;
+      entries.push({
+        kind: 'baseline',
+        name: b.model,
+        metric: b.metric,
+        score: Number(b.value),
+        note: b.release + (b.config ? ' · ' + b.config : ''),
+        hash: b.bundle || b.predictions,
+        link: ''
+      });
+    });
+    (Array.isArray(detail.reproductions) ? detail.reproductions : []).forEach(function (r) {
+      if (!r.verified || r.reproduced == null) return;
+      entries.push({
+        kind: 'reproduction',
+        name: r.title,
+        metric: r.metric,
+        score: Number(r.reproduced),
+        note: r.model + ' · ' + number(r.verifiedRuns) + ' verified run' + (r.verifiedRuns === 1 ? '' : 's'),
+        hash: '',
+        link: r.id ? '#/reproduction/' + encodeURIComponent(r.id) : ''
+      });
+    });
+    if (!entries.length) {
+      return '<div class="empty"><h3>No published scores yet</h3><p class="muted">Scores appear here after trusted server evaluation. Self-reported numbers are never shown.</p></div>';
+    }
+    entries.sort(function (a, b) { return b.score - a.score; });
+    return '<div style="overflow-x:auto"><table class="repro-table lb-table"><thead><tr>' +
+      '<th>#</th><th>Method</th><th>Metric</th><th>Score</th><th>Kind</th>' +
+      '</tr></thead><tbody>' +
+      entries.map(function (entry, index) {
+        var name = entry.link
+          ? '<a href="' + esc(entry.link) + '">' + esc(entry.name) + '</a>'
+          : esc(entry.name);
+        return '<tr class="' + (entry.kind === 'baseline' ? 'lb-baseline' : '') + '">' +
+          '<td class="mono">' + (index + 1) + '</td>' +
+          '<td><strong>' + name + '</strong>' +
+          '<div class="row-meta">' + esc(entry.note) + '</div></td>' +
+          '<td>' + esc(entry.metric) + '</td>' +
+          '<td class="mono"><strong>' + esc(entry.score.toFixed(6)) + '</strong></td>' +
+          '<td>' + (entry.kind === 'baseline'
+            ? '<span class="lb-tag">Baseline</span>'
+            : statusBadge('reproduction', 'verified')) + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
+      'Every score is computed by the trusted server against hidden test labels after sample-ID alignment. ' +
+      'The baseline is the reference row: entries above it beat the baseline, entries below it do not. ' +
+      'Group-, site-, or time-separated releases score lower than random splits by design.</p>';
   }
 
   function paperRows(papers) {
     if (!papers.length) return '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Machine-linked relationships require an inspectable evidence passage and remain open to correction.</p></div>';
+    return '<div class="paper-cards">' + paperCards(papers) + '</div>';
+  }
+
+  function paperCards(papers) {
     return papers.map(function (p) {
       var detailUrl = p.id ? '#/paper/' + encodeURIComponent(p.id) : '';
-      return '<article class="paper-row"><div class="card-kicker">' + statusBadge(p.status) + '<span class="id">' + esc(p.year) + '</span></div><h3 style="margin:12px 0 6px">' +
-        (detailUrl ? '<a href="' + detailUrl + '">' + esc(p.title) + '</a>' :
-          p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) +
-        '</h3><p class="muted" style="font-size:13px">' + esc(p.authors) + '</p>' +
-        (p.evidence ? '<div class="evidence"><strong>Usage evidence</strong><br>' + esc(p.evidence) + '</div>' : '<div class="evidence">Relationship metadata exists, but a public evidence span is not available in this API response.</div>') +
+      var venue = text(p.venue, '');
+      return '<article class="paper-card">' +
+        '<div class="paper-card-meta">' +
+          (venue && venue !== 'Venue not indexed' ? '<span class="paper-venue">' + esc(venue) + '</span>' : '<span></span>') +
+          '<span class="paper-year">' + esc(p.year) + '</span>' +
+        '</div>' +
+        '<h3>' +
+          (detailUrl ? '<a href="' + detailUrl + '">' + esc(p.title) + '</a>' :
+            p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) +
+        '</h3>' +
+        '<p class="paper-authors">' + esc(p.authors) + '</p>' +
+        (p.evidence
+          ? '<blockquote class="paper-evidence">' + esc(p.evidence) + '</blockquote>'
+          : '<p class="muted" style="font-size:12px">Relationship recorded; the public evidence span is not available in this response.</p>') +
       '</article>';
     }).join('');
   }
@@ -1865,10 +2029,10 @@
   var DETAIL_PAPERS_PAGE = 5;
 
   function paperRowsPaged(papers, visible) {
-    if (!papers.length) return paperRows(papers);
+    if (!papers.length) return '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Machine-linked relationships require an inspectable evidence passage and remain open to correction.</p></div>';
     var count = Math.max(DETAIL_PAPERS_PAGE, Number(visible) || DETAIL_PAPERS_PAGE);
     var shown = papers.slice(0, count);
-    var html = paperRows(shown);
+    var html = '<div class="paper-cards">' + paperCards(shown) + '</div>';
     var remaining = papers.length - shown.length;
     html += '<div class="row-meta" role="status">Showing ' + esc(number(shown.length)) +
       ' of ' + esc(number(papers.length)) + ' linked papers</div>';
@@ -1877,36 +2041,6 @@
         'Show 5 more (' + esc(number(remaining)) + ' remaining)</button></div>';
     }
     return html;
-  }
-
-  function baselineRows(rows) {
-    if (!rows.length) {
-      return '<div class="empty"><h3>No reference baseline is published</h3>' +
-        '<p class="muted">No server-scored baseline has been published for this dataset\u2019s releases. ' +
-        'This is not evidence that the task is unlearnable.</p></div>';
-    }
-    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr>' +
-      '<th>Release</th><th>Metric</th><th>Score</th><th>Model</th><th>Verification</th><th>Record</th>' +
-      '</tr></thead><tbody>' +
-      rows.map(function (b) {
-        return '<tr><td><strong>' + esc(b.release) + '</strong>' +
-          '<div class="row-meta">' + esc(b.config) + '</div></td>' +
-          '<td>' + esc(b.metric) + '</td>' +
-          '<td class="mono">' + esc(b.verified ? b.value : '\u2014') + '</td>' +
-          '<td>' + esc(b.model) + '</td>' +
-          '<td>' + statusBadge(b.verified ? 'Server scored' : 'Not verified',
-            b.verified ? 'verified' : 'unknown') + '</td>' +
-          '<td class="mono">' + esc(b.bundle ? b.bundle.slice(0, 12) : '\u2014') + '</td></tr>';
-      }).join('') +
-      '</tbody></table></div>' +
-      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
-      'A baseline is a reference score on the hidden test split of a release. It is not a ' +
-      'reproduction of any paper and is not compared with any reported value. Each record is ' +
-      'derived server-side from a completed private evaluation of operator-submitted test ' +
-      'predictions; training execution is not attested. Where a release ' +
-      'separates groups, sites, routes, users, or time rather than shuffling rows, a baseline ' +
-      'can sit far below numbers reported on random splits of the same data. That is the ' +
-      'split boundary working as intended, not a defect.</p>';
   }
 
   function reproductionRows(rows) {
@@ -1932,50 +2066,54 @@
     if (state.error || !state.detail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
     var x = state.detail;
     var d = x.dataset;
+    var taskLabel = derivedTaskLabel(x);
     var releaseBadge = x.releases.length
       ? '<span class="id">' + esc(number(x.releases.length)) +
         (x.releases.length === 1 ? ' release' : ' releases') + '</span>'
       : '';
-    var baselines = Array.isArray(x.baselines) ? x.baselines : [];
-    var baselineBadge = baselines.length
-      ? '<span class="id">' + esc(number(baselines.length)) +
-        (baselines.length === 1 ? ' baseline' : ' baselines') + '</span>'
+    var scoresCount = (Array.isArray(x.baselines) ? x.baselines : []).filter(function (b) { return b.verified; }).length +
+      (Array.isArray(x.reproductions) ? x.reproductions : []).filter(function (r) { return r.verified && r.reproduced != null; }).length;
+    var scoresBadge = scoresCount
+      ? '<span class="id">' + esc(number(scoresCount)) + (scoresCount === 1 ? ' score' : ' scores') + '</span>'
       : '';
-    var reproBadge = x.reproductions.length
-      ? '<span class="id">' + esc(number(x.reproductions.length)) +
-        (x.reproductions.length === 1 ? ' report' : ' reports') + '</span>'
-      : '';
+    var heroTags = unique([taskLabel].concat(
+      [d.domain, d.origin].filter(function (v) {
+        return v && v !== 'unknown' && v !== 'unclassified';
+      }),
+      d.tags.slice(0, 3)
+    ).filter(Boolean));
+    var facts = [
+      ['Canonical ID', d.id, true],
+      ['Version', d.version !== 'Not recorded' ? d.version : ''],
+      ['Publication review', publicationReviewFact(d.review)],
+      ['Review policy', reviewPolicyFact(d.review)],
+      ['Human audit', humanAuditFact(d.review)],
+      ['Last verified', d.lastVerified ? date(d.lastVerified) : '']
+    ].filter(function (row) {
+      return row[1] && row[1] !== 'Not recorded' && row[1] !== 'unknown';
+    }).map(function (row) {
+      return '<dt>' + esc(row[0]) + '</dt><dd' + (row[2] ? ' class="mono"' : '') + '>' + esc(row[1]) + '</dd>';
+    }).join('');
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
-        '<div class="detail-title"><div><div class="eyebrow">' + esc(d.task) + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(d.description) + '</p></div>' +
+        '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(d.description) + '</p>' +
+        (heroTags.length ? '<div class="tag-row" style="margin-top:14px">' + heroTags.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+        '</div>' +
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
-        '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">Metadata-derived ML task</div><h2 style="margin-top:10px">' + esc(text(d.taskProfile && d.taskProfile.primary_task_name, 'What this data supports')) + '</h2></div>' + statusBadge(d.taskProfile ? 'suggested' : d.downloadStatus) + '</div>' +
-          '<p class="definition">' + esc(d.taskDefinition || 'No reviewed task definition is available. A target is not assumed from column order.') + '</p>' +
-          metadataTaskRows(x) +
-          '<div class="tag-row">' + [d.task,d.domain,d.origin].concat(d.tags.slice(0,4)).filter(Boolean).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('') + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Tasks and immutable releases</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Reference baselines</h2>' + baselineBadge + '</div>' + baselineRows(baselines) + '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Papers linked by dataset-use evidence</h2><span class="id">Machine checked</span></div><div class="paper-list">' + paperRowsPaged(x.papers, state.detailPapersVisible) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Reproduction reports</h2>' + reproBadge + '</div><div class="repro-list">' + reproductionRows(x.reproductions) + '</div></section>' +
+        taskAndDataSection(x) +
+        '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '</div>' + scoresLeaderboard(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Papers using this dataset</h2><span class="id">Machine checked</span></div>' + paperRowsPaged(x.papers, state.detailPapersVisible) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Where this data comes from</h2><span class="id">' + esc(number(d.sourceCount || x.sources.length)) + ' records</span></div>' +
+          '<dl class="kv" style="margin-bottom:16px">' +
+            '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
+            '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
+            (d.doi ? '<dt>DOI</dt><dd class="mono">' + esc(d.doi) + '</dd>' : '') +
+          '</dl>' +
+          '<div class="source-list">' + sourceRows(x) + '</div></section>' +
       '</div><aside>' +
-        '<section class="card panel"><h3>Record facts</h3><dl class="kv">' +
-          '<dt>Canonical ID</dt><dd class="mono">' + esc(d.id) + '</dd>' +
-          '<dt>Version</dt><dd>' + esc(d.version) + '</dd>' +
-          '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
-          '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
-          '<dt>Origin</dt><dd>' + esc(d.origin) + '</dd>' +
-          '<dt>Publisher</dt><dd>' + esc(d.publisher) + '</dd>' +
-          '<dt>Publication review</dt><dd>' + esc(publicationReviewFact(d.review)) + '</dd>' +
-          '<dt>Review policy</dt><dd class="mono">' + esc(reviewPolicyFact(d.review)) + '</dd>' +
-          '<dt>Human audit</dt><dd>' + esc(humanAuditFact(d.review)) + '</dd>' +
-          '<dt>Last verified</dt><dd>' + esc(date(d.lastVerified)) + '</dd>' +
-          '<dt>DOI</dt><dd class="mono">' + esc(d.doi || 'Not recorded') + '</dd>' +
-        '</dl></section>' +
-        '<section class="card panel"><h3>Standard release policy</h3><p class="muted" style="line-height:1.65;font-size:13px">The default platform split is 70/15/15 with seed 42. Temporal, group, route, site, user, or spatial separation takes precedence over row stratification. No release is implied until a reviewed task adapter exists.</p><a class="btn btn-link" href="#/methodology">Read methodology →</a></section>' +
+        '<section class="card panel"><h3>Record facts</h3><dl class="kv">' + facts + '</dl></section>' +
       '</aside></div></div></section></main>';
   }
 
@@ -2340,6 +2478,14 @@
         state.detail && Array.isArray(state.detail.papers) ? state.detail.papers.length : 5
       );
       render();
+    } else if (action === 'schema-show-all') {
+      var schemaPanel = target.closest('.panel');
+      if (schemaPanel) {
+        Array.prototype.forEach.call(schemaPanel.querySelectorAll('.schema-extra'), function (row) {
+          row.classList.remove('schema-extra');
+        });
+      }
+      target.remove();
     }
   });
 
@@ -2367,6 +2513,17 @@
     if (event.target.hasAttribute('data-finder-input')) {
       state.finder.query = event.target.value;
       updateFinderPanel(false);
+      return;
+    }
+    if (event.target.hasAttribute('data-schema-filter')) {
+      var query = event.target.value.trim().toLowerCase();
+      var panel = event.target.closest('.panel');
+      if (!panel) return;
+      Array.prototype.forEach.call(panel.querySelectorAll('[data-schema-row]'), function (row) {
+        var matches = !query || row.textContent.toLowerCase().indexOf(query) >= 0;
+        var previewHidden = row.classList.contains('schema-extra');
+        row.style.display = matches && (query || !previewHidden) ? '' : 'none';
+      });
       return;
     }
     applyFilter(event);
@@ -2859,7 +3016,7 @@
   async function addReleasePanel() {
     if (!/^#\/dataset\//.test(location.hash)) return;
     var heading = Array.from(document.querySelectorAll('h2')).find(function (node) {
-      return node.textContent.trim() === 'Tasks and immutable releases';
+      return node.textContent.trim() === 'Get the data';
     });
     var anchor = heading && heading.closest('section');
     if (!anchor || document.querySelector('.tml-release-download-panel')) return;

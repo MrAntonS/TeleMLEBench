@@ -251,14 +251,16 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   await expect(page).toHaveURL(/#\/dataset\/radio-kpi$/);
   await expect(page.getByRole('heading', { level: 1, name: datasetName })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Handover success prediction' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Dataset schema' })).toBeVisible();
+  await expect(page.getByLabel('Filter schema fields')).toBeVisible();
   await expect(page.getByRole('cell', { name: 'handover_success' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Tasks and immutable releases' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Get the data' })).toBeVisible();
   await expect(page.getByText('release-radio-kpi-v1', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('1 release', { exact: true })).toBeVisible();
-  await expect(page.getByText('train.csv')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Provider file/ })).toHaveCount(1);
-  await expect(page.getByText('metadata only', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scores' })).toBeVisible();
+  const baselineRow = page.locator('.lb-baseline');
+  await expect(baselineRow).toHaveCount(1);
+  await expect(baselineRow).toContainText('logistic_regression');
+  await expect(baselineRow).toContainText('0.900000');
   await expect(page.getByText('We train and evaluate every model')).toBeVisible();
   await expect(page.getByText('Publication review', { exact: true })).toBeVisible();
   await expect(page.getByText('AI · gpt-5.6-sol', { exact: true })).toBeVisible();
@@ -269,12 +271,12 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   )).toBeVisible();
   await expect(page.getByText('Human audit', { exact: true })).toBeVisible();
   await expect(page.getByText('Pending', { exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: paperTitle }).first()).toBeVisible();
-  await expect(page.getByRole('link', { name: paperTitle }).first()).toHaveAttribute('href', '#/paper/paper-1');
-  await expect(page.getByRole('link', { name: paperTitle }).last()).toHaveAttribute(
+  await expect(page.getByRole('link', { name: paperTitle })).toHaveCount(2);
+  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle })).toHaveAttribute(
     'href',
     '#/reproduction/experiment-1'
   );
+  await expect(page.locator('.paper-cards').getByRole('link', { name: paperTitle })).toHaveAttribute('href', '#/paper/paper-1');
   await expect(page.getByText('Python loading example')).toBeVisible();
   assertNoClientErrors();
 });
@@ -502,7 +504,7 @@ test('catalog-only dataset marks no prepared release and shows the no-release em
   await expect(page).toHaveURL(/#\/dataset\/catalog-only$/);
 
   const releasePanel = page.locator('.card.panel').filter({
-    hasText: 'Tasks and immutable releases'
+    hasText: 'Get the data'
   });
   await expect(releasePanel).toBeVisible();
   await expect(releasePanel).not.toContainText('70 / 15 / 15');

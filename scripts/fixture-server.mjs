@@ -60,6 +60,10 @@ function populatedResponse(apiPath, url) {
   if (apiPath === `/datasets/${dataset.slug}/files`) {
     return { items: files, total: files.length, next_cursor: null };
   }
+  if (apiPath === `/datasets/${dataset.slug}/baselines` ||
+      apiPath === `/datasets/${unreleasedDataset.slug}/baselines`) {
+    return { items: [], total: 0 };
+  }
   if (apiPath === '/papers') return { items: [paper], total: 1 };
   if (apiPath === `/papers/${paper.paper_id}`) return paper;
   if (apiPath === '/reproductions') {

@@ -52,8 +52,8 @@ expect(app.includes("'/papers"), 'paper endpoint is missing');
 expect(app.includes("'/reproductions"), 'reproduction endpoint is missing');
 expect(app.includes("'/catalog/coverage"), 'coverage endpoint is missing');
 expect(app.includes("summary.counts"), 'coverage response is not using canonical nested counts');
-expect(app.includes('Tasks and immutable releases'), 'release/task evidence panel is missing');
-expect(app.includes('Papers linked'), 'homepage does not show distinct linked papers');
+expect(app.includes('Get the data'), 'release/task evidence panel is missing');
+expect(app.includes('linked papers'), 'homepage does not show distinct linked papers');
 expect(!app.includes("'Papers tracked'"), 'homepage still exposes the paper-candidate count');
 expect(
   app.includes('Qualified - paper evidence linked'),
@@ -74,6 +74,13 @@ expect(
   'datasets route does not parse a deep-link query'
 );
 expect(app.includes('Exact usage evidence'), 'paper evidence rendering is missing');
+expect(app.includes('paper-evidence'), 'polished paper evidence cards are missing');
+expect(app.includes('scoresLeaderboard'), 'dataset scores leaderboard is missing');
+expect(app.includes('lb-baseline'), 'baseline reference row is missing from the leaderboard');
+expect(app.includes('data-schema-filter'), 'schema field filter is missing');
+expect(app.includes('data-action="schema-show-all"'), 'schema expander is missing');
+expect(app.includes('Where this data comes from'), 'plain-language source section is missing');
+expect(!app.includes('File inventory'), 'file inventory section must stay removed');
 expect(app.includes('static trainable ML'), 'ML-only scope is not communicated');
 expect(app.includes('normalizeReview'), 'dataset review provenance normalization is missing');
 expect(app.includes('AI reviewed · audit pending'), 'AI review audit-pending status is missing');
@@ -174,7 +181,7 @@ const directCopy = [
   "navLink('methodology', 'Methodology')",
   '<h1 class="tml-page-title">Coverage</h1>',
   'No prepared release',
-  "x.reproductions.length === 1 ? ' report' : ' reports'",
+  'scoresCount === 1 ? \' score\' : \' scores\'',
   'esc(executionSummary)'
 ];
 for (const marker of directCopy) {

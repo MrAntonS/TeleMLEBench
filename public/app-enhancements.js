@@ -358,7 +358,7 @@
   async function addReleasePanel() {
     if (!/^#\/dataset\//.test(location.hash)) return;
     var heading = Array.from(document.querySelectorAll('h2')).find(function (node) {
-      return node.textContent.trim() === 'Tasks and immutable releases';
+      return node.textContent.trim() === 'Get the data';
     });
     var anchor = heading && heading.closest('section');
     if (!anchor || document.querySelector('.tml-release-download-panel')) return;
