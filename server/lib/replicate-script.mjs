@@ -50,6 +50,9 @@ export function buildReplicateScript({ baseline, release, apiBase }) {
   const byRole = {};
   for (const file of files) {
     if (file && typeof file === 'object' && file.role && file.download_endpoint && file.sha256) {
+      // Only the three splits replication needs; auxiliary manifest files
+      // (split assignments and the like) are not downloadable this way.
+      if (!['train', 'validation', 'test_features'].includes(file.role)) continue;
       byRole[file.role] = {
         path: String(file.download_endpoint),
         sha256: String(file.sha256),
