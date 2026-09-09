@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  assertTrainingBlock,
   buildPublicBaseline,
   parsePublicBaseline,
   publicBaselinePath,
@@ -66,5 +67,37 @@ test('seeded UJI baseline matches the completed private evaluation', () => {
   assert.ok(baseline);
   assert.equal(baseline.metric_value, 1333 / 3147);
   assert.equal(baseline.model_name, 'logistic_regression');
+  assert.ok(parsePublicBaseline(baseline));
+});
+
+test('training provenance is optional, whitelisted, and strictly validated', () => {
+  const training = {
+    params: { C: 1.0, class_weight: 'balanced', max_iter: 2000, random_state: 42, solver: 'lbfgs' },
+    target_column: 'FLOOR',
+    selected_feature_count: 416,
+    n_train: 14741,
+    n_validation: 3160,
+    validation_metrics: { accuracy: 0.6933544303797469, macro_f1: 0.4860473549552755 },
+  };
+  const baseline = buildPublicBaseline({
+    descriptor,
+    evaluationId: 'evaluation-1',
+    result,
+    model: { name: 'logistic_regression', recipeVersion: 'telemlebench-auto-baseline/2', seed: 42, training },
+    publishedAt: result.completed_at,
+  });
+  assert.deepEqual(baseline.training, training);
+  assert.ok(parsePublicBaseline(baseline));
+  assert.equal(parsePublicBaseline({ ...baseline, training: { params: {} } }), null);
+  assert.throws(() => assertTrainingBlock({}), /training\.params is required/);
+  assert.throws(() => assertTrainingBlock({ params: { ok: 1, evil: { nested: true } } }), /must be a string, number, boolean, or null/);
+  assert.throws(() => assertTrainingBlock({ params: { ok: 1 }, n_train: -5 }), /positive integer/);
+});
+
+test('seeded UJI baseline carries the replication training facts', () => {
+  const baseline = seededPublicBaseline(descriptor);
+  assert.equal(baseline.training.target_column, 'FLOOR');
+  assert.equal(baseline.training.params.solver, 'lbfgs');
+  assert.equal(baseline.training.selected_feature_count, 416);
   assert.ok(parsePublicBaseline(baseline));
 });

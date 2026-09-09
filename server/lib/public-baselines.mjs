@@ -59,6 +59,88 @@ export function publicBaselinePath(releaseId) {
   return `${PUBLIC_BASELINE_PREFIX}${value}.json`;
 }
 
+function scalarParam(value, label) {
+  if (value === null) return null;
+  if (typeof value === 'string') {
+    if (value.length > 256) throw new Error(`${label} is too long`);
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new Error(`${label} must be finite`);
+    return value;
+  }
+  if (typeof value === 'boolean') return value;
+  throw new Error(`${label} must be a string, number, boolean, or null`);
+}
+
+// Optional, strictly-validated training provenance so the replication guide
+// can show the exact hyperparameters behind a published baseline. Only
+// whitelisted scalar fields survive; anything else rejects the publication.
+export function assertTrainingBlock(value) {
+  if (value == null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('training must be an object');
+  }
+  const params = value.params;
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    throw new Error('training.params is required');
+  }
+  const paramEntries = Object.entries(params);
+  if (!paramEntries.length || paramEntries.length > 64) {
+    throw new Error('training.params must hold 1-64 entries');
+  }
+  const cleanParams = {};
+  for (const [key, entry] of paramEntries) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(key)) {
+      throw new Error('training.params has an invalid key');
+    }
+    cleanParams[key] = scalarParam(entry, `training.params.${key}`);
+  }
+  const clean = { params: cleanParams };
+  if (value.target_column !== undefined) {
+    clean.target_column = requiredString(value.target_column, 'training.target_column');
+  }
+  for (const field of ['selected_feature_count', 'n_train', 'n_validation']) {
+    if (value[field] !== undefined) {
+      const count = Number(value[field]);
+      if (!Number.isSafeInteger(count) || count <= 0) {
+        throw new Error(`training.${field} must be a positive integer`);
+      }
+      clean[field] = count;
+    }
+  }
+  if (value.selected_features !== undefined) {
+    if (!Array.isArray(value.selected_features) || value.selected_features.length > 5000) {
+      throw new Error('training.selected_features must be a list of at most 5000 names');
+    }
+    clean.selected_features = value.selected_features.map((name) => {
+      const label = requiredString(name, 'training.selected_features entry');
+      if (!/^[A-Za-z0-9_.\-]{1,128}$/.test(label)) {
+        throw new Error('training.selected_features has an invalid entry');
+      }
+      return label;
+    });
+  }
+  if (value.validation_metrics !== undefined) {
+    const metrics = value.validation_metrics;
+    if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) {
+      throw new Error('training.validation_metrics must be an object');
+    }
+    const entries = Object.entries(metrics);
+    if (!entries.length || entries.length > 16) {
+      throw new Error('training.validation_metrics must hold 1-16 entries');
+    }
+    clean.validation_metrics = {};
+    for (const [key, entry] of entries) {
+      if (!/^[a-z0-9_]{1,64}$/.test(key) || typeof entry !== 'number' || !Number.isFinite(entry)) {
+        throw new Error('training.validation_metrics must map names to numbers');
+      }
+      clean.validation_metrics[key] = entry;
+    }
+  }
+  return clean;
+}
+
 export function buildPublicBaseline({
   descriptor,
   evaluationId,
@@ -82,6 +164,7 @@ export function buildPublicBaseline({
   if (Number.isNaN(Date.parse(completedAt)) || Number.isNaN(Date.parse(publicationTime))) {
     throw new Error('baseline timestamps are invalid');
   }
+  const training = assertTrainingBlock(model?.training);
 
   const core = {
     schema_version: PUBLIC_BASELINE_SCHEMA,
@@ -109,6 +192,7 @@ export function buildPublicBaseline({
     source_evaluation_id: requiredString(evaluationId, 'evaluation_id'),
     evaluated_at: completedAt,
     published_at: publicationTime,
+    ...(training ? { training } : {}),
     publication: {
       public: true,
       note: 'Trusted server score over operator-submitted test predictions; training execution is not attested.',
@@ -120,6 +204,13 @@ export function buildPublicBaseline({
 export function parsePublicBaseline(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const { record_sha256: recordHash, ...core } = value;
+  if (value.training !== undefined) {
+    try {
+      assertTrainingBlock(value.training);
+    } catch {
+      return null;
+    }
+  }
   if (value.schema_version !== PUBLIC_BASELINE_SCHEMA ||
       value.publication?.public !== true ||
       value.server_verified !== true ||
@@ -146,6 +237,23 @@ const SEEDED_RESULTS = new Map([
       name: 'logistic_regression',
       recipeVersion: 'telemlebench-auto-baseline/2',
       seed: 42,
+      training: {
+        params: {
+          C: 1.0,
+          class_weight: 'balanced',
+          max_iter: 2000,
+          random_state: 42,
+          solver: 'lbfgs',
+        },
+        target_column: 'FLOOR',
+        selected_feature_count: 416,
+        n_train: 14741,
+        n_validation: 3160,
+        validation_metrics: {
+          accuracy: 0.6933544303797469,
+          macro_f1: 0.4860473549552755,
+        },
+      },
     },
     result: {
       status: 'completed',

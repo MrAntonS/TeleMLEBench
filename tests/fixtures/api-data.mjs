@@ -135,6 +135,7 @@ export const dataset = {
       publication_year: 2025,
       access_status: 'open',
       url: 'https://arxiv.org/abs/2501.00001',
+      arxiv_id: '2501.00001',
       evidence: {
         section: 'IV-A Dataset',
         page: 5,
@@ -422,6 +423,14 @@ export const publicBaseline = {
   verification_kind: 'server_scored_predictions',
   prediction_conformance_passed: true,
   training_execution_attested: false,
+  training: {
+    params: { C: 1.0, max_iter: 2000, random_state: 42, solver: 'lbfgs' },
+    target_column: 'handover_success',
+    selected_feature_count: 1,
+    n_train: 70,
+    n_validation: 15,
+    validation_metrics: { accuracy: 0.91 },
+  },
   predictions_sha256: 'a'.repeat(64),
   hidden_labels_sha256: 'b'.repeat(64),
   scorer_version: 'telemlebench-vercel-accuracy/1',

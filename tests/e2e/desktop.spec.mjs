@@ -271,12 +271,15 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   )).toBeVisible();
   await expect(page.getByText('Human audit', { exact: true })).toBeVisible();
   await expect(page.getByText('Pending', { exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: paperTitle })).toHaveCount(2);
+  await expect(page.locator('.lb-table h3, .lb-table td').getByRole('link', { name: paperTitle })).toHaveCount(1);
+  await expect(page.locator('aside .paper-cards h3').getByRole('link', { name: paperTitle })).toHaveCount(1);
   await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle })).toHaveAttribute(
     'href',
     '#/reproduction/experiment-1'
   );
-  await expect(page.locator('.paper-cards').getByRole('link', { name: paperTitle })).toHaveAttribute('href', '#/paper/paper-1');
+  await expect(page.locator('aside .paper-cards h3').getByRole('link', { name: paperTitle })).toHaveAttribute('href', '#/paper/paper-1');
+  await expect(page.locator('aside .pdf-btn').first()).toHaveAttribute('href', 'https://arxiv.org/pdf/2501.00001');
+  await expect(page.getByRole('heading', { name: 'Linked papers' })).toBeVisible();
   await expect(page.getByText('Python loading example')).toBeVisible();
   assertNoClientErrors();
 });
@@ -509,6 +512,26 @@ test('catalog-only dataset marks no prepared release and shows the no-release em
   await expect(releasePanel).toBeVisible();
   await expect(releasePanel).not.toContainText('70 / 15 / 15');
   await expect(releasePanel.getByRole('heading', { name: 'No immutable task release' })).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('baseline row links to a replication guide with exact training steps', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
+
+  const baselineLink = page.locator('.lb-baseline a').first();
+  await expect(baselineLink).toHaveAttribute('href', '#/baseline/release-radio-kpi-v1');
+  await baselineLink.click();
+  await expect(page).toHaveURL(/#\/baseline\/release-radio-kpi-v1$/);
+
+  await expect(page.getByRole('heading', { level: 1, name: 'logistic_regression' })).toBeVisible();
+  await expect(page.getByText('Baseline replication guide', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Download the prepared split/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Train this exact model/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Predict and score/ })).toBeVisible();
+  await expect(page.getByText('solver', { exact: true })).toBeVisible();
+  await expect(page.locator('aside').getByText('0.900000', { exact: true })).toBeVisible();
+  await expect(page.locator('.tml-release-file a').first()).toBeVisible();
   assertNoClientErrors();
 });
 

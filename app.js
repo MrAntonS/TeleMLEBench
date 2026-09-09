@@ -17,6 +17,7 @@
     paperDetail: null,
     reproductions: [],
     reproductionDetail: null,
+    baselineGuide: null,
     coverage: null,
     loading: false,
     error: '',
@@ -101,7 +102,7 @@
 
   function routeNeedsBackend(name) {
     return [
-      'home', 'datasets', 'dataset', 'papers', 'paper',
+      'home', 'datasets', 'dataset', 'baseline', 'papers', 'paper',
       'reproductions', 'reproduction', 'coverage'
     ].indexOf(name) >= 0;
   }
@@ -803,6 +804,11 @@
   }
 
   function normalizePaper(item) {
+    var arxivId = text(item.arxiv_id, '');
+    var directUrl = safeUrl(item.url || item.pdf_url);
+    var pdfUrl = '';
+    if (arxivId) pdfUrl = 'https://arxiv.org/pdf/' + encodeURIComponent(arxivId);
+    else if (/\.pdf(\?|#|$)/i.test(directUrl)) pdfUrl = directUrl;
     return {
       id: text(item.paper_id || item.arxiv_id || item.doi || item.id, ''),
       title: text(item.title, 'Untitled paper'),
@@ -811,7 +817,8 @@
       venue: text(item.venue, 'Venue not indexed'),
       abstract: text(item.abstract, ''),
       publicationDate: item.publication_date || '',
-      url: safeUrl(item.url || item.pdf_url || (item.arxiv_id ? 'https://arxiv.org/abs/' + item.arxiv_id : '')),
+      url: directUrl || (arxivId ? 'https://arxiv.org/abs/' + encodeURIComponent(arxivId) : ''),
+      pdfUrl: pdfUrl,
       evidence: evidenceText(item.evidence || item.usage_evidence),
       dataset: text(item.dataset_name || item.dataset || '', ''),
       status: text(item.access_status || (item.pdf_url ? 'open' : 'unknown'), 'unknown')
@@ -880,6 +887,7 @@
         (item.recipe_version ? ' · ' + text(item.recipe_version, '') : '') +
         (item.seed != null ? ' · seed ' + text(item.seed, '') : ''),
       verified: true,
+      training: item.training && typeof item.training === 'object' ? item.training : null,
       predictions: text(item.predictions_sha256, ''),
       labels: text(item.hidden_labels_sha256, ''),
       record: text(item.record_sha256, ''),
@@ -1228,6 +1236,55 @@
       state.reproductionDetail = payload;
     }).catch(function (err) {
       state.error = err.message || 'Reproduction report could not be loaded.';
+    }).finally(function () {
+      state.loading = false;
+      render();
+    });
+  }
+
+  function evalApiUrl(path) {
+    var value = String(path || '');
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base) return '';
+    if (value.indexOf('/api/v1') === 0) value = value.slice('/api/v1'.length);
+    if (value.charAt(0) !== '/') value = '/' + value;
+    return base + value;
+  }
+
+  function loadBaselineGuide(releaseId) {
+    state.loading = true;
+    state.error = '';
+    state.baselineGuide = null;
+    render();
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base) {
+      state.loading = false;
+      state.error = 'The evaluation service is not configured for this deployment.';
+      render();
+      return;
+    }
+    Promise.all([
+      fetch(base + '/baselines?release_id=' + encodeURIComponent(releaseId), {
+        cache: 'no-store', headers: { Accept: 'application/json' }
+      }).then(function (res) {
+        if (!res.ok) throw new Error('Baseline request failed (' + res.status + ')');
+        return res.json();
+      }).then(function (payload) {
+        return list(payload && payload.items !== undefined ? payload.items : payload)
+          .map(normalizePublicBaseline).filter(Boolean)[0] || null;
+      }),
+      fetch(base + '/releases?release_id=' + encodeURIComponent(releaseId), {
+        cache: 'no-store', headers: { Accept: 'application/json' }
+      }).then(function (res) {
+        if (!res.ok) throw new Error('Release request failed (' + res.status + ')');
+        return res.json();
+      }).then(function (payload) {
+        return list(payload)[0] || null;
+      })
+    ]).then(function (values) {
+      state.baselineGuide = values[0] ? { baseline: values[0], release: values[1] } : null;
+    }).catch(function (err) {
+      state.error = err.message || 'The replication guide could not be loaded.';
     }).finally(function () {
       state.loading = false;
       render();
@@ -1957,7 +2014,7 @@
         score: Number(b.value),
         note: b.release + (b.config ? ' · ' + b.config : ''),
         hash: b.bundle || b.predictions,
-        link: ''
+        link: '#/baseline/' + encodeURIComponent(b.release)
       });
     });
     (Array.isArray(detail.reproductions) ? detail.reproductions : []).forEach(function (r) {
@@ -2028,11 +2085,34 @@
 
   var DETAIL_PAPERS_PAGE = 5;
 
-  function paperRowsPaged(papers, visible) {
+  function paperMini(p) {
+    var detailUrl = p.id ? '#/paper/' + encodeURIComponent(p.id) : '';
+    var venue = text(p.venue, '');
+    return '<article class="paper-card mini">' +
+      '<div class="paper-card-meta">' +
+        (venue && venue !== 'Venue not indexed' ? '<span class="paper-venue">' + esc(venue) + '</span>' : '<span></span>') +
+        '<span class="paper-year">' + esc(p.year) + '</span>' +
+      '</div>' +
+      '<h3>' +
+        (detailUrl ? '<a href="' + detailUrl + '">' + esc(p.title) + '</a>' :
+          p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) +
+      '</h3>' +
+      '<p class="paper-authors">' + esc(p.authors) + '</p>' +
+      (p.evidence ? '<blockquote class="paper-evidence mini">' + esc(p.evidence) + '</blockquote>' : '') +
+      '<div class="paper-mini-actions">' +
+        (p.pdfUrl
+          ? '<a class="pdf-btn" href="' + esc(p.pdfUrl) + '" target="_blank" rel="noopener" download aria-label="Download PDF of ' + esc(p.title) + '">PDF</a>'
+          : '<span class="row-meta">No open PDF</span>') +
+        (detailUrl ? '<a class="mini-link" href="' + detailUrl + '">Details →</a>' : '') +
+      '</div>' +
+    '</article>';
+  }
+
+  function paperMiniPaged(papers, visible) {
     if (!papers.length) return '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Machine-linked relationships require an inspectable evidence passage and remain open to correction.</p></div>';
     var count = Math.max(DETAIL_PAPERS_PAGE, Number(visible) || DETAIL_PAPERS_PAGE);
     var shown = papers.slice(0, count);
-    var html = '<div class="paper-cards">' + paperCards(shown) + '</div>';
+    var html = '<div class="paper-cards minis">' + shown.map(paperMini).join('') + '</div>';
     var remaining = papers.length - shown.length;
     html += '<div class="row-meta" role="status">Showing ' + esc(number(shown.length)) +
       ' of ' + esc(number(papers.length)) + ' linked papers</div>';
@@ -2104,7 +2184,6 @@
         taskAndDataSection(x) +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '</div>' + scoresLeaderboard(x) + '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Papers using this dataset</h2><span class="id">Machine checked</span></div>' + paperRowsPaged(x.papers, state.detailPapersVisible) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Where this data comes from</h2><span class="id">' + esc(number(d.sourceCount || x.sources.length)) + ' records</span></div>' +
           '<dl class="kv" style="margin-bottom:16px">' +
             '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
@@ -2113,7 +2192,139 @@
           '</dl>' +
           '<div class="source-list">' + sourceRows(x) + '</div></section>' +
       '</div><aside>' +
+        '<section class="card panel"><div class="panel-head"><h3>Linked papers</h3><span class="id">' +
+          esc(number(x.papers.length)) + ' · machine checked</span></div>' +
+          paperMiniPaged(x.papers, state.detailPapersVisible) + '</section>' +
         '<section class="card panel"><h3>Record facts</h3><dl class="kv">' + facts + '</dl></section>' +
+      '</aside></div></div></section></main>';
+  }
+
+  function pyValue(value) {
+    if (value === null) return 'None';
+    if (typeof value === 'string') return JSON.stringify(value);
+    if (typeof value === 'boolean') return value ? 'True' : 'False';
+    return String(value);
+  }
+
+  function baselinePage() {
+    if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading the replication guide…') + '</div></main>';
+    if (state.error || !state.baselineGuide) {
+      return '<main id="main" class="page"><div class="container">' +
+        (state.error ? errorBox() : '<div class="empty"><h3>No published baseline for this release</h3><p class="muted">The guide appears after the baseline is published.</p></div>') +
+        '</div></main>';
+    }
+    var guide = state.baselineGuide;
+    var b = guide.baseline;
+    var release = guide.release || {};
+    var files = Array.isArray(release.files) ? release.files : [];
+    var training = b.training || {};
+    var params = training.params || {};
+    var paramNames = Object.keys(params);
+    var metrics = training.validation_metrics || {};
+    var metricNames = Object.keys(metrics);
+    var features = Array.isArray(training.selected_features) ? training.selected_features : [];
+    var target = training.target_column || '';
+    var testRows = b.sampleCount;
+    var fileCard = function (role) {
+      var file = files.filter(function (f) { return f.role === role; })[0];
+      if (!file) return '';
+      var href = evalApiUrl(file.download_endpoint);
+      return '<div class="tml-release-file"><strong>' +
+        esc(role === 'train' ? 'Train split' : role === 'validation' ? 'Validation split' : 'Test CSV / features') +
+        '</strong><code>' + esc(bytes(file.byte_size)) + ' · sha256 ' + esc(String(file.sha256 || '').slice(0, 12)) + '…</code>' +
+        (href ? '<a href="' + esc(href) + '">Download ' + esc(role === 'test_features' ? 'test' : role) + '</a>' : '') + '</div>';
+    };
+    var importLine = b.model === 'logistic_regression'
+      ? 'from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression'
+      : '# estimator for ' + b.model + ' (recipe ' + b.recipe + ')\nmodel = fit_model';
+    var featuresLine;
+    if (features.length > 24) {
+      featuresLine = 'FEATURES = [\n' +
+        features.slice(0, 8).map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') +
+        '\n    # ... ' + (features.length - 8) + ' more — full list below, or fetch them:\n]\n' +
+        'import json, urllib.request\n' +
+        'record = json.load(urllib.request.urlopen(\n' +
+        '    "https://telemlebench.vercel.app/api/v1/baselines?release_id=' + b.release + '"))\n' +
+        'FEATURES = record["items"][0]["training"]["selected_features"]';
+    } else if (features.length) {
+      featuresLine = 'FEATURES = [\n' +
+        features.map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') + '\n]';
+    } else {
+      featuresLine = 'FEATURES = [c for c in train.columns if c not in ("sample_id", TARGET)]';
+    }
+    var snippet = 'import pandas as pd\n' + importLine + '(\n' +
+      paramNames.map(function (name) {
+        return '    ' + name + '=' + pyValue(params[name]) + ',';
+      }).join('\n') + '\n)\n\n' +
+      'train = pd.read_csv("train.csv")\n' +
+      'valid = pd.read_csv("validation.csv")\n' +
+      'test = pd.read_csv("test_features.csv")  # no labels\n\n' +
+      (target ? 'TARGET = ' + JSON.stringify(target) + '\n' : '') +
+      featuresLine + '\n' +
+      'model.fit(train[FEATURES], train[TARGET])\n' +
+      (metricNames.length
+        ? 'print("validation ' + metricNames[0] + ':", model.score(valid[FEATURES], valid[TARGET]))\n# expected: ' + metrics[metricNames[0]] + '\n'
+        : '') +
+      '\n' +
+      'pred = model.predict(test[FEATURES])\n' +
+      'pd.DataFrame({"sample_id": test["sample_id"], "prediction": pred}).to_csv(\n' +
+      '    "test_predictions.csv", index=False)  # exactly sample_id,prediction in test order\n' +
+      '# upload test_predictions.csv on the dataset page; expected hidden-test\n' +
+      '# ' + b.metric + ': ' + b.value.toFixed(6) + ' (' + number(b.correct) + '/' + number(testRows) + ')';
+    return '<main id="main">' +
+      '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span>' +
+        (b.datasetSlug ? '<a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">' + esc(b.datasetSlug) + '</a><span>/</span>' : '') +
+        '<span>' + esc(b.release) + '</span></div>' +
+        '<div class="detail-title"><div><div class="eyebrow">Baseline replication guide</div>' +
+        '<h1>' + esc(b.model) + '</h1><p>Reproduce the reference score of <strong class="mono">' +
+        esc(b.value.toFixed(6)) + '</strong> ' + esc(b.metric) + ' on the hidden test split of ' +
+        esc(b.release) + '. <span class="lb-tag">Baseline</span></p></div></div></div></section>' +
+      '<section class="page"><div class="container"><div class="detail-body"><div>' +
+        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">1</span>Download the prepared split</h2></div>' +
+          '<div class="tml-release-files">' + fileCard('train') + fileCard('validation') + fileCard('test_features') + '</div>' +
+          '<p class="muted" style="margin-top:12px;font-size:12px;line-height:1.6">Files are immutable. Verify the SHA-256 checksums against the ' +
+          (evalApiUrl(release.manifest_endpoint)
+            ? '<a href="' + esc(evalApiUrl(release.manifest_endpoint)) + '" target="_blank" rel="noopener">release manifest ↗</a>.'
+            : 'release manifest.') + '</p></section>' +
+        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">2</span>Train this exact model</h2></div>' +
+          '<div class="schema-facts">' +
+            '<span class="tag">' + esc(b.model) + '</span>' +
+            (b.recipe ? '<span class="tag">' + esc(b.recipe) + '</span>' : '') +
+            (b.seed != null ? '<span class="tag">seed ' + esc(b.seed) + '</span>' : '') +
+            (training.n_train ? '<span class="tag">' + esc(number(training.n_train)) + ' train rows</span>' : '') +
+            (training.selected_feature_count ? '<span class="tag">' + esc(number(training.selected_feature_count)) + ' selected features</span>' : '') +
+          '</div>' +
+          (paramNames.length
+            ? '<dl class="kv" style="margin-top:14px">' +
+              paramNames.map(function (name) {
+                return '<dt class="mono">' + esc(name) + '</dt><dd class="mono">' + esc(String(params[name])) + '</dd>';
+              }).join('') + '</dl>'
+            : '<p class="muted">Hyperparameters are not recorded for this baseline.</p>') +
+          '<div class="loading-example"><div class="row-meta">Replicate</div><pre><code>' + esc(snippet) + '</code></pre></div>' +
+          (features.length
+            ? '<details class="guide-details"><summary>Full selected-feature list (' + esc(number(features.length)) + ')</summary>' +
+              '<p class="mono" style="font-size:11px;line-height:1.7;overflow-wrap:anywhere">' + esc(features.join(', ')) + '</p></details>'
+            : '') +
+        '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">3</span>Predict and score</h2></div>' +
+          '<p class="definition">Write <span class="mono">test_predictions.csv</span> with exactly ' +
+          '<span class="mono">sample_id,prediction</span> in test-file order (' + esc(number(testRows)) + ' rows). ' +
+          'Test labels stay hidden; the upload is deleted after scoring.</p>' +
+          '<p class="muted" style="font-size:12px;line-height:1.6">A faithful replication lands on <strong class="mono">' +
+          esc(b.value.toFixed(6)) + '</strong> and the predictions hash <span class="mono">' +
+          esc(b.predictions) + '</span> (record <span class="mono">' + esc(b.record.slice(0, 16)) + '…</span>). ' +
+          (b.datasetSlug ? 'Score it from the <a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">dataset page evaluator</a>.' : '') + '</p>' +
+        '</section>' +
+      '</div><aside>' +
+        '<section class="card panel"><h3>Baseline record</h3><dl class="kv">' +
+          '<dt>Release</dt><dd class="mono">' + esc(b.release) + '</dd>' +
+          '<dt>Metric</dt><dd>' + esc(b.metric) + '</dd>' +
+          '<dt>Score</dt><dd class="mono">' + esc(b.value.toFixed(6)) + '</dd>' +
+          '<dt>Correct</dt><dd class="mono">' + esc(number(b.correct)) + ' / ' + esc(number(testRows)) + '</dd>' +
+          '<dt>Model</dt><dd>' + esc(b.model) + '</dd>' +
+          (metricNames.length ? '<dt>Validation</dt><dd class="mono">' + esc(metricNames.map(function (k) { return k + ' ' + metrics[k]; }).join(' · ')) + '</dd>' : '') +
+          '<dt>Verified</dt><dd>Server scored</dd>' +
+        '</dl></section>' +
       '</aside></div></div></section></main>';
   }
 
@@ -2323,6 +2534,7 @@
   function currentPage() {
     if (state.route.name === 'datasets') return datasetsPage();
     if (state.route.name === 'dataset') return detailPage();
+    if (state.route.name === 'baseline') return baselinePage();
     if (state.route.name === 'papers') return papersPage();
     if (state.route.name === 'paper') return paperDetailPage();
     if (state.route.name === 'reproductions') return reproductionsPage();
@@ -2346,6 +2558,7 @@
       paper:state.paperDetail ? state.paperDetail.title : 'Paper',
       reproductions:'Reproductions',
       reproduction:'Reproduction report',
+      baseline:'Baseline replication guide',
       methodology:'Methodology',
       coverage:'Coverage',
       contribute:'Contribute'
@@ -2365,6 +2578,7 @@
     if (parts[0] === 'dataset' && parts[1]) return { name:'dataset', slug:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'paper' && parts[1]) return { name:'paper', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'reproduction' && parts[1]) return { name:'reproduction', id:decodeURIComponent(parts.slice(1).join('/')) };
+    if (parts[0] === 'baseline' && parts[1]) return { name:'baseline', releaseId:decodeURIComponent(parts.slice(1).join('/')) };
     var name = allowed.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
     if (name === 'datasets' && params.has('query')) {
       return { name:'datasets', query: params.get('query') || '' };
@@ -2393,6 +2607,7 @@
     }
     if (state.route.name === 'home' || state.route.name === 'datasets') loadCore();
     else if (state.route.name === 'dataset') loadDetail(state.route.slug);
+    else if (state.route.name === 'baseline') loadBaselineGuide(state.route.releaseId);
     else if (state.route.name === 'papers') loadPapers();
     else if (state.route.name === 'paper') loadPaperDetail(state.route.id);
     else if (state.route.name === 'reproductions') loadReproductions();

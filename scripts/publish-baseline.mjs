@@ -15,6 +15,9 @@
 //   --model <name>       trained model id (default: logistic_regression)
 //   --recipe <version>   training recipe version (default: telemlebench-auto-baseline/2)
 //   --seed <n>           training seed, must be 42 (default: 42)
+//   --facts <path>       baseline_facts.json whose whitelisted training fields
+//                      (params, target, counts, validation metrics) are published
+//                      alongside the score for the replication guide
 //   --api-base <url>     baselines API base
 //                      (default: https://telemlebench.vercel.app/api/v1)
 //   --key <key>        operator API key (default: $TMLB_EVALUATION_API_KEY)
@@ -32,6 +35,7 @@ function parseArgs(argv) {
     model: 'logistic_regression',
     recipe: 'telemlebench-auto-baseline/2',
     seed: 42,
+    facts: '',
     apiBase: DEFAULT_API_BASE,
     key: process.env.TMLB_EVALUATION_API_KEY || '',
     help: false,
@@ -43,6 +47,7 @@ function parseArgs(argv) {
     else if (flag === '--model' && next) args.model = next, i += 1;
     else if (flag === '--recipe' && next) args.recipe = next, i += 1;
     else if (flag === '--seed' && next) args.seed = Number(next), i += 1;
+    else if (flag === '--facts' && next) args.facts = next, i += 1;
     else if (flag === '--api-base' && next) args.apiBase = next.replace(/\/+$/, ''), i += 1;
     else if (flag === '--key' && next) args.key = next, i += 1;
     else if (flag === '--help' || flag === '-h') args.help = true;
@@ -66,6 +71,28 @@ async function keyFromFile() {
   return '';
 }
 
+// Extract only the whitelisted, server-validated training fields from a
+// baseline_facts.json file. Anything unexpected fails server-side.
+async function trainingFromFacts(path) {
+  const facts = JSON.parse(await readFile(path, 'utf8'));
+  const training = {};
+  if (facts.selected_params && typeof facts.selected_params === 'object') {
+    training.params = facts.selected_params;
+  }
+  if (facts.target_column) training.target_column = facts.target_column;
+  if (Array.isArray(facts.selected_features)) {
+    training.selected_feature_count = facts.selected_features.length;
+    training.selected_features = facts.selected_features;
+  }
+  if (facts.n_train) training.n_train = facts.n_train;
+  if (facts.n_validation) training.n_validation = facts.n_validation;
+  if (facts.validation_metrics && typeof facts.validation_metrics === 'object') {
+    training.validation_metrics = facts.validation_metrics;
+  }
+  if (!training.params) throw new Error(`${path} has no selected_params to publish`);
+  return training;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || !args.evaluationId) {
@@ -83,6 +110,10 @@ async function main() {
   if (/^[0-9a-fA-F]{64}$/.test(key)) {
     throw new Error('a SHA-256 digest was supplied; the plaintext operator key is required');
   }
+  let training;
+  if (args.facts) {
+    training = await trainingFromFacts(args.facts);
+  }
   const response = await fetch(`${args.apiBase}/baselines`, {
     method: 'POST',
     headers: {
@@ -92,7 +123,7 @@ async function main() {
     },
     body: JSON.stringify({
       evaluation_id: args.evaluationId,
-      model: { name: args.model, recipe_version: args.recipe, seed: args.seed },
+      model: { name: args.model, recipe_version: args.recipe, seed: args.seed, ...(training ? { training } : {}) },
     }),
   });
   const text = await response.text();

@@ -1166,6 +1166,42 @@
     color:#b8c3c6;font-size:12px;line-height:1.6;font-style:italic;
   }
 
+  /* Rail mini paper cards with an arXiv PDF button */
+  .paper-cards.minis{gap:9px;}
+  .paper-card.mini{padding:13px 14px;}
+  .paper-card.mini h3{font-size:13px;margin:8px 0 5px;}
+  .paper-card.mini .paper-authors{
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+    overflow:hidden;margin-bottom:10px;font-size:11px;
+  }
+  .paper-mini-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .paper-evidence.mini{
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+    overflow:hidden;margin:0 0 10px;padding:9px 11px;font-size:11px;
+  }
+  .pdf-btn{
+    display:inline-block;padding:4px 10px 4px 22px;position:relative;
+    border:1px solid #7f1d1d;border-radius:2px;background:#450a0a;color:#fecaca;
+    font:600 9px var(--mono);letter-spacing:.08em;text-decoration:none;text-transform:uppercase;
+  }
+  .pdf-btn:before{
+    content:"";position:absolute;left:8px;top:50%;width:8px;height:10px;
+    transform:translateY(-50%);border:1px solid #fca5a5;border-top-width:3px;border-radius:1px;
+  }
+  .pdf-btn:hover{background:#7f1d1d;color:#fff;border-color:#ef4444;}
+  .mini-link{color:var(--accent);font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;}
+  .mini-link:hover{text-decoration:underline;}
+
+  /* Baseline replication guide */
+  .panel-head h2 .step-n{
+    display:inline-grid;place-items:center;width:24px;height:24px;margin-right:10px;
+    border-radius:2px;background:rgba(156,240,255,.1);color:var(--accent);
+    font:600 11px var(--mono);vertical-align:2px;
+  }
+  .guide-details{margin-top:14px;padding:12px 14px;border:1px solid rgba(144,144,150,.25);border-radius:2px;background:#14191b;}
+  .guide-details summary{cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;}
+  .guide-details p{margin:10px 0 0;}
+
   .prose{max-width:920px;}
   .prose p,.prose li{color:#a5acb1;}
   .steps{gap:8px;}

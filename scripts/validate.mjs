@@ -80,6 +80,8 @@ expect(app.includes('lb-baseline'), 'baseline reference row is missing from the 
 expect(app.includes('data-schema-filter'), 'schema field filter is missing');
 expect(app.includes('data-action="schema-show-all"'), 'schema expander is missing');
 expect(app.includes('Where this data comes from'), 'plain-language source section is missing');
+expect(app.includes('Replicate this baseline') || app.includes('Baseline replication guide'), 'baseline replication guide is missing');
+expect(app.includes('#/baseline/'), 'baseline guide links are missing');
 expect(!app.includes('File inventory'), 'file inventory section must stay removed');
 expect(app.includes('static trainable ML'), 'ML-only scope is not communicated');
 expect(app.includes('normalizeReview'), 'dataset review provenance normalization is missing');

@@ -19,6 +19,7 @@ type PublicationRequest = {
     name?: unknown;
     recipe_version?: unknown;
     seed?: unknown;
+    training?: unknown;
   };
 };
 
@@ -50,6 +51,7 @@ export default defineEventHandler(async (event) => {
         name: body?.model?.name,
         recipeVersion: body?.model?.recipe_version,
         seed: body?.model?.seed,
+        training: body?.model?.training,
       },
       publishedAt: result.completed_at,
     });

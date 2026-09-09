@@ -161,7 +161,7 @@ export const openApiDocument = {
         required: ["evaluation_id", "model"],
         properties: {
           evaluation_id: { type: "string" },
-          model: { type: "object", required: ["name", "recipe_version", "seed"], properties: { name: { type: "string" }, recipe_version: { type: "string" }, seed: { type: "integer" } } },
+          model: { type: "object", required: ["name", "recipe_version", "seed"], properties: { name: { type: "string" }, recipe_version: { type: "string" }, seed: { type: "integer" }, training: { type: "object", description: "Optional strictly-validated training provenance (params, target, counts, validation metrics) shown on the replication guide." } } },
         },
       },
       BaselinePublished: {
