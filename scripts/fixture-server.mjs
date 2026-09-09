@@ -46,7 +46,7 @@ function matchApi(pathname) {
   };
 }
 
-function populatedResponse(apiPath) {
+function populatedResponse(apiPath, url) {
   if (apiPath === '/datasets') {
     return { items: [unreleasedDataset, dataset], total: 2, next_cursor: null };
   }
@@ -62,7 +62,14 @@ function populatedResponse(apiPath) {
   if (apiPath === '/papers') return { items: [paper], total: 1 };
   if (apiPath === `/papers/${paper.paper_id}`) return paper;
   if (apiPath === '/reproductions') {
-    return { items: [reproductionSummary], total: 1 };
+    var requested = url ? url.searchParams.get('dataset') : null;
+    var items = [reproductionSummary];
+    if (requested) {
+      items = items.filter(function (row) {
+        return row.dataset_slug === requested;
+      });
+    }
+    return { items: items, total: items.length };
   }
   if (apiPath === `/reproductions/${reproduction.id}`) return reproduction;
   if (apiPath === '/catalog/coverage') return coverage;
@@ -130,7 +137,7 @@ function serveApi(request, response, url, api) {
   const apiPath = api.path;
   const payload = api.mode === 'empty'
     ? emptyResponse(apiPath)
-    : populatedResponse(apiPath);
+    : populatedResponse(apiPath, url);
   if (payload === undefined) {
     json(response, 404, { detail: `No fixture for ${apiPath}` });
     return;

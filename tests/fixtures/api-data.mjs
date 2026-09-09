@@ -224,8 +224,13 @@ export const reproductionSummary = {
   outcome: 'comparable_match',
   status: 'complete',
   metric: 'macro F1',
+  metric_name: 'macro F1',
   claimed_score: 0.91,
-  reproduced_score: 0.903
+  reported_value: 0.91,
+  reproduced_score: 0.903,
+  reproduced_min: 0.899,
+  reproduced_max: 0.907,
+  verified_run_count: 3
 };
 
 export const reproduction = {

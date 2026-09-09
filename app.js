@@ -7,6 +7,7 @@
     datasetsLoaded: false,
     publishedReleases: [],
     releaseCatalogLoaded: false,
+    verifiedReproductions: [],
     stats: null,
     detail: null,
     papers: [],
@@ -502,6 +503,23 @@
     });
   }
 
+  // Per-dataset reference baselines exported from the trusted scorer. Rows are
+  // already publication-gated server-side; the client re-checks the same three
+  // verification flags before showing a value.
+  function catalogBaselines(params) {
+    return supabase('tmlb_dataset_baselines', Object.assign({
+      select: 'release_id,dataset_slug,dataset_version_id,metric_name,metric_value,'
+        + 'model_name,wizard,mode,seed,neuralsmith_version,server_verified,'
+        + 'harness_passed,conformance_passed,predictions_sha256,hidden_labels_sha256,'
+        + 'bundle_sha256,packages_lock_sha256,created_at',
+      order: 'release_id.asc,metric_name.asc'
+    }, params || {})).catch(function (error) {
+      // A deployment whose snapshot predates the baselines table must still render.
+      if (error && (error.status === 404 || error.status === 400)) return [];
+      throw error;
+    });
+  }
+
   function catalogStats() {
     return supabase('tmlb_export_metadata', {
       select: 'dataset_count,paper_count,usage_count,generated_at',
@@ -567,10 +585,19 @@
     var parsed = new URL(path, 'https://catalog.local');
     var route = parsed.pathname.replace(/\/+$/, '') || '/';
     var fileMatch = route.match(/^\/datasets\/([^/]+)\/files$/);
+    var baselineMatch = route.match(/^\/datasets\/([^/]+)\/baselines$/);
     var datasetMatch = route.match(/^\/datasets\/([^/]+)$/);
     var paperMatch = route.match(/^\/papers\/([^/]+)$/);
     var reproductionMatch = route.match(/^\/reproductions\/([^/]+)$/);
 
+    if (baselineMatch) {
+      return catalogBaselines({
+        dataset_slug: 'eq.' + decodeURIComponent(baselineMatch[1]),
+        limit: '100'
+      }).then(function (items) {
+        return { items: items, total: items.length };
+      });
+    }
     if (fileMatch) {
       return catalogFiles(decodeURIComponent(fileMatch[1])).then(function (items) {
         return { items: items, total: items.length };
@@ -774,11 +801,61 @@
     };
   }
 
+  // A baseline is publishable only when the trusted scorer verified it against
+  // the hidden test labels. Without all three flags the score is withheld and
+  // only the run's identity is shown.
+  function normalizeBaseline(item) {
+    // A non-numeric metric_value must not survive the gate: '' would pass a
+    // null check and render as a plausible-looking 0 under a verified badge.
+    var score = item.metric_value == null ? null : Number(item.metric_value);
+    var verified = Boolean(
+      item.server_verified && item.harness_passed && item.conformance_passed
+    ) && score != null && Number.isFinite(score);
+    var config = [
+      text(item.wizard, ''),
+      item.mode ? 'mode ' + text(item.mode, '') : '',
+      item.seed != null ? 'seed ' + text(item.seed, '') : '',
+      item.neuralsmith_version ? 'NeuralSmith ' + text(item.neuralsmith_version, '') : ''
+    ].filter(Boolean).join(' · ');
+    return {
+      release: text(item.release_id || item.release, 'Release not recorded'),
+      datasetSlug: text(item.dataset_slug, ''),
+      metric: text(item.metric_name || item.metric, 'Metric not recorded'),
+      value: verified ? score : null,
+      model: text(item.model_name || item.model, 'Not recorded'),
+      config: config || 'Run configuration not recorded',
+      verified: verified,
+      bundle: text(item.bundle_sha256, ''),
+      predictions: text(item.predictions_sha256, ''),
+      labels: text(item.hidden_labels_sha256, ''),
+      created: item.created_at || ''
+    };
+  }
+
   function normalizeReproduction(item) {
+    // A reproduction score is publishable only when the trusted server worker
+    // recomputed it after sample-ID alignment. The public list endpoint only
+    // aggregates verified runs server-side, but the client re-checks the same
+    // gate so an unverified or legacy row can never render under a verified
+    // badge. Self-reported scores are never read here.
+    var rawScore = item.reproduced_score != null ? item.reproduced_score : item.score;
+    var score = rawScore == null ? null : Number(rawScore);
+    var hasVerifiedCount = item.verified_run_count != null;
+    var verifiedRuns = hasVerifiedCount ? Number(item.verified_run_count) : 0;
+    var verified = hasVerifiedCount
+      ? (Number.isFinite(score) && verifiedRuns > 0)
+      : (Number.isFinite(score) && /comparable_(below|match|above)/.test(
+        text(item.outcome || item.status, '')
+      ));
+    var claimedRaw = item.claimed_score != null
+      ? item.claimed_score
+      : (item.reported_value != null ? item.reported_value : item.claimedScore);
+    var claimed = claimedRaw == null ? null : Number(claimedRaw);
     return {
       id: text(item.experiment_id || item.id || item.slug, ''),
       title: text(item.paper_title || item.paperTitle || item.title, 'Paper-specific reproduction'),
       dataset: text(item.dataset_name || item.name || item.dataset || item.slug, 'Dataset not listed'),
+      datasetSlug: text(item.dataset_slug || item.slug, ''),
       task: text(item.task, 'Task not recorded'),
       track: text(item.protocol_track || item.track, 'paper_only'),
       model: text(item.coding_model || item.model, 'Not recorded'),
@@ -786,13 +863,56 @@
         item.outcome || item.status || item.state || item.reproStatus,
         'queued'
       ),
-      claimed: item.claimed_score != null ? item.claimed_score : item.claimedScore,
-      reproduced: item.reproduced_score != null ? item.reproduced_score : item.score,
-      metric: text(item.metric, 'Metric not recorded'),
+      claimed: claimed != null && Number.isFinite(claimed) ? claimed : null,
+      reproduced: verified ? score : null,
+      reproducedMin: verified && item.reproduced_min != null
+        ? Number(item.reproduced_min) : null,
+      reproducedMax: verified && item.reproduced_max != null
+        ? Number(item.reproduced_max) : null,
+      verifiedRuns: verified ? verifiedRuns : 0,
+      verified: verified,
+      metric: text(item.metric_name || item.metric, 'Metric not recorded'),
       started: item.started_at || item.startedAt || '',
       evidence: evidenceText(item.evidence),
       url: safeUrl(item.url || item.report_url || '')
     };
+  }
+
+  // Per-dataset verified-score join for the leaderboard column. The worker is
+  // the only writer: these rows come from GET /api/v1/reproductions, which by
+  // construction aggregates only server_verified + harness_passed +
+  // conformance_passed + comparable runs. Rows failing the client gate above
+  // are dropped so one unverified experiment cannot poison a dataset card.
+  function verifiedScoreByDataset(items) {
+    var bySlug = {};
+    items.forEach(function (item) {
+      if (!item.verified || !item.datasetSlug) return;
+      var key = item.datasetSlug;
+      var current = bySlug[key];
+      if (!current || item.verifiedRuns > current.verifiedRuns ||
+        (item.verifiedRuns === current.verifiedRuns && item.reproduced > current.value)) {
+        bySlug[key] = {
+          value: item.reproduced,
+          min: item.reproducedMin,
+          max: item.reproducedMax,
+          metric: item.metric,
+          runs: item.verifiedRuns,
+          experimentId: item.id
+        };
+      } else {
+        current.runs += item.verifiedRuns;
+      }
+    });
+    return bySlug;
+  }
+
+  function applyVerifiedScores(datasets, payload) {
+    var normalized = list(payload).map(normalizeReproduction);
+    var bySlug = verifiedScoreByDataset(normalized);
+    datasets.forEach(function (dataset) {
+      dataset.verifiedScore = bySlug[dataset.slug] || null;
+    });
+    return normalized;
   }
 
   function isPublicMl(d) {
@@ -812,7 +932,8 @@
       loadDatasetPages(),
       optional('/stats'),
       optional('/catalog/coverage'),
-      loadPublishedReleaseCatalog()
+      loadPublishedReleaseCatalog(),
+      optional('/reproductions?limit=500')
     ]).then(function (values) {
       state.datasets = list(values[0]).map(normalizeDataset).filter(isPublicMl)
         .sort(function (left, right) {
@@ -824,6 +945,17 @@
       state.publishedReleases = list(values[3]);
       if (state.releaseCatalogLoaded) {
         applyPublishedReleases(state.datasets, state.publishedReleases);
+      }
+      // One public read joins worker-verified scores onto every card. A null
+      // payload (Supabase mode, offline snapshot) leaves cards in the explicit
+      // "No verified score" state instead of hiding the column.
+      if (values[4] !== null) {
+        state.verifiedReproductions = applyVerifiedScores(state.datasets, values[4]);
+      } else {
+        state.datasets.forEach(function (dataset) {
+          dataset.verifiedScore = null;
+        });
+        state.verifiedReproductions = [];
       }
       state.datasetsLoaded = true;
       state.stats = Object.assign(
@@ -847,7 +979,8 @@
     return Promise.all([
       api('/datasets/' + encodeURIComponent(slug)),
       optional('/datasets/' + encodeURIComponent(slug) + '/files?limit=500'),
-      optional('/reproductions?dataset=' + encodeURIComponent(slug) + '&limit=100')
+      optional('/reproductions?dataset=' + encodeURIComponent(slug) + '&limit=100'),
+      optional('/datasets/' + encodeURIComponent(slug) + '/baselines?limit=100')
     ]).then(function (values) {
       var raw = values[0] || {};
       var dataset = normalizeDataset(raw);
@@ -870,7 +1003,8 @@
         releases: Array.isArray(raw.releases) ? raw.releases : [],
         tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
         papers: detailPapers,
-        reproductions: reproductionItems
+        reproductions: reproductionItems,
+        baselines: list(values[3]).map(normalizeBaseline)
       };
     }).catch(function (err) {
       state.error = err.message || 'The dataset could not be loaded.';
@@ -1217,6 +1351,24 @@
       '</div><div class="tml-stat-label">' + esc(label) + '</div></div>';
   }
 
+  function verifiedScoreLine(d) {
+    var score = d.verifiedScore;
+    if (!score) {
+      return '<span class="tml-verified-score none">No verified score</span>';
+    }
+    var range = (score.min != null && score.max != null &&
+      Number.isFinite(score.min) && Number.isFinite(score.max) &&
+      score.min !== score.max)
+      ? ' · range ' + esc(score.min) + '–' + esc(score.max)
+      : '';
+    return '<span class="tml-verified-score" title="Recomputed by the trusted server worker after sample-ID alignment. ' +
+      'Only server_verified + harness + conformance + comparable runs are aggregated. ' +
+      'Self-reported scores are never shown.">' +
+      'Server-verified ' + esc(score.metric) + ' ' +
+      '<strong class="mono">' + esc(score.value) + '</strong>' +
+      ' <span>(' + esc(number(score.runs)) + ' run' + (score.runs === 1 ? '' : 's') + range + ')</span></span>';
+  }
+
   function datasetCard(d) {
     var category = d.task === 'Needs task adapter' ? d.domain : d.task;
     var releaseLabel = d.releaseCount > 0
@@ -1236,7 +1388,8 @@
           '<div><strong class="mono">' + esc(number(d.paperCount || 0)) + '</strong><span> papers</span></div>' +
         '</div>' +
       '</div><div class="tml-release-line"><span>' + esc(releaseLabel) + '</span>' +
-        '<span>' + esc(d.access) + '</span></div></a>';
+        '<span>' + esc(d.access) + '</span></div>' +
+      '<div class="tml-verified-line">' + verifiedScoreLine(d) + '</div></a>';
   }
   function loading(message) {
     return '<div class="tml-state" role="status"><span class="tml-spinner" aria-hidden="true"></span>' +
@@ -1561,15 +1714,52 @@
     }).join('');
   }
 
+  function baselineRows(rows) {
+    if (!rows.length) {
+      return '<div class="empty"><h3>No reference baseline is published</h3>' +
+        '<p class="muted">No server-verified baseline has been published for this dataset\u2019s releases. ' +
+        'This is not evidence that the task is unlearnable.</p></div>';
+    }
+    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr>' +
+      '<th>Release</th><th>Metric</th><th>Score</th><th>Model</th><th>Verification</th><th>Bundle</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(function (b) {
+        return '<tr><td><strong>' + esc(b.release) + '</strong>' +
+          '<div class="row-meta">' + esc(b.config) + '</div></td>' +
+          '<td>' + esc(b.metric) + '</td>' +
+          '<td class="mono">' + esc(b.verified ? b.value : '\u2014') + '</td>' +
+          '<td>' + esc(b.model) + '</td>' +
+          '<td>' + statusBadge(b.verified ? 'Server verified' : 'Not verified',
+            b.verified ? 'verified' : 'unknown') + '</td>' +
+          '<td class="mono">' + esc(b.bundle ? b.bundle.slice(0, 12) : '\u2014') + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
+      'A baseline is a reference score on the hidden test split of a release. It is not a ' +
+      'reproduction of any paper and is not compared with any reported value. Where a release ' +
+      'separates groups, sites, routes, users, or time rather than shuffling rows, a baseline ' +
+      'can sit far below numbers reported on random splits of the same data. That is the ' +
+      'split boundary working as intended, not a defect. Baselines are ' +
+      'produced by NeuralSmith, developed by All Things Intelligence LLC, used under the ' +
+      'NeuralSmith Non-Commercial Research &amp; Evaluation License v1.0.</p>';
+  }
+
   function reproductionRows(rows) {
     if (!rows.length) return '<div class="empty"><h3>No controlled reproduction record</h3><p class="muted">No public experiment protocol is configured for this view. This is not evidence that a paper failed reproduction.</p></div>';
-    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Paper / claim</th><th>Protocol</th><th>Coding model</th><th>Outcome</th><th>Claimed</th><th>Recomputed</th></tr></thead><tbody>' +
+    return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Paper / claim</th><th>Protocol</th><th>Coding model</th><th>Outcome</th><th>Claimed</th><th>Recomputed</th><th>Verification</th></tr></thead><tbody>' +
       rows.map(function (r) {
         var report = r.id ? '#/reproduction/' + encodeURIComponent(r.id) : '';
+        var verifiedNote = r.verified
+          ? 'Server worker recomputed this score after sample-ID alignment (' + esc(number(r.verifiedRuns)) + ' verified run' + (r.verifiedRuns === 1 ? '' : 's') + ').'
+          : 'No server-verified score is published for this experiment. Unverified or missing runs are never shown as scores.';
         return '<tr><td><strong>' +
           (report ? '<a href="' + report + '">' + esc(r.title) + '</a>' : esc(r.title)) +
-          '</strong><div class="row-meta">' + esc(r.metric) + '</div></td><td>' + esc(r.track.replace(/_/g,' ')) + '</td><td>' + esc(r.model) + '</td><td>' + statusBadge(r.outcome) + '</td><td class="mono">' + esc(r.claimed == null ? '—' : r.claimed) + '</td><td class="mono">' + esc(r.reproduced == null ? '—' : r.reproduced) + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+          '</strong><div class="row-meta">' + esc(r.metric) + '</div></td><td>' + esc(r.track.replace(/_/g,' ')) + '</td><td>' + esc(r.model) + '</td><td>' + statusBadge(r.outcome) + '</td><td class="mono">' + esc(r.claimed == null ? '—' : r.claimed) + '</td><td class="mono">' + esc(r.reproduced == null ? '—' : r.reproduced) + '</td><td title="' + esc(verifiedNote) + '">' + statusBadge(r.verified ? 'Server verified' : 'Not verified', r.verified ? 'verified' : 'unknown') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
+      'Recomputed scores come only from the trusted server worker after sample-ID alignment against hidden labels. ' +
+      'The worker persists them with an immutable run bundle; the frontend publishes a value only when the ' +
+      'experiment aggregates at least one verified run. Self-reported scores are never shown.</p>';
   }
 
   function detailPage() {
@@ -1580,6 +1770,11 @@
     var releaseBadge = x.releases.length
       ? '<span class="id">' + esc(number(x.releases.length)) +
         (x.releases.length === 1 ? ' release' : ' releases') + '</span>'
+      : '';
+    var baselines = Array.isArray(x.baselines) ? x.baselines : [];
+    var baselineBadge = baselines.length
+      ? '<span class="id">' + esc(number(baselines.length)) +
+        (baselines.length === 1 ? ' baseline' : ' baselines') + '</span>'
       : '';
     var reproBadge = x.reproductions.length
       ? '<span class="id">' + esc(number(x.reproductions.length)) +
@@ -1595,6 +1790,7 @@
           metadataTaskRows(x) +
           '<div class="tag-row">' + [d.task,d.domain,d.origin].concat(d.tags.slice(0,4)).filter(Boolean).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('') + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Tasks and immutable releases</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Reference baselines</h2>' + baselineBadge + '</div>' + baselineRows(baselines) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
