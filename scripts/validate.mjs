@@ -83,6 +83,8 @@ expect(app.includes('Where this data comes from'), 'plain-language source sectio
 expect(app.includes('Replicate this baseline') || app.includes('Baseline replication guide'), 'baseline replication guide is missing');
 expect(app.includes('#/baseline/'), 'baseline guide links are missing');
 expect(app.includes('Download main.py'), 'one-click replication download is missing');
+expect(app.includes('Quick start'), 'replication quick start is missing');
+expect(app.includes('data-action="copy-snippet"'), 'copy-snippet action is missing');
 expect(!app.includes('File inventory'), 'file inventory section must stay removed');
 expect(app.includes('static trainable ML'), 'ML-only scope is not communicated');
 expect(app.includes('normalizeReview'), 'dataset review provenance normalization is missing');

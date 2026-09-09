@@ -2199,13 +2199,6 @@
       '</aside></div></div></section></main>';
   }
 
-  function pyValue(value) {
-    if (value === null) return 'None';
-    if (typeof value === 'string') return JSON.stringify(value);
-    if (typeof value === 'boolean') return value ? 'True' : 'False';
-    return String(value);
-  }
-
   function baselinePage() {
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading the replication guide…') + '</div></main>';
     if (state.error || !state.baselineGuide) {
@@ -2227,7 +2220,6 @@
     var metrics = training.validation_metrics || {};
     var metricNames = Object.keys(metrics);
     var features = Array.isArray(training.selected_features) ? training.selected_features : [];
-    var allColumns = Array.isArray(training.feature_columns) ? training.feature_columns : [];
     var libVersions = training.library_versions && typeof training.library_versions === 'object' ? training.library_versions : {};
     var libNames = Object.keys(libVersions);
     var target = training.target_column || '';
@@ -2241,77 +2233,6 @@
         '</strong><code>' + esc(bytes(file.byte_size)) + ' · sha256 ' + esc(String(file.sha256 || '').slice(0, 12)) + '…</code>' +
         (href ? '<a href="' + esc(href) + '">Download ' + esc(role === 'test_features' ? 'test' : role) + '</a>' : '') + '</div>';
     };
-    var importLine = b.model === 'logistic_regression'
-      ? 'from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression'
-      : '# estimator for ' + b.model + ' (recipe ' + b.recipe + ')\nmodel = fit_model';
-    // The reference pipeline imputes, then scales, on the FULL feature set
-    // before selecting FEATURES — the snippet mirrors that order exactly, so
-    // the fitted imputer and scaler match the published run bit for bit.
-    var recordUrl = 'https://telemlebench.vercel.app/api/v1/baselines?release_id=' + b.release;
-    var columnsLine;
-    if (allColumns.length > 24) {
-      columnsLine = 'ALL_COLUMNS = [\n' +
-        allColumns.slice(0, 8).map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') +
-        '\n    # ... ' + (allColumns.length - 8) + ' more — full list in the record:\n]\n' +
-        'import json, urllib.request\n' +
-        'record = json.load(urllib.request.urlopen(\n' +
-        '    ' + JSON.stringify(recordUrl) + '))\n' +
-        'ALL_COLUMNS = record["items"][0]["training"]["feature_columns"]';
-    } else if (allColumns.length) {
-      columnsLine = 'ALL_COLUMNS = [\n' +
-        allColumns.map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') + '\n]';
-    } else {
-      columnsLine = 'ALL_COLUMNS = [c for c in train.columns if c not in ("sample_id", TARGET)]';
-    }
-    var featuresLine;
-    if (features.length > 24) {
-      featuresLine = 'FEATURES = [\n' +
-        features.slice(0, 8).map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') +
-        '\n    # ... ' + (features.length - 8) + ' more — full list below, or fetch them:\n]\n' +
-        'FEATURES = record["items"][0]["training"]["selected_features"]';
-    } else if (features.length) {
-      featuresLine = 'FEATURES = [\n' +
-        features.map(function (name) { return '    ' + JSON.stringify(name) + ','; }).join('\n') + '\n]';
-    } else {
-      featuresLine = 'FEATURES = [c for c in train.columns if c not in ("sample_id", TARGET)]';
-    }
-    var snippet = 'import pandas as pd\n' +
-      'from sklearn.experimental import enable_iterative_imputer  # noqa: F401\n' +
-      'from sklearn.impute import IterativeImputer\n' +
-      'from sklearn.preprocessing import LabelEncoder, StandardScaler\n' +
-      importLine + '(\n' +
-      paramNames.map(function (name) {
-        return '    ' + name + '=' + pyValue(params[name]) + ',';
-      }).join('\n') + '\n)\n\n' +
-      'SEED = ' + (b.seed != null ? b.seed : 42) + '\n' +
-      'train = pd.read_csv("train.csv", dtype={"sample_id": str})\n' +
-      'valid = pd.read_csv("validation.csv", dtype={"sample_id": str})\n' +
-      'test = pd.read_csv("test_features.csv", dtype={"sample_id": str})  # no labels\n\n' +
-      (target ? 'TARGET = ' + JSON.stringify(target) + '\n' : '') +
-      columnsLine + '\n' +
-      featuresLine + '\n\n' +
-      'enc = LabelEncoder()\n' +
-      'y_train = enc.fit_transform(train[TARGET])\n' +
-      'y_valid = enc.transform(valid[TARGET])\n\n' +
-      'imp = IterativeImputer(max_iter=10, random_state=SEED, skip_complete=True, keep_empty_features=True)\n' +
-      'X_train = imp.fit_transform(train[ALL_COLUMNS].to_numpy(dtype="float64"))\n' +
-      'X_valid = imp.transform(valid[ALL_COLUMNS].to_numpy(dtype="float64"))\n' +
-      'X_test = imp.transform(test[ALL_COLUMNS].to_numpy(dtype="float64"))\n\n' +
-      'scaler = StandardScaler()\n' +
-      'X_train = scaler.fit_transform(X_train)\n' +
-      'X_valid = scaler.transform(X_valid)\n' +
-      'X_test = scaler.transform(X_test)\n\n' +
-      'cols = [ALL_COLUMNS.index(c) for c in FEATURES]\n' +
-      'model.fit(X_train[:, cols], y_train)\n' +
-      (metricNames.length
-        ? 'print("validation ' + metricNames[0] + ':", model.score(X_valid[:, cols], y_valid))\n# expected: ' + metrics[metricNames[0]] + '\n'
-        : '') +
-      '\n' +
-      'pred = enc.inverse_transform(model.predict(X_test[:, cols]))\n' +
-      'pd.DataFrame({"sample_id": test["sample_id"], "prediction": pred}).to_csv(\n' +
-      '    "test_predictions.csv", index=False)  # exactly sample_id,prediction in test order\n' +
-      '# upload test_predictions.csv on the dataset page; expected hidden-test\n' +
-      '# ' + b.metric + ': ' + b.value.toFixed(6) + ' (' + number(b.correct) + '/' + number(testRows) + ')';
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span>' +
         (b.datasetSlug ? '<a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">' + esc(b.datasetSlug) + '</a><span>/</span>' : '') +
@@ -2323,19 +2244,15 @@
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
         '<section class="card panel"><div class="panel-head"><h2>Quick start</h2><span class="lb-tag">Baseline</span></div>' +
           '<p class="definition">One file, one command, same score. The script downloads the split, checks versions, trains, and verifies the predictions hash itself.</p>' +
+          (pipLine
+            ? '<div class="copybox"><code>pip install ' + esc(pipLine) + '</code>' +
+              '<button type="button" class="btn btn-light copy-btn" data-action="copy-snippet">Copy</button></div>'
+            : '') +
           '<div class="quickstart">' +
             (replicateUrl ? '<a class="btn btn-light" href="' + esc(replicateUrl) + '" download="main.py">Download main.py</a>' : '') +
-            '<code class="mono">python main.py</code>' +
+            '<div class="copybox"><code>python main.py</code>' +
+              '<button type="button" class="btn btn-light copy-btn" data-action="copy-snippet">Copy</button></div>' +
           '</div>' +
-          (pipLine ? '<p class="muted" style="margin-top:10px;font-size:11px;">Needs: <span class="mono">pip install ' + esc(pipLine) + '</span></p>' : '') +
-        '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">1</span>Download the prepared split</h2></div>' +
-          '<div class="tml-release-files">' + fileCard('train') + fileCard('validation') + fileCard('test_features') + '</div>' +
-          '<p class="muted" style="margin-top:12px;font-size:12px;line-height:1.6">Files are immutable. Verify the SHA-256 checksums against the ' +
-          (evalApiUrl(release.manifest_endpoint)
-            ? '<a href="' + esc(evalApiUrl(release.manifest_endpoint)) + '" target="_blank" rel="noopener">release manifest ↗</a>.'
-            : 'release manifest.') + '</p></section>' +
-        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">2</span>Train this exact model</h2></div>' +
           '<div class="schema-facts">' +
             '<span class="tag">' + esc(b.model) + '</span>' +
             (b.recipe ? '<span class="tag">' + esc(b.recipe) + '</span>' : '') +
@@ -2349,18 +2266,26 @@
                 return '<dt class="mono">' + esc(name) + '</dt><dd class="mono">' + esc(String(params[name])) + '</dd>';
               }).join('') + '</dl>'
             : '<p class="muted">Hyperparameters are not recorded for this baseline.</p>') +
-          '<div class="loading-example"><div class="row-meta">Replicate</div><pre><code>' + esc(snippet) + '</code></pre></div>' +
+          '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Pipeline inside main.py: impute ' +
+          'then scale on all feature columns, select the published features, fit with seed ' +
+          esc(b.seed != null ? b.seed : 42) + '.</p>' +
           (libNames.length
             ? '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Tested with ' +
               esc(libNames.map(function (k) { return k + ' ' + libVersions[k]; }).join(' · ')) +
-              '. Other versions can flip borderline rows — the predictions hash in step 3 is the arbiter, not the score alone.</p>'
+              '. Other versions can flip borderline rows — the predictions hash is the arbiter, not the score alone.</p>'
             : '') +
           (features.length
             ? '<details class="guide-details"><summary>Full selected-feature list (' + esc(number(features.length)) + ')</summary>' +
               '<p class="mono" style="font-size:11px;line-height:1.7;overflow-wrap:anywhere">' + esc(features.join(', ')) + '</p></details>'
             : '') +
         '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">3</span>Predict and score</h2></div>' +
+        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">1</span>Download the prepared split</h2></div>' +
+          '<div class="tml-release-files">' + fileCard('train') + fileCard('validation') + fileCard('test_features') + '</div>' +
+          '<p class="muted" style="margin-top:12px;font-size:12px;line-height:1.6">Files are immutable. Verify the SHA-256 checksums against the ' +
+          (evalApiUrl(release.manifest_endpoint)
+            ? '<a href="' + esc(evalApiUrl(release.manifest_endpoint)) + '" target="_blank" rel="noopener">release manifest ↗</a>.'
+            : 'release manifest.') + '</p></section>' +
+        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">2</span>Predict and score</h2></div>' +
           '<p class="definition">Write <span class="mono">test_predictions.csv</span> with exactly ' +
           '<span class="mono">sample_id,prediction</span> in test-file order (' + esc(number(testRows)) + ' rows). ' +
           'Test labels stay hidden; the upload is deleted after scoring.</p>' +
@@ -2716,6 +2641,19 @@
     state.filters.query = query;
   }
 
+  function fallbackCopy(textToCopy) {
+    var area = document.createElement('textarea');
+    area.value = textToCopy;
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    try {
+      document.execCommand('copy');
+    } catch (_) {}
+    document.body.removeChild(area);
+  }
+
   app.addEventListener('click', function (event) {
     var target = event.target.closest('[data-action]');
     if (!target) return;
@@ -2755,6 +2693,26 @@
         });
       }
       target.remove();
+    } else if (action === 'copy-snippet') {
+      var box = target.closest('.copybox');
+      var code = box ? box.querySelector('code') : null;
+      var copied = function () {
+        target.textContent = 'Copied';
+        setTimeout(function () {
+          if (document.contains(target)) target.textContent = 'Copy';
+        }, 1500);
+      };
+      var textToCopy = code ? code.textContent : '';
+      if (!textToCopy) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(copied, function () {
+          fallbackCopy(textToCopy);
+          copied();
+        });
+      } else {
+        fallbackCopy(textToCopy);
+        copied();
+      }
     }
   });
 

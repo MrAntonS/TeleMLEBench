@@ -1209,6 +1209,18 @@
     padding:12px 16px;border:1px solid rgba(144,144,150,.28);border-radius:2px;
     background:#0e1314;color:#b7c7ca;font-size:12px;
   }
+  .copybox{
+    display:flex;gap:0;align-items:stretch;margin-top:14px;max-width:100%;
+    border:1px solid rgba(144,144,150,.28);border-radius:2px;overflow:hidden;background:#0e1314;
+  }
+  .copybox code{
+    flex:1;min-width:0;padding:12px 14px;overflow-x:auto;white-space:nowrap;
+    color:#b7c7ca;font-size:12px;
+  }
+  .copybox .copy-btn{
+    flex:none;border:0;border-left:1px solid rgba(144,144,150,.28);border-radius:0;
+    padding:12px 16px;font-size:10px;cursor:pointer;
+  }
 
   .prose{max-width:920px;}
   .prose p,.prose li{color:#a5acb1;}

@@ -527,11 +527,11 @@ test('baseline row links to a replication guide with exact training steps', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'logistic_regression' })).toBeVisible();
   await expect(page.getByText('Baseline replication guide', { exact: true }).first()).toBeVisible();
   await expect(page.getByRole('heading', { name: /Download the prepared split/ })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Train this exact model/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Quick start' })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Predict and score/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Copy' })).toHaveCount(2);
   await expect(page.getByText('solver', { exact: true })).toBeVisible();
-  await expect(page.getByText('IterativeImputer')).toBeVisible();
-  await expect(page.getByText('StandardScaler')).toBeVisible();
+  await expect(page.getByText(/pip install/)).toBeVisible();
   await expect(page.locator('aside').getByText('0.900000', { exact: true })).toBeVisible();
   await expect(page.locator('.tml-release-file a').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Download main.py' })).toHaveAttribute('href', /\/replicate$/);
