@@ -8,6 +8,7 @@ import {
   dataset,
   files,
   paper,
+  publicBaseline,
   publicRelease,
   releaseManifest,
   reproduction,
@@ -72,6 +73,16 @@ function populatedResponse(apiPath, url) {
     return { items: items, total: items.length };
   }
   if (apiPath === `/reproductions/${reproduction.id}`) return reproduction;
+  if (apiPath === '/baselines') {
+    var baselineRequested = url ? (url.searchParams.get('dataset') || url.searchParams.get('release_id')) : null;
+    var baselineItems = [publicBaseline];
+    if (baselineRequested) {
+      baselineItems = baselineItems.filter(function (row) {
+        return row.dataset_slug === baselineRequested || row.release_id === baselineRequested;
+      });
+    }
+    return { items: baselineItems, total: baselineItems.length };
+  }
   if (apiPath === '/catalog/coverage') return coverage;
   if (apiPath === '/catalog/sources') return sources;
   if (apiPath === '/stats') {
@@ -94,7 +105,7 @@ function populatedResponse(apiPath, url) {
 }
 
 function emptyResponse(apiPath) {
-  if (apiPath === '/datasets' || apiPath === '/papers' || apiPath === '/reproductions' || apiPath === '/releases') {
+  if (apiPath === '/datasets' || apiPath === '/papers' || apiPath === '/reproductions' || apiPath === '/releases' || apiPath === '/baselines') {
     return { items: [], total: 0, next_cursor: null };
   }
   if (apiPath === '/catalog/coverage') {

@@ -7,6 +7,9 @@
     datasetsLoaded: false,
     publishedReleases: [],
     releaseCatalogLoaded: false,
+    publicBaselines: [],
+    baselineCatalogLoaded: false,
+    detailPapersVisible: 5,
     verifiedReproductions: [],
     stats: null,
     detail: null,
@@ -200,6 +203,20 @@
       headers: { Accept: 'application/json' }
     }).then(function (res) {
       if (!res.ok) throw new Error('Release registry request failed (' + res.status + ')');
+      return res.json();
+    }).catch(function () {
+      return null;
+    });
+  }
+
+  function loadPublicBaselineCatalog() {
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base) return Promise.resolve(null);
+    return fetch(base + '/baselines', {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    }).then(function (res) {
+      if (!res.ok) throw new Error('Baseline registry request failed (' + res.status + ')');
       return res.json();
     }).catch(function () {
       return null;
@@ -832,6 +849,81 @@
     };
   }
 
+  // Published server-scored baselines from GET /api/v1/baselines. The server
+  // derives each record from a completed private evaluation; the client
+  // re-checks the publication gate so a malformed row can never render.
+  function normalizePublicBaseline(item) {
+    var value = item.metric_value == null ? null : Number(item.metric_value);
+    var verified = Boolean(
+      item.schema_version === 'telemlebench-server-scored-baseline/1' &&
+      item.publication && item.publication.public === true &&
+      item.server_verified === true &&
+      item.verification_kind === 'server_scored_predictions' &&
+      item.prediction_conformance_passed === true &&
+      item.training_execution_attested === false
+    ) && value != null && Number.isFinite(value) && value >= 0 && value <= 1;
+    if (!verified) return null;
+    if (!Number.isSafeInteger(item.correct) || !Number.isSafeInteger(item.sample_count) ||
+      item.sample_count <= 0 || item.correct < 0 || item.correct > item.sample_count) return null;
+    return {
+      release: text(item.release_id, 'Release not recorded'),
+      datasetSlug: text(item.dataset_slug, ''),
+      datasetId: text(item.dataset_id, ''),
+      metric: text(item.metric_name, 'Metric not recorded'),
+      value: value,
+      correct: item.correct,
+      sampleCount: item.sample_count,
+      model: text(item.model_name, 'Not recorded'),
+      recipe: text(item.recipe_version, ''),
+      seed: item.seed,
+      config: text(item.model_name, '') +
+        (item.recipe_version ? ' · ' + text(item.recipe_version, '') : '') +
+        (item.seed != null ? ' · seed ' + text(item.seed, '') : ''),
+      verified: true,
+      predictions: text(item.predictions_sha256, ''),
+      labels: text(item.hidden_labels_sha256, ''),
+      record: text(item.record_sha256, ''),
+      evaluationId: text(item.source_evaluation_id, ''),
+      published: item.published_at || ''
+    };
+  }
+
+  function publicBaselineByDataset(items) {
+    var bySlug = {};
+    var byId = {};
+    items.forEach(function (item) {
+      if (!item) return;
+      var record = {
+        value: item.value,
+        correct: item.correct,
+        sampleCount: item.sampleCount,
+        metric: item.metric,
+        model: item.model,
+        release: item.release,
+        published: item.published
+      };
+      if (item.datasetSlug) {
+        var slug = item.datasetSlug;
+        if (!bySlug[slug] || String(item.published) > String(bySlug[slug].published || '')) bySlug[slug] = record;
+      }
+      if (item.datasetId) {
+        var id = item.datasetId;
+        if (!byId[id] || String(item.published) > String(byId[id].published || '')) byId[id] = record;
+      }
+    });
+    return { bySlug: bySlug, byId: byId };
+  }
+
+  function applyPublicBaselines(datasets, payload) {
+    var normalized = list(payload && payload.items !== undefined ? payload.items : payload)
+      .map(normalizePublicBaseline).filter(Boolean);
+    var joined = publicBaselineByDataset(normalized);
+    datasets.forEach(function (dataset) {
+      dataset.baselineScore = joined.bySlug[dataset.slug] || joined.byId[dataset.id] || null;
+    });
+    return normalized;
+  }
+
   function normalizeReproduction(item) {
     // A reproduction score is publishable only when the trusted server worker
     // recomputed it after sample-ID alignment. The public list endpoint only
@@ -933,7 +1025,8 @@
       optional('/stats'),
       optional('/catalog/coverage'),
       loadPublishedReleaseCatalog(),
-      optional('/reproductions?limit=500')
+      optional('/reproductions?limit=500'),
+      loadPublicBaselineCatalog()
     ]).then(function (values) {
       state.datasets = list(values[0]).map(normalizeDataset).filter(isPublicMl)
         .sort(function (left, right) {
@@ -957,6 +1050,15 @@
         });
         state.verifiedReproductions = [];
       }
+      state.baselineCatalogLoaded = values[5] !== null;
+      if (state.baselineCatalogLoaded) {
+        state.publicBaselines = applyPublicBaselines(state.datasets, values[5]);
+      } else {
+        state.datasets.forEach(function (dataset) {
+          dataset.baselineScore = null;
+        });
+        state.publicBaselines = [];
+      }
       state.datasetsLoaded = true;
       state.stats = Object.assign(
         {},
@@ -971,16 +1073,32 @@
     });
   }
 
+  function loadPublicBaselinesForDataset(slug) {
+    var base = LEGACY_API_OVERRIDE ? API_BASE : RELEASE_API_BASE;
+    if (!base || !slug) return Promise.resolve(null);
+    return fetch(base + '/baselines?dataset=' + encodeURIComponent(slug), {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    }).then(function (res) {
+      if (!res.ok) throw new Error('Baseline request failed (' + res.status + ')');
+      return res.json();
+    }).catch(function () {
+      return null;
+    });
+  }
+
   function loadDetail(slug) {
     state.loading = true;
     state.error = '';
     state.detail = null;
+    state.detailPapersVisible = 5;
     render();
     return Promise.all([
       api('/datasets/' + encodeURIComponent(slug)),
       optional('/datasets/' + encodeURIComponent(slug) + '/files?limit=500'),
       optional('/reproductions?dataset=' + encodeURIComponent(slug) + '&limit=100'),
-      optional('/datasets/' + encodeURIComponent(slug) + '/baselines?limit=100')
+      optional('/datasets/' + encodeURIComponent(slug) + '/baselines?limit=100'),
+      loadPublicBaselinesForDataset(slug)
     ]).then(function (values) {
       var raw = values[0] || {};
       var dataset = normalizeDataset(raw);
@@ -989,6 +1107,23 @@
       var reproductionItems = list(reproductionPayload).filter(function (r) {
         return !r.slug || r.slug === slug || r.dataset_slug === slug;
       }).map(normalizeReproduction);
+      var legacyBaselines = list(values[3]).map(normalizeBaseline);
+      var publicItems = list(values[4] && values[4].items !== undefined ? values[4].items : values[4])
+        .map(normalizePublicBaseline).filter(Boolean).map(function (b) {
+          return {
+            release: b.release,
+            datasetSlug: b.datasetSlug,
+            metric: b.metric,
+            value: b.value,
+            model: b.model + (b.recipe ? ' · ' + b.recipe : '') + ' · seed ' + b.seed,
+            config: 'Server-scored predictions · ' + b.correct + '/' + b.sampleCount + ' · record ' + b.record.slice(0, 12),
+            verified: true,
+            bundle: b.record,
+            predictions: b.predictions,
+            labels: b.labels,
+            created: b.published
+          };
+        });
       state.detail = {
         dataset: dataset,
         taskProfile: raw.task_profile && typeof raw.task_profile === 'object'
@@ -1004,7 +1139,7 @@
         tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
         papers: detailPapers,
         reproductions: reproductionItems,
-        baselines: list(values[3]).map(normalizeBaseline)
+        baselines: publicItems.concat(legacyBaselines)
       };
     }).catch(function (err) {
       state.error = err.message || 'The dataset could not be loaded.';
@@ -1369,6 +1504,18 @@
       ' <span>(' + esc(number(score.runs)) + ' run' + (score.runs === 1 ? '' : 's') + range + ')</span></span>';
   }
 
+  function baselineScoreLine(d) {
+    var score = d.baselineScore;
+    if (!score) {
+      return '<span class="tml-verified-score none">No public baseline</span>';
+    }
+    return '<span class="tml-verified-score" title="Trusted server score over operator-submitted test predictions. ' +
+      'Training execution is not attested.">' +
+      'Baseline ' + esc(score.metric) + ' ' +
+      '<strong class="mono">' + esc(Number(score.value).toFixed(6)) + '</strong>' +
+      ' <span>(' + esc(number(score.correct)) + '/' + esc(number(score.sampleCount)) + ' · ' + esc(score.model) + ')</span></span>';
+  }
+
   function datasetCard(d) {
     var category = d.task === 'Needs task adapter' ? d.domain : d.task;
     var releaseLabel = d.releaseCount > 0
@@ -1389,7 +1536,8 @@
         '</div>' +
       '</div><div class="tml-release-line"><span>' + esc(releaseLabel) + '</span>' +
         '<span>' + esc(d.access) + '</span></div>' +
-      '<div class="tml-verified-line">' + verifiedScoreLine(d) + '</div></a>';
+      '<div class="tml-verified-line">' + verifiedScoreLine(d) + '</div>' +
+      '<div class="tml-verified-line">' + baselineScoreLine(d) + '</div></a>';
   }
   function loading(message) {
     return '<div class="tml-state" role="status"><span class="tml-spinner" aria-hidden="true"></span>' +
@@ -1714,14 +1862,31 @@
     }).join('');
   }
 
+  var DETAIL_PAPERS_PAGE = 5;
+
+  function paperRowsPaged(papers, visible) {
+    if (!papers.length) return paperRows(papers);
+    var count = Math.max(DETAIL_PAPERS_PAGE, Number(visible) || DETAIL_PAPERS_PAGE);
+    var shown = papers.slice(0, count);
+    var html = paperRows(shown);
+    var remaining = papers.length - shown.length;
+    html += '<div class="row-meta" role="status">Showing ' + esc(number(shown.length)) +
+      ' of ' + esc(number(papers.length)) + ' linked papers</div>';
+    if (remaining > 0) {
+      html += '<div style="margin-top:10px"><button type="button" class="btn btn-light" data-action="show-more-papers">' +
+        'Show 5 more (' + esc(number(remaining)) + ' remaining)</button></div>';
+    }
+    return html;
+  }
+
   function baselineRows(rows) {
     if (!rows.length) {
       return '<div class="empty"><h3>No reference baseline is published</h3>' +
-        '<p class="muted">No server-verified baseline has been published for this dataset\u2019s releases. ' +
+        '<p class="muted">No server-scored baseline has been published for this dataset\u2019s releases. ' +
         'This is not evidence that the task is unlearnable.</p></div>';
     }
     return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr>' +
-      '<th>Release</th><th>Metric</th><th>Score</th><th>Model</th><th>Verification</th><th>Bundle</th>' +
+      '<th>Release</th><th>Metric</th><th>Score</th><th>Model</th><th>Verification</th><th>Record</th>' +
       '</tr></thead><tbody>' +
       rows.map(function (b) {
         return '<tr><td><strong>' + esc(b.release) + '</strong>' +
@@ -1729,19 +1894,19 @@
           '<td>' + esc(b.metric) + '</td>' +
           '<td class="mono">' + esc(b.verified ? b.value : '\u2014') + '</td>' +
           '<td>' + esc(b.model) + '</td>' +
-          '<td>' + statusBadge(b.verified ? 'Server verified' : 'Not verified',
+          '<td>' + statusBadge(b.verified ? 'Server scored' : 'Not verified',
             b.verified ? 'verified' : 'unknown') + '</td>' +
           '<td class="mono">' + esc(b.bundle ? b.bundle.slice(0, 12) : '\u2014') + '</td></tr>';
       }).join('') +
       '</tbody></table></div>' +
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
       'A baseline is a reference score on the hidden test split of a release. It is not a ' +
-      'reproduction of any paper and is not compared with any reported value. Where a release ' +
+      'reproduction of any paper and is not compared with any reported value. Each record is ' +
+      'derived server-side from a completed private evaluation of operator-submitted test ' +
+      'predictions; training execution is not attested. Where a release ' +
       'separates groups, sites, routes, users, or time rather than shuffling rows, a baseline ' +
       'can sit far below numbers reported on random splits of the same data. That is the ' +
-      'split boundary working as intended, not a defect. Baselines are ' +
-      'produced by NeuralSmith, developed by All Things Intelligence LLC, used under the ' +
-      'NeuralSmith Non-Commercial Research &amp; Evaluation License v1.0.</p>';
+      'split boundary working as intended, not a defect.</p>';
   }
 
   function reproductionRows(rows) {
@@ -1794,7 +1959,7 @@
         '<section class="card panel"><div class="panel-head"><h2>Dataset schema</h2><span class="id">' + esc(number(d.schema && Array.isArray(d.schema.fields) ? d.schema.fields.length : 0)) + ' documented fields</span></div>' + schemaRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Source provenance</h2><span class="id">' + esc(d.sourceCount || x.sources.length) + ' records</span></div><div class="source-list">' + sourceRows(x) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>File inventory</h2><span class="id">' + esc(number(d.fileCount || x.files.length)) + ' files · ' + esc(bytes(d.totalBytes)) + '</span></div><div class="file-list">' + fileRows(x) + '</div></section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Papers linked by dataset-use evidence</h2><span class="id">Machine checked</span></div><div class="paper-list">' + paperRows(x.papers) + '</div></section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Papers linked by dataset-use evidence</h2><span class="id">Machine checked</span></div><div class="paper-list">' + paperRowsPaged(x.papers, state.detailPapersVisible) + '</div></section>' +
         '<section class="card panel"><div class="panel-head"><h2>Reproduction reports</h2>' + reproBadge + '</div><div class="repro-list">' + reproductionRows(x.reproductions) + '</div></section>' +
       '</div><aside>' +
         '<section class="card panel"><h3>Record facts</h3><dl class="kv">' +
@@ -2169,6 +2334,12 @@
       state.filters = emptyFilters();
       if (state.route.name === 'datasets' && syncDatasetFilterControls()) updateDatasetResults();
       else render();
+    } else if (action === 'show-more-papers') {
+      state.detailPapersVisible = Math.min(
+        (Number(state.detailPapersVisible) || 5) + 5,
+        state.detail && Array.isArray(state.detail.papers) ? state.detail.papers.length : 5
+      );
+      render();
     }
   });
 

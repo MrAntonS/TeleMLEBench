@@ -9,6 +9,7 @@ export const openApiDocument = {
   tags: [
     { name: "Releases", description: "Public immutable 70/15/15 task releases." },
     { name: "Evaluations", description: "Authenticated private prediction evaluation." },
+    { name: "Baselines", description: "Published server-scored baselines derived from completed private evaluations." },
   ],
   paths: {
     "/releases": {
@@ -86,6 +87,27 @@ export const openApiDocument = {
         responses: { "200": { description: "Terminal evaluation and private result" }, "202": { description: "Evaluation still running" }, "401": { description: "Invalid or expired evaluation credential" }, "404": { description: "Evaluation not found for this credential" } },
       },
     },
+    "/baselines": {
+      get: {
+        tags: ["Baselines"],
+        summary: "List published server-scored baselines",
+        parameters: [
+          { name: "dataset", in: "query", schema: { type: "string" } },
+          { name: "dataset_id", in: "query", schema: { type: "string" } },
+          { name: "dataset_version_id", in: "query", schema: { type: "string" } },
+          { name: "release_id", in: "query", schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "Published baselines", content: { "application/json": { schema: { $ref: "#/components/schemas/BaselineList" } } } } },
+      },
+      post: {
+        tags: ["Baselines"],
+        summary: "Publish a completed private evaluation as a public baseline",
+        security: [{ bearerAuth: [] }],
+        description: "Operator-only. Derives the public record server-side from a completed private evaluator run; browser grants cannot publish.",
+        requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/BaselinePublishRequest" } } } },
+        responses: { "201": { description: "Published baseline", content: { "application/json": { schema: { $ref: "#/components/schemas/BaselinePublished" } } } }, "400": { description: "Invalid publication request" }, "401": { description: "Invalid operator credential" }, "403": { description: "Browser grants cannot publish baselines" }, "404": { description: "Evaluation not found" }, "409": { description: "Evaluation is not complete" } },
+      },
+    },
   },
   components: {
     securitySchemes: {
@@ -133,6 +155,24 @@ export const openApiDocument = {
         type: "object",
         required: ["evaluation_id", "release_id", "status", "status_endpoint"],
         properties: { evaluation_id: { type: "string" }, release_id: { type: "string" }, status: { const: "queued" }, status_endpoint: { type: "string" } },
+      },
+      BaselinePublishRequest: {
+        type: "object",
+        required: ["evaluation_id", "model"],
+        properties: {
+          evaluation_id: { type: "string" },
+          model: { type: "object", required: ["name", "recipe_version", "seed"], properties: { name: { type: "string" }, recipe_version: { type: "string" }, seed: { type: "integer" } } },
+        },
+      },
+      BaselinePublished: {
+        type: "object",
+        required: ["baseline", "public_endpoint"],
+        properties: { baseline: { type: "object" }, public_endpoint: { type: "string" } },
+      },
+      BaselineList: {
+        type: "object",
+        required: ["items", "total"],
+        properties: { items: { type: "array", items: { type: "object" } }, total: { type: "integer" } },
       },
     },
   },

@@ -403,6 +403,36 @@ export const releaseManifest = {
   ]
 };
 
+export const publicBaseline = {
+  schema_version: 'telemlebench-server-scored-baseline/1',
+  baseline_id: 'baseline:release-radio-kpi-v1:accuracy',
+  release_id: 'release-radio-kpi-v1',
+  dataset_id: 'doi:10.1234/radio-kpi',
+  dataset_version_id: 'version-radio-kpi-1',
+  dataset_slug: 'radio-kpi',
+  dataset_aliases: ['radio-kpi'],
+  metric_name: 'accuracy',
+  metric_value: 0.9,
+  correct: 9,
+  sample_count: 10,
+  model_name: 'logistic_regression',
+  recipe_version: 'telemlebench-auto-baseline/2',
+  seed: 42,
+  server_verified: true,
+  verification_kind: 'server_scored_predictions',
+  prediction_conformance_passed: true,
+  training_execution_attested: false,
+  predictions_sha256: 'a'.repeat(64),
+  hidden_labels_sha256: 'b'.repeat(64),
+  scorer_version: 'telemlebench-vercel-accuracy/1',
+  alignment: { join_key: 'sample_id', mode: 'strict_test_order' },
+  source_evaluation_id: 'evaluation-fixture-1',
+  evaluated_at: '2026-09-09T05:30:31.967Z',
+  published_at: '2026-09-09T05:30:31.967Z',
+  publication: { public: true, note: 'Trusted server score over operator-submitted test predictions; training execution is not attested.' },
+  record_sha256: 'c'.repeat(64),
+};
+
 export const publicRelease = {
   id: 'release-radio-kpi-v1',
   dataset_id: 'fixture-canonical-id',

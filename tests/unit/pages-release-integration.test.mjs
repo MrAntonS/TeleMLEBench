@@ -24,6 +24,14 @@ test('existing Pages files expose release downloads through the Vercel API', () 
   assert.match(app, /test_features/);
   assert.match(app, /\/evaluations\/uploads/);
   assert.match(app, /\/evaluations\/config/);
+  assert.match(app, /loadPublicBaselineCatalog/);
+  assert.match(app, /normalizePublicBaseline/);
+  assert.match(app, /\/baselines/);
+  assert.match(app, /No public baseline/);
+  assert.match(app, /training execution is not attested/i);
+  assert.match(app, /show-more-papers/);
+  assert.match(app, /Showing /);
+  assert.match(app, /linked papers/);
   assert.match(app, /challenges\.cloudflare\.com\/turnstile/);
   assert.match(app, /turnstile_token/);
   assert.match(app, /Human verification/);
