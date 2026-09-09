@@ -129,8 +129,10 @@ def sha256_file(path):
 
 
 def resolve(url):
-    """Follow HTML meta-refresh download pages to the real file URL."""
+    """Follow HTTP redirects and HTML meta-refresh download pages to the file."""
     with urllib.request.urlopen(url) as response:
+        if response.geturl() != url:
+            return response.geturl()
         body = response.read(4096).decode("utf-8", "replace")
     match = re.search(r"url=([^\\"']+)", body)
     if match:
