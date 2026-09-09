@@ -2202,8 +2202,17 @@
     var b = guide.baseline;
     var training = b.training || {};
     var libs = training.library_versions && typeof training.library_versions === 'object' ? training.library_versions : {};
-    var pipLine = Object.keys(libs).filter(function (k) { return k !== 'python'; })
-      .map(function (k) { return k + '==' + libs[k]; }).join(' ');
+    // Only the packages main.py imports get install pins, under their PyPI
+    // distribution names (sklearn -> scikit-learn). The rest of the recorded
+    // environment is informational.
+    var RUNTIME_DEPS = { numpy: 'numpy', pandas: 'pandas', scipy: 'scipy', sklearn: 'scikit-learn' };
+    var pipLine = Object.keys(RUNTIME_DEPS)
+      .filter(function (k) { return libs[k]; })
+      .map(function (k) { return RUNTIME_DEPS[k] + '==' + libs[k]; }).join(' ');
+    var pythonNote = libs.python
+      ? 'Run it under Python ' + libs.python +
+        ' — the pinned numpy predates newer interpreters and has no wheels for them.'
+      : '';
     var replicateUrl = evalApiUrl('/baselines/' + encodeURIComponent(b.release) + '/replicate');
     var params = training.params || {};
     var paramNames = Object.keys(params);
@@ -2227,7 +2236,8 @@
           '<p class="definition">One file, one command, same score. The script downloads the split, checks versions, trains, and verifies the predictions hash itself.</p>' +
           (pipLine
             ? '<div class="copybox"><code>pip install ' + esc(pipLine) + '</code>' +
-              '<button type="button" class="btn btn-light copy-btn" data-action="copy-snippet">Copy</button></div>'
+              '<button type="button" class="btn btn-light copy-btn" data-action="copy-snippet">Copy</button></div>' +
+              (pythonNote ? '<p class="muted" style="margin-top:10px;font-size:11px;">' + esc(pythonNote) + '</p>' : '')
             : '') +
           '<div class="quickstart">' +
             (replicateUrl ? '<a class="btn btn-light" href="' + esc(replicateUrl) + '" download="main.py">Download main.py</a>' : '') +

@@ -81,12 +81,16 @@ export function buildReplicateScript({ baseline, release, apiBase }) {
   const validationMetrics = training.validation_metrics && typeof training.validation_metrics === 'object'
     ? training.validation_metrics
     : {};
+  const runtimeLibs = ['numpy', 'pandas', 'scipy', 'sklearn']
+    .filter((name) => libs[name])
+    .map((name) => `${name === 'sklearn' ? 'scikit-learn' : name}==${libs[name]}`);
+  const pipCommand = runtimeLibs.length ? `pip install ${runtimeLibs.join(' ')}` : '';
 
   return `#!/usr/bin/env python3
 """Replicate TelemleBench baseline ${releaseId} (${baseline.model_name}).
 
-Usage:
-    pip install -r requirements.txt  # see versions below
+Usage:${pipCommand ? `
+    ${pipCommand}` : ''}
     python main.py [--data-dir ./data]
 
 The script downloads the prepared split, reruns the exact pipeline, and
@@ -117,10 +121,6 @@ EXPECTED = {
     "predictions_sha256": ${py(String(baseline.predictions_sha256 || ''))},
 }
 FILES = ${py(byRole)}
-
-PIP_INSTALL = "pip install " + " ".join(
-    f"{name}=={version}" for name, version in EXPECTED_LIBS.items() if name != "python"
-)
 
 
 def sha256_file(path):

@@ -48,6 +48,9 @@ test('generated main.py embeds the record and validates input', () => {
   assert.match(script, /reproduce the reference score|SUCCESS: reproduced/);
   assert.doesNotMatch(script, /\/api\/v1\/api\/v1/);
   assert.match(script, /"path": "\/releases\/r\/files\/train"/);
+  assert.match(script, /pip install pandas==2\.3\.3 scikit-learn==1\.7\.2/);
+  assert.doesNotMatch(script, /sklearn==/);
+  assert.doesNotMatch(script, /requirements\.txt/);
 });
 
 test('generated main.py is syntactically valid Python', { skip: !process.env.PATH }, () => {
