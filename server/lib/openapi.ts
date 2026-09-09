@@ -87,6 +87,14 @@ export const openApiDocument = {
         responses: { "200": { description: "Terminal evaluation and private result" }, "202": { description: "Evaluation still running" }, "401": { description: "Invalid or expired evaluation credential" }, "404": { description: "Evaluation not found for this credential" } },
       },
     },
+    "/baselines/{releaseId}/replicate": {
+      get: {
+        tags: ["Baselines"],
+        summary: "Download a self-contained main.py that replicates the baseline",
+        parameters: [{ name: "releaseId", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Python replication script (attachment main.py)" }, "404": { description: "No published baseline for this release" } },
+      },
+    },
     "/baselines": {
       get: {
         tags: ["Baselines"],

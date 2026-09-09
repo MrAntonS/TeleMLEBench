@@ -534,6 +534,7 @@ test('baseline row links to a replication guide with exact training steps', asyn
   await expect(page.getByText('StandardScaler')).toBeVisible();
   await expect(page.locator('aside').getByText('0.900000', { exact: true })).toBeVisible();
   await expect(page.locator('.tml-release-file a').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Download main.py' })).toHaveAttribute('href', /\/replicate$/);
   assertNoClientErrors();
 });
 

@@ -2218,6 +2218,10 @@
     var release = guide.release || {};
     var files = Array.isArray(release.files) ? release.files : [];
     var training = b.training || {};
+    var libs = training.library_versions && typeof training.library_versions === 'object' ? training.library_versions : {};
+    var pipLine = Object.keys(libs).filter(function (k) { return k !== 'python'; })
+      .map(function (k) { return k + '==' + libs[k]; }).join(' ');
+    var replicateUrl = evalApiUrl('/baselines/' + encodeURIComponent(b.release) + '/replicate');
     var params = training.params || {};
     var paramNames = Object.keys(params);
     var metrics = training.validation_metrics || {};
@@ -2317,6 +2321,14 @@
         esc(b.value.toFixed(6)) + '</strong> ' + esc(b.metric) + ' on the hidden test split of ' +
         esc(b.release) + '. <span class="lb-tag">Baseline</span></p></div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
+        '<section class="card panel"><div class="panel-head"><h2>Quick start</h2><span class="lb-tag">Baseline</span></div>' +
+          '<p class="definition">One file, one command, same score. The script downloads the split, checks versions, trains, and verifies the predictions hash itself.</p>' +
+          '<div class="quickstart">' +
+            (replicateUrl ? '<a class="btn btn-light" href="' + esc(replicateUrl) + '" download="main.py">Download main.py</a>' : '') +
+            '<code class="mono">python main.py</code>' +
+          '</div>' +
+          (pipLine ? '<p class="muted" style="margin-top:10px;font-size:11px;">Needs: <span class="mono">pip install ' + esc(pipLine) + '</span></p>' : '') +
+        '</section>' +
         '<section class="card panel"><div class="panel-head"><h2><span class="step-n">1</span>Download the prepared split</h2></div>' +
           '<div class="tml-release-files">' + fileCard('train') + fileCard('validation') + fileCard('test_features') + '</div>' +
           '<p class="muted" style="margin-top:12px;font-size:12px;line-height:1.6">Files are immutable. Verify the SHA-256 checksums against the ' +
