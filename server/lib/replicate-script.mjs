@@ -53,8 +53,10 @@ export function buildReplicateScript({ baseline, release, apiBase }) {
       // Only the three splits replication needs; auxiliary manifest files
       // (split assignments and the like) are not downloadable this way.
       if (!['train', 'validation', 'test_features'].includes(file.role)) continue;
+      // download_endpoint already starts with /api/v1; store the path relative
+      // to the API base so the script joins exactly one prefix.
       byRole[file.role] = {
-        path: String(file.download_endpoint),
+        path: String(file.download_endpoint).replace(/^\/api\/v1/, ''),
         sha256: String(file.sha256),
         bytes: Number(file.byte_size) || 0,
       };
