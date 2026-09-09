@@ -1272,17 +1272,9 @@
       }).then(function (payload) {
         return list(payload && payload.items !== undefined ? payload.items : payload)
           .map(normalizePublicBaseline).filter(Boolean)[0] || null;
-      }),
-      fetch(base + '/releases?release_id=' + encodeURIComponent(releaseId), {
-        cache: 'no-store', headers: { Accept: 'application/json' }
-      }).then(function (res) {
-        if (!res.ok) throw new Error('Release request failed (' + res.status + ')');
-        return res.json();
-      }).then(function (payload) {
-        return list(payload)[0] || null;
       })
     ]).then(function (values) {
-      state.baselineGuide = values[0] ? { baseline: values[0], release: values[1] } : null;
+      state.baselineGuide = values[0] ? { baseline: values[0] } : null;
     }).catch(function (err) {
       state.error = err.message || 'The replication guide could not be loaded.';
     }).finally(function () {
@@ -2208,8 +2200,6 @@
     }
     var guide = state.baselineGuide;
     var b = guide.baseline;
-    var release = guide.release || {};
-    var files = Array.isArray(release.files) ? release.files : [];
     var training = b.training || {};
     var libs = training.library_versions && typeof training.library_versions === 'object' ? training.library_versions : {};
     var pipLine = Object.keys(libs).filter(function (k) { return k !== 'python'; })
@@ -2224,15 +2214,6 @@
     var libNames = Object.keys(libVersions);
     var target = training.target_column || '';
     var testRows = b.sampleCount;
-    var fileCard = function (role) {
-      var file = files.filter(function (f) { return f.role === role; })[0];
-      if (!file) return '';
-      var href = evalApiUrl(file.download_endpoint);
-      return '<div class="tml-release-file"><strong>' +
-        esc(role === 'train' ? 'Train split' : role === 'validation' ? 'Validation split' : 'Test CSV / features') +
-        '</strong><code>' + esc(bytes(file.byte_size)) + ' · sha256 ' + esc(String(file.sha256 || '').slice(0, 12)) + '…</code>' +
-        (href ? '<a href="' + esc(href) + '">Download ' + esc(role === 'test_features' ? 'test' : role) + '</a>' : '') + '</div>';
-    };
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span>' +
         (b.datasetSlug ? '<a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">' + esc(b.datasetSlug) + '</a><span>/</span>' : '') +
@@ -2278,21 +2259,9 @@
             ? '<details class="guide-details"><summary>Full selected-feature list (' + esc(number(features.length)) + ')</summary>' +
               '<p class="mono" style="font-size:11px;line-height:1.7;overflow-wrap:anywhere">' + esc(features.join(', ')) + '</p></details>'
             : '') +
-        '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">1</span>Download the prepared split</h2></div>' +
-          '<div class="tml-release-files">' + fileCard('train') + fileCard('validation') + fileCard('test_features') + '</div>' +
-          '<p class="muted" style="margin-top:12px;font-size:12px;line-height:1.6">Files are immutable. Verify the SHA-256 checksums against the ' +
-          (evalApiUrl(release.manifest_endpoint)
-            ? '<a href="' + esc(evalApiUrl(release.manifest_endpoint)) + '" target="_blank" rel="noopener">release manifest ↗</a>.'
-            : 'release manifest.') + '</p></section>' +
-        '<section class="card panel"><div class="panel-head"><h2><span class="step-n">2</span>Predict and score</h2></div>' +
-          '<p class="definition">Write <span class="mono">test_predictions.csv</span> with exactly ' +
-          '<span class="mono">sample_id,prediction</span> in test-file order (' + esc(number(testRows)) + ' rows). ' +
-          'Test labels stay hidden; the upload is deleted after scoring.</p>' +
-          '<p class="muted" style="font-size:12px;line-height:1.6">A faithful replication lands on <strong class="mono">' +
-          esc(b.value.toFixed(6)) + '</strong> and the predictions hash <span class="mono">' +
-          esc(b.predictions) + '</span> (record <span class="mono">' + esc(b.record.slice(0, 16)) + '…</span>). ' +
-          (b.datasetSlug ? 'Score it from the <a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">dataset page evaluator</a>.' : '') + '</p>' +
+          (b.datasetSlug
+            ? '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Scoring your own model instead? Upload predictions to the <a href="#/dataset/' + encodeURIComponent(b.datasetSlug) + '">dataset page evaluator</a> — same hidden labels, same alignment.</p>'
+            : '') +
         '</section>' +
       '</div><aside>' +
         '<section class="card panel"><h3>Baseline record</h3><dl class="kv">' +
@@ -2301,6 +2270,7 @@
           '<dt>Score</dt><dd class="mono">' + esc(b.value.toFixed(6)) + '</dd>' +
           '<dt>Correct</dt><dd class="mono">' + esc(number(b.correct)) + ' / ' + esc(number(testRows)) + '</dd>' +
           '<dt>Model</dt><dd>' + esc(b.model) + '</dd>' +
+          (b.predictions ? '<dt>Predictions</dt><dd class="mono">' + esc(b.predictions) + '</dd>' : '') +
           (metricNames.length ? '<dt>Validation</dt><dd class="mono">' + esc(metricNames.map(function (k) { return k + ' ' + metrics[k]; }).join(' · ')) + '</dd>' : '') +
           '<dt>Verified</dt><dd>Server scored</dd>' +
         '</dl></section>' +
