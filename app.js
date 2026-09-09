@@ -2909,6 +2909,7 @@
     '.tml-evaluator-progress{display:none;width:100%;height:7px;margin-top:12px;accent-color:var(--accent)}',
     '.tml-evaluator-status{min-height:19px;margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}',
     '.tml-evaluator-status.error{padding:9px 11px;border:1px solid rgba(255,180,171,.35);border-radius:2px;background:rgba(105,0,5,.14);color:var(--red);text-align:left}',
+    '.tml-evaluator-score:empty{display:none}',
     '.tml-score-result{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin-top:12px;padding:14px;border:1px solid rgba(131,216,193,.32);border-radius:2px;background:rgba(131,216,193,.06)}',
     '.tml-score-value{color:var(--green);font:500 24px var(--mono)}',
     '.tml-score-detail{align-self:center;color:var(--green);font-size:12px;line-height:1.5}',
@@ -3011,14 +3012,13 @@
     status.textContent = message;
   }
 
-  function renderScore(status, result) {
-    status.className = 'tml-evaluator-status';
-    status.textContent = '';
+  function renderScore(scoreBox, status, result) {
     if (!result || result.status !== 'completed' || !result.metric) {
       var error = result && result.error ? result.error : {};
       setEvaluatorStatus(status, error.message || 'The evaluator did not return a score.', true);
       return;
     }
+    scoreBox.textContent = '';
     var card = element('div', 'tml-score-result');
     var value = Number(result.metric.value);
     card.appendChild(element('div', 'tml-score-value', value.toFixed(6)));
@@ -3029,7 +3029,8 @@
     card.appendChild(element('div', 'tml-score-hashes',
       'server verified · labels ' + String(result.labels_sha256 || '').slice(0, 16) + '… · predictions ' +
       String(result.predictions_sha256 || '').slice(0, 16) + '… · private result only'));
-    status.appendChild(card);
+    scoreBox.appendChild(card);
+    setEvaluatorStatus(status, 'Private score ready. It stays here until a newer completed run replaces it.', false);
   }
 
   async function pollEvaluation(endpoint, credential, status) {
@@ -3090,6 +3091,8 @@
     status.setAttribute('role', 'status');
     status.setAttribute('aria-live', 'polite');
     wrap.appendChild(status);
+    var scoreBox = element('div', 'tml-evaluator-score');
+    wrap.appendChild(scoreBox);
 
     var turnstileApi = null;
     var turnstileWidgetId = null;
@@ -3169,7 +3172,7 @@
           })
         });
         var result = await pollEvaluation(accepted.status_endpoint, evaluationToken, status);
-        renderScore(status, result);
+        renderScore(scoreBox, status, result);
         fileInput.value = '';
       } catch (error) {
         setEvaluatorStatus(status, error && error.message ? error.message : 'Evaluation failed.', true);

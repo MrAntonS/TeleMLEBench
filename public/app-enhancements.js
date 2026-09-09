@@ -43,6 +43,7 @@
     '.tml-evaluator-progress{display:none;width:100%;height:7px;margin-top:12px;accent-color:var(--accent)}',
     '.tml-evaluator-status{min-height:19px;margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}',
     '.tml-evaluator-status.error{padding:9px 11px;border:1px solid rgba(255,180,171,.35);border-radius:2px;background:rgba(105,0,5,.14);color:var(--red);text-align:left}',
+    '.tml-evaluator-score:empty{display:none}',
     '.tml-score-result{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin-top:12px;padding:14px;border:1px solid rgba(131,216,193,.32);border-radius:2px;background:rgba(131,216,193,.06)}',
     '.tml-score-value{color:var(--green);font:500 24px var(--mono)}',
     '.tml-score-detail{align-self:center;color:var(--green);font-size:12px;line-height:1.5}',

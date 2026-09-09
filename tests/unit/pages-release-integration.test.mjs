@@ -32,6 +32,9 @@ test('existing Pages files expose release downloads through the Vercel API', () 
   assert.match(app, /show-more-papers/);
   assert.match(app, /Showing /);
   assert.match(app, /linked papers/);
+  assert.match(app, /tml-evaluator-score/);
+  assert.match(app, /renderScore\(scoreBox, status, result\)/);
+  assert.doesNotMatch(app, /renderScore\(status, result\)/);
   assert.match(app, /challenges\.cloudflare\.com\/turnstile/);
   assert.match(app, /turnstile_token/);
   assert.match(app, /Human verification/);
