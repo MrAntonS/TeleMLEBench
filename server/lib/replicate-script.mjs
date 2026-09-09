@@ -93,12 +93,10 @@ The script downloads the prepared split, reruns the exact pipeline, and
 exits 0 only if the predictions hash matches the published record.
 """
 import argparse
-import csv
 import hashlib
 import html
 import json
 import re
-import sys
 import urllib.request
 from pathlib import Path
 
@@ -159,21 +157,38 @@ def ensure_file(url, dest, sha256, expected_bytes):
 
 
 def check_versions():
-    try:
-        from importlib import metadata
-    except ImportError:
-        return
+    # Only the packages this script imports can change the result; the rest
+    # of the recorded environment is informational.
+    import sys
+    wanted = {
+        "pandas": ("pandas", None),
+        "sklearn": ("scikit-learn", None),
+        "numpy": ("numpy", None),
+        "scipy": ("scipy", None),
+    }
     problems = []
-    for name, expected in EXPECTED_LIBS.items():
-        if name == "python":
+    if EXPECTED_LIBS.get("python"):
+        running = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        if running != EXPECTED_LIBS["python"]:
+            problems.append(f"python {running} != {EXPECTED_LIBS['python']} (predictions may differ)")
+    for module_name, (dist_name, _) in wanted.items():
+        expected = EXPECTED_LIBS.get(module_name)
+        if not expected:
             continue
+        installed = None
         try:
-            installed = metadata.version(name)
+            from importlib import metadata
+            installed = metadata.version(dist_name)
         except Exception:
-            problems.append(f"{name} is not installed (expected {expected})")
-            continue
-        if installed != expected:
-            problems.append(f"{name} {installed} != {expected} (predictions may differ)")
+            try:
+                import importlib
+                installed = importlib.import_module(module_name).__version__
+            except Exception:
+                installed = None
+        if installed is None:
+            problems.append(f"{module_name} is not installed (expected {expected})")
+        elif str(installed) != str(expected):
+            problems.append(f"{module_name} {installed} != {expected} (predictions may differ)")
     if problems:
         print("WARNING: environment differs from the published run:")
         for problem in problems:
@@ -243,10 +258,7 @@ ${modelSection}
 
     pred = enc.inverse_transform(model.predict(x_test[:, cols]))
     out = Path("test_predictions.csv")
-    with open(out, "w", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["sample_id", "prediction"])
-        writer.writerows(zip(test["sample_id"], pred))
+    pd.DataFrame({"sample_id": test["sample_id"], "prediction": pred}).to_csv(out, index=False)
     actual = sha256_file(out)
     print(f"wrote {out} ({len(pred)} rows)")
     print(f"predictions sha256: {actual}")
