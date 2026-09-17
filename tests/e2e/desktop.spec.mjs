@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { publicBaseline } from '../fixtures/api-data.mjs';
 import { fixtureUrl, monitorClientErrors } from './support.mjs';
 
 test('renders the OpenWirelessLearning precision-instrument visual contract', async ({ page }) => {
@@ -534,6 +535,38 @@ test('baseline row links to a replication guide with exact training steps', asyn
   await expect(page.locator('aside').getByText('0.900000', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Download the prepared split/ })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Download main.py' })).toHaveAttribute('href', /\/replicate$/);
+  assertNoClientErrors();
+});
+
+test('baseline guide shows the attached author paper claim next to the server score', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.route('**/api/v1/baselines?*', async (route) => {
+    await route.fulfill({
+      json: {
+        items: [{
+          ...publicBaseline,
+          paper_claim: {
+            paper_id: '1602.04105',
+            paper_title: 'Convolutional Radio Modulation Recognition Networks',
+            metric_name: 'accuracy',
+            claimed_value: 0.874,
+            quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+            split_note: 'Paper split differs from the release split.',
+          },
+        }],
+        total: 1,
+      },
+    });
+  });
+  await page.goto(fixtureUrl('populated', 'baseline/release-radio-kpi-v1'));
+
+  await expect(page.getByRole('heading', { name: 'Paper claim' })).toBeVisible();
+  await expect(page.locator('aside').getByText('accuracy 0.8740', { exact: true })).toBeVisible();
+  await expect(page.getByText(/87\.4% classification accuracy/)).toBeVisible();
+  await expect(page.getByRole('link', { name: /Convolutional Radio/ }))
+    .toHaveAttribute('href', 'https://arxiv.org/abs/1602.04105');
+  await expect(page.getByText('Paper split differs from the release split.')).toBeVisible();
+  await expect(page.getByText(/Author-reported/)).toBeVisible();
   assertNoClientErrors();
 });
 

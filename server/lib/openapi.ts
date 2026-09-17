@@ -170,6 +170,7 @@ export const openApiDocument = {
         properties: {
           evaluation_id: { type: "string" },
           model: { type: "object", required: ["name", "recipe_version", "seed"], properties: { name: { type: "string" }, recipe_version: { type: "string" }, seed: { type: "integer" }, training: { type: "object", description: "Optional strictly-validated training provenance (params, target, counts, validation metrics) shown on the replication guide." } } },
+          paper_claim: { type: "object", description: "Optional strictly-validated author paper claim (paper_id, paper_title, metric_name, claimed_value 0..1, quote, split_note) shown next to the server score." },
         },
       },
       BaselinePublished: {

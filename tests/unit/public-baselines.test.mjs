@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  assertPaperClaim,
   assertTrainingBlock,
   buildPublicBaseline,
   parsePublicBaseline,
@@ -105,4 +106,55 @@ test('seeded UJI baseline carries the replication training facts', () => {
   assert.equal(baseline.training.params.solver, 'lbfgs');
   assert.equal(baseline.training.selected_feature_count, 416);
   assert.ok(parsePublicBaseline(baseline));
+});
+
+const paperClaim = {
+  paper_id: '1602.04105',
+  paper_title: 'Convolutional Radio Modulation Recognition Networks',
+  metric_name: 'accuracy',
+  claimed_value: 0.874,
+  quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+  split_note: 'Paper split differs from the release split; methodology replication, not a split-identical rerun.',
+};
+
+test('paper claim is optional and covered by the record hash', () => {
+  const without = buildPublicBaseline({
+    descriptor,
+    evaluationId: 'evaluation-1',
+    result,
+    model: { name: 'logistic_regression', recipeVersion: 'telemlebench-auto-baseline/2', seed: 42 },
+    publishedAt: result.completed_at,
+  });
+  assert.equal(without.paper_claim, undefined);
+  assert.ok(parsePublicBaseline(without));
+  const withClaim = buildPublicBaseline({
+    descriptor,
+    evaluationId: 'evaluation-1',
+    result,
+    model: { name: 'logistic_regression', recipeVersion: 'telemlebench-auto-baseline/2', seed: 42 },
+    paperClaim,
+    publishedAt: result.completed_at,
+  });
+  assert.deepEqual(withClaim.paper_claim, paperClaim);
+  assert.ok(parsePublicBaseline(withClaim));
+  assert.notEqual(withClaim.record_sha256, without.record_sha256);
+});
+
+test('tampered or malformed paper claims do not parse', () => {
+  const baseline = buildPublicBaseline({
+    descriptor,
+    evaluationId: 'evaluation-1',
+    result,
+    model: { name: 'logistic_regression', recipeVersion: 'telemlebench-auto-baseline/2', seed: 42 },
+    paperClaim,
+    publishedAt: result.completed_at,
+  });
+  assert.equal(parsePublicBaseline({ ...baseline, paper_claim: { ...paperClaim, quote: 'edited' } }), null);
+  assert.equal(parsePublicBaseline({ ...baseline, paper_claim: { ...paperClaim, claimed_value: 2 } }), null);
+  assert.equal(parsePublicBaseline({ ...baseline, paper_claim: { ...paperClaim, quote: '' } }), null);
+  assert.throws(() => assertPaperClaim({ ...paperClaim, paper_id: '../escape' }), /paper_id is invalid/);
+  assert.throws(() => assertPaperClaim({ ...paperClaim, claimed_value: NaN }), /claimed_value/);
+  assert.throws(() => assertPaperClaim('not-an-object'), /must be an object/);
+  assert.equal(assertPaperClaim(null), null);
+  assert.equal(assertPaperClaim(undefined), null);
 });

@@ -943,6 +943,21 @@
   // Published server-scored baselines from GET /api/v1/baselines. The server
   // derives each record from a completed private evaluation; the client
   // re-checks the publication gate so a malformed row can never render.
+  function normalizePaperClaim(value) {
+    if (value == null || typeof value !== 'object' || Array.isArray(value)) return null;
+    var paperId = text(value.paper_id, '');
+    var title = text(value.paper_title, '');
+    var metric = text(value.metric_name, '');
+    var claimed = value.claimed_value == null ? NaN : Number(value.claimed_value);
+    var quote = text(value.quote, '');
+    if (!paperId || !title || !metric || !quote) return null;
+    if (!Number.isFinite(claimed) || claimed < 0 || claimed > 1) return null;
+    if (title.length > 500 || metric.length > 64 || quote.length > 2000) return null;
+    var note = value.split_note == null ? '' : text(value.split_note, '');
+    if (note.length > 1000) return null;
+    return { paperId: paperId, title: title, metric: metric, claimed: claimed, quote: quote, splitNote: note };
+  }
+
   function normalizePublicBaseline(item) {
     var value = item.metric_value == null ? null : Number(item.metric_value);
     var verified = Boolean(
@@ -972,6 +987,7 @@
         (item.seed != null ? ' · seed ' + text(item.seed, '') : ''),
       verified: true,
       training: item.training && typeof item.training === 'object' ? item.training : null,
+      paperClaim: normalizePaperClaim(item.paper_claim),
       predictions: text(item.predictions_sha256, ''),
       labels: text(item.hidden_labels_sha256, ''),
       record: text(item.record_sha256, ''),
@@ -2385,7 +2401,24 @@
           (metricNames.length ? '<dt>Validation</dt><dd class="mono">' + esc(metricNames.map(function (k) { return k + ' ' + metrics[k]; }).join(' · ')) + '</dd>' : '') +
           '<dt>Verified</dt><dd>Server scored</dd>' +
         '</dl></section>' +
+        paperClaimPanel(b.paperClaim) +
       '</aside></div></div></section></main>';
+  }
+
+  function paperClaimPanel(claim) {
+    if (!claim) return '';
+    var isArxiv = /^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(claim.paperId);
+    var title = isArxiv
+      ? '<a href="https://arxiv.org/abs/' + encodeURIComponent(claim.paperId) + '" target="_blank" rel="noopener">' + esc(claim.title) + '</a>'
+      : esc(claim.title);
+    return '<section class="card panel"><h3>Paper claim</h3><dl class="kv">' +
+      '<dt>Paper</dt><dd>' + title + ' <span class="row-meta mono">' + esc(claim.paperId) + '</span></dd>' +
+      '<dt>Claimed</dt><dd class="mono">' + esc(claim.metric) + ' ' + esc(claim.claimed.toFixed(4)) + '</dd>' +
+      '</dl>' +
+      '<blockquote class="paper-evidence">' + esc(claim.quote) + '</blockquote>' +
+      (claim.splitNote ? '<p class="muted" style="margin-top:10px;font-size:11px;line-height:1.6">' + esc(claim.splitNote) + '</p>' : '') +
+      '<p class="muted" style="margin-top:10px;font-size:11px;line-height:1.6">Author-reported. ' +
+      'The server score above was recomputed on hidden release labels and is not a verdict about the paper.</p></section>';
   }
 
   function papersPage() {

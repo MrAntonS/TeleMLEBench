@@ -21,6 +21,7 @@ type PublicationRequest = {
     seed?: unknown;
     training?: unknown;
   };
+  paper_claim?: unknown;
 };
 
 export default defineEventHandler(async (event) => {
@@ -53,6 +54,7 @@ export default defineEventHandler(async (event) => {
         seed: body?.model?.seed,
         training: body?.model?.training,
       },
+      paperClaim: body?.paper_claim,
       publishedAt: result.completed_at,
     });
   } catch (error) {

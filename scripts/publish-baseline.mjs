@@ -18,6 +18,9 @@
 //   --facts <path>       baseline_facts.json whose whitelisted training fields
 //                      (params, target, counts, validation metrics) are published
 //                      alongside the score for the replication guide
+//   --claim-json <path> JSON file with the author paper claim
+//                      (paper_id, paper_title, metric_name, claimed_value 0..1,
+//                      quote, split_note) shown next to the server score
 //   --api-base <url>     baselines API base
 //                      (default: https://telemlebench.vercel.app/api/v1)
 //   --key <key>        operator API key (default: $TMLB_EVALUATION_API_KEY)
@@ -36,6 +39,7 @@ function parseArgs(argv) {
     recipe: 'telemlebench-auto-baseline/2',
     seed: 42,
     facts: '',
+    claimJson: '',
     apiBase: DEFAULT_API_BASE,
     key: process.env.TMLB_EVALUATION_API_KEY || '',
     help: false,
@@ -48,6 +52,7 @@ function parseArgs(argv) {
     else if (flag === '--recipe' && next) args.recipe = next, i += 1;
     else if (flag === '--seed' && next) args.seed = Number(next), i += 1;
     else if (flag === '--facts' && next) args.facts = next, i += 1;
+    else if (flag === '--claim-json' && next) args.claimJson = next, i += 1;
     else if (flag === '--api-base' && next) args.apiBase = next.replace(/\/+$/, ''), i += 1;
     else if (flag === '--key' && next) args.key = next, i += 1;
     else if (flag === '--help' || flag === '-h') args.help = true;
@@ -124,6 +129,13 @@ async function main() {
   if (args.facts) {
     training = await trainingFromFacts(args.facts);
   }
+  let paperClaim;
+  if (args.claimJson) {
+    paperClaim = JSON.parse(await readFile(args.claimJson, 'utf8'));
+    if (!paperClaim || typeof paperClaim !== 'object' || Array.isArray(paperClaim)) {
+      throw new Error(`${args.claimJson} must hold a paper-claim object`);
+    }
+  }
   const response = await fetch(`${args.apiBase}/baselines`, {
     method: 'POST',
     headers: {
@@ -134,6 +146,7 @@ async function main() {
     body: JSON.stringify({
       evaluation_id: args.evaluationId,
       model: { name: args.model, recipe_version: args.recipe, seed: args.seed, ...(training ? { training } : {}) },
+      ...(paperClaim ? { paper_claim: paperClaim } : {}),
     }),
   });
   const text = await response.text();

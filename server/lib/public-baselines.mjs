@@ -170,12 +170,52 @@ export function assertTrainingBlock(value) {
   return clean;
 }
 
+// Optional paper-claim attachment so a baseline row can show the author's
+// reported score next to the trusted server score. Every field is required
+// except split_note; the quote is the exact evidence span and split_note must
+// state when the paper split differs from the release split. Anything
+// unexpected fails closed at publication and parse time.
+export function assertPaperClaim(value) {
+  if (value == null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('paper_claim must be an object');
+  }
+  const paperId = requiredString(value.paper_id, 'paper_claim.paper_id');
+  if (!/^[A-Za-z0-9][A-Za-z0-9._/:-]{0,127}$/.test(paperId)) {
+    throw new Error('paper_claim.paper_id is invalid');
+  }
+  const paperTitle = requiredString(value.paper_title, 'paper_claim.paper_title');
+  if (paperTitle.length > 500) throw new Error('paper_claim.paper_title is too long');
+  const metricName = requiredString(value.metric_name, 'paper_claim.metric_name');
+  if (metricName.length > 64) throw new Error('paper_claim.metric_name is too long');
+  const claimedValue = Number(value.claimed_value);
+  if (!Number.isFinite(claimedValue) || claimedValue < 0 || claimedValue > 1) {
+    throw new Error('paper_claim.claimed_value must be a fraction in 0..1');
+  }
+  const quote = requiredString(value.quote, 'paper_claim.quote');
+  if (quote.length > 2000) throw new Error('paper_claim.quote is too long');
+  const clean = {
+    paper_id: paperId,
+    paper_title: paperTitle,
+    metric_name: metricName,
+    claimed_value: claimedValue,
+    quote,
+  };
+  if (value.split_note !== undefined && value.split_note !== null) {
+    const splitNote = requiredString(value.split_note, 'paper_claim.split_note');
+    if (splitNote.length > 1000) throw new Error('paper_claim.split_note is too long');
+    clean.split_note = splitNote;
+  }
+  return clean;
+}
+
 export function buildPublicBaseline({
   descriptor,
   evaluationId,
   result,
   model,
   publishedAt,
+  paperClaim,
 }) {
   assertCompletedResult(result);
   const releaseId = requiredString(descriptor?.id, 'release_id');
@@ -194,6 +234,7 @@ export function buildPublicBaseline({
     throw new Error('baseline timestamps are invalid');
   }
   const training = assertTrainingBlock(model?.training);
+  const paper_claim = assertPaperClaim(paperClaim);
 
   const core = {
     schema_version: PUBLIC_BASELINE_SCHEMA,
@@ -222,6 +263,7 @@ export function buildPublicBaseline({
     evaluated_at: completedAt,
     published_at: publicationTime,
     ...(training ? { training } : {}),
+    ...(paper_claim ? { paper_claim } : {}),
     publication: {
       public: true,
       note: 'Trusted server score over operator-submitted test predictions; training execution is not attested.',
@@ -236,6 +278,14 @@ export function parsePublicBaseline(value) {
   if (value.training !== undefined) {
     try {
       assertTrainingBlock(value.training);
+    } catch {
+      return null;
+    }
+  }
+  if (value.paper_claim !== undefined) {
+    try {
+      const clean = assertPaperClaim(value.paper_claim);
+      if (!clean || JSON.stringify(clean) !== JSON.stringify(value.paper_claim)) return null;
     } catch {
       return null;
     }
