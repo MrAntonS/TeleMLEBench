@@ -605,6 +605,29 @@
   // "Harness-measured" badge. Verified-score gating elsewhere is untouched.
   var HARNESS_RUN_RECORDS = [
     {
+      id: 'real-deepagents-radioml2016-10a-qwen3.8-27b',
+      record_kind: 'harness_run',
+      paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
+      paper_id: '1602.04105',
+      dataset: 'RadioML 2016.10A modulation classification',
+      metric: 'accuracy',
+      claimed: 0.874,
+      claim_quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+      measured_accuracy: 0.3981,
+      measured_macro_f1: 0.3598,
+      sample_count: 33000,
+      band: 'outside 5% band (lower)',
+      harness: 'deepagents 0.7.15 (langchain-ai, create_deep_agent) — the real package',
+      coding_model: 'qwen3.8:27b (local Ollama, RTX 4090)',
+      repairs_used: 'agent-managed',
+      scorer: 'trusted sample-ID-aligned scorer (accuracy + macro-F1), verified independently of the agent',
+      predictions_sha256: '1e02c998f27f9516293008aee59ab633af553a2ff938ad3f706ecfa729bd2a70',
+      code_sha256: '479a36665667bcaccef34afc02b4f349701777e5e0494a4ec2d6987ee5979921',
+      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/b7c6d596e426014b242e545f24a88a6189bcd456/reproductions/deepagents-real-radioml-qwen3.8-27b',
+      status: 'complete',
+      note: 'Agent wrote train.py/stats.py/snr.py and all predictions; final report finalized by the operator from agent artifacts after stopping a redundant retrain loop. Beats the tree reference baseline (0.367) on the same split.'
+    },
+    {
       id: 'harness-radioml2016-10a-qwen3.8-27b',
       record_kind: 'harness_run',
       paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
