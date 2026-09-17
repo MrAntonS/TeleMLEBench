@@ -971,6 +971,10 @@
         ? Number(item.reproduced_max) : null,
       verifiedRuns: verified ? verifiedRuns : 0,
       verified: verified,
+      manual: item.manual_control && item.manual_control.metric_value != null
+        ? Number(item.manual_control.metric_value) : null,
+      manualPipeline: item.manual_control && item.manual_control.pipeline_artifact
+        ? text(item.manual_control.pipeline_artifact, '') : '',
       metric: text(item.metric_name || item.metric, 'Metric not recorded'),
       started: item.started_at || item.startedAt || '',
       evidence: evidenceText(item.evidence),
@@ -2130,7 +2134,9 @@
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
       'Recomputed scores come only from the trusted server worker after sample-ID alignment against hidden labels. ' +
       'The worker persists them with an immutable run bundle; the frontend publishes a value only when the ' +
-      'experiment aggregates at least one verified run. Self-reported scores are never shown.</p>';
+      'experiment aggregates at least one verified run. Self-reported scores are never shown. ' +
+      'Visitor uploads stay unverified; training-pipeline verification for top entries is a coming-soon periodic control. ' +
+      'No row is a verdict about the paper authors.</p>';
   }
 
   function detailPage() {
@@ -2432,7 +2438,11 @@
       '<dt>Scored runs</dt><dd>' + esc(number(score.verified_run_count)) + ' / ' + esc(number(score.run_count)) + '</dd>' +
       '<dt>Mean</dt><dd class="mono">' + esc(score.mean == null ? '—' : score.mean) + '</dd>' +
       '<dt>Range</dt><dd class="mono">' + esc(score.minimum == null ? '—' : score.minimum + ' – ' + score.maximum) + '</dd>' +
-      '<dt>Variance</dt><dd class="mono">' + esc(score.population_variance == null ? '—' : score.population_variance) + '</dd></dl></section>' +
+      '<dt>Variance</dt><dd class="mono">' + esc(score.population_variance == null ? '—' : score.population_variance) + '</dd>' +
+      (report.manual_control && report.manual_control.metric_value != null
+        ? '<dt>Manual reproduction</dt><dd class="mono">' + esc(report.manual_control.metric_value) +
+          (report.manual_control.metric_name ? ' ' + esc(report.manual_control.metric_name) : '') + '</dd>'
+        : '') + '</dl></section>' +
       '<section class="card panel"><h3>Control outcomes</h3>' +
       (controls.length ? controls.map(function (control) {
         return '<div class="source-row"><div><div class="row-title">' + esc(text(control.control_type, 'control').replace(/_/g, ' ')) +
@@ -3087,7 +3097,7 @@
     progress.max = 100;
     progress.value = 0;
     wrap.appendChild(progress);
-    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not published to a leaderboard.');
+    var status = element('div', 'tml-evaluator-status', 'Nothing uploaded yet. Scores are private and are not published to a leaderboard. Training-pipeline verification for top entries is a coming-soon periodic control.');
     status.setAttribute('role', 'status');
     status.setAttribute('aria-live', 'polite');
     wrap.appendChild(status);
