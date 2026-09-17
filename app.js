@@ -605,6 +605,29 @@
   // "Harness-measured" badge. Verified-score gating elsewhere is untouched.
   var HARNESS_RUN_RECORDS = [
     {
+      id: 'real-deepagents-mistralbsm-qwen3.8-27b',
+      record_kind: 'harness_run',
+      paper_title: 'MistralBSM: Leveraging Mistral-7B for Vehicular Networks Misbehavior Detection (Hamhoum et al., arXiv:2407.18462)',
+      paper_id: '2407.18462',
+      dataset: 'VeReMi misbehavior classification',
+      metric: 'accuracy',
+      claimed: 0.96,
+      claim_quote: 'achieves 98% accuracy in binary classification and 96% in multiclass classification on a selected set of attacks from VeReMi dataset',
+      measured_accuracy: 0.1467,
+      measured_macro_f1: null,
+      sample_count: 300,
+      band: 'outside 5% band (lower)',
+      harness: 'deepagents 0.7.15 (langchain-ai, create_deep_agent) — the real package',
+      coding_model: 'qwen3.8:27b (local Ollama, RTX 4090)',
+      repairs_used: 'agent-managed',
+      scorer: 'agent program output cross-checked by independent sample-ID scorer (44/300 exact agreement)',
+      predictions_sha256: 'ab325d57642d403f906c50e99752616648fa2e18c27446facc8be188b89cc10c',
+      code_sha256: '257267718b409ca331de88b943215b0a6246f0fc076c008116a64a66c4c56558',
+      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/34d53a00d49420cc8d4a1f492631dc5d66204ae4/reproductions/deepagents-real-mistralbsm-qwen3.8-27b',
+      status: 'complete',
+      note: 'Mistral-7B-v0.3 QLoRA (r=8, 1 epoch) on window-100 BSM sequences; no sender id in release data so windows are global send_time order (recorded deviation). Honest negative result: 1-epoch/1500-window fine-tune underfits.'
+    },
+    {
       id: 'real-deepagents-veremi-qwen3.8-27b',
       record_kind: 'harness_run',
       paper_title: 'VeReMi: A Dataset for Comparable Evaluation of Misbehavior Detection in VANETs (van der Heijden et al., arXiv:1804.06701)',
