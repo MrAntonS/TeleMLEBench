@@ -605,6 +605,29 @@
   // "Harness-measured" badge. Verified-score gating elsewhere is untouched.
   var HARNESS_RUN_RECORDS = [
     {
+      id: 'real-deepagents-veremi-qwen3.8-27b',
+      record_kind: 'harness_run',
+      paper_title: 'VeReMi: A Dataset for Comparable Evaluation of Misbehavior Detection in VANETs (van der Heijden et al., arXiv:1804.06701)',
+      paper_id: '1804.06701',
+      dataset: 'VeReMi misbehavior classification',
+      metric: 'macro-F1',
+      claimed: null,
+      claim_quote: 'the acceptance range threshold and the simple speed check are complementary mechanisms that detect different attacks',
+      measured_accuracy: 0.9909,
+      measured_macro_f1: 0.9164,
+      sample_count: 5868941,
+      band: 'pattern match (no single-number paper claim)',
+      harness: 'deepagents 0.7.15 (langchain-ai, create_deep_agent) — the real package',
+      coding_model: 'qwen3.8:27b (local Ollama, RTX 4090)',
+      repairs_used: 'agent-managed',
+      scorer: 'trusted sample-ID-aligned scorer (accuracy + macro-F1), verified independently of the agent',
+      predictions_sha256: '62ea0ec296b461ab1a729b9d4318ea0592a6df8097f8f52efa282a93302127a2',
+      code_sha256: 'a7b4d7face3e992feab8bcd6dc718985344c622992356243cf987c3abb0c6f2d',
+      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/2d21500cd8eb2b1e48a13e9e387d804f21c6fde4/reproductions/deepagents-real-veremi-qwen3.8-27b',
+      status: 'complete',
+      note: 'Trained on a stratified 1M-row sample (seed 42) of 27.4M train rows; full 5.9M validation scored. Per-attacker easy/hard pattern matches the paper (types 1/4 trivial, 2/8/16 hard). Full 393MB predictions retained on the worker; hash pinned here with a 1000-row sample in git.'
+    },
+    {
       id: 'real-deepagents-radioml2016-10a-qwen3.8-27b',
       record_kind: 'harness_run',
       paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
@@ -2490,7 +2513,7 @@
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
       '<section class="card panel"><div class="panel-head"><h2>Claim vs measured</h2><span class="id">' +
       esc(text(report.metric, 'metric not recorded')) + '</span></div>' +
-      '<dl class="kv"><dt>Paper claim</dt><dd class="mono">' + esc(report.claimed) + '</dd>' +
+      '<dl class="kv"><dt>Paper claim</dt><dd class="mono">' + esc(report.claimed == null ? '— (pattern-level claim, see quote)' : report.claimed) + '</dd>' +
       '<dt>Harness-measured accuracy</dt><dd class="mono">' + esc(report.measured_accuracy) + '</dd>' +
       '<dt>Harness-measured macro-F1</dt><dd class="mono">' + esc(report.measured_macro_f1) + '</dd>' +
       '<dt>Samples scored</dt><dd class="mono">' + esc(number(report.sample_count)) + '</dd>' +
