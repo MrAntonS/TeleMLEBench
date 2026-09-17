@@ -599,6 +599,59 @@
     });
   }
 
+  // Static harness-measured reproduction records. These are NOT server-verified
+  // leaderboard scores: each carries its own provenance (harness, model,
+  // scorer, artifact hashes, evidence links) and renders under a distinct
+  // "Harness-measured" badge. Verified-score gating elsewhere is untouched.
+  var HARNESS_RUN_RECORDS = [
+    {
+      id: 'harness-radioml2016-10a-qwen3.8-27b',
+      record_kind: 'harness_run',
+      paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
+      paper_id: '1602.04105',
+      dataset: 'RadioML 2016.10A modulation classification',
+      metric: 'accuracy',
+      claimed: 0.874,
+      claim_quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+      measured_accuracy: 0.31,
+      measured_macro_f1: 0.2361,
+      sample_count: 33000,
+      band: 'outside 5% band (lower)',
+      harness: 'deep_agents pattern (local executor telemlebench-deepagents-harness/1; not the deepagents package)',
+      coding_model: 'qwen3.8:27b (local Ollama, RTX 4090)',
+      repairs_used: 2,
+      scorer: 'trusted sample-ID-aligned scorer (accuracy + macro-F1)',
+      predictions_sha256: 'd4b117af47d443ba2ee1a99e31457a80d561d86e80c3aec850018d63a369ccad',
+      code_sha256: '96a305cbdae383ddddf8b6a1a4077285ba5783e75ea267245cf45d6f8b68eb72',
+      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/98d1b07/reproductions/deepagents-radioml2016-10a-qwen3.8-27b',
+      status: 'complete',
+      note: 'Methodology replication on the release split (154k train / 33k validation); the paper split differs, so this is not a split-identical rerun. A run with the real deepagents package on the same model is in progress.'
+    },
+    {
+      id: 'harness-radioml2016-10a-qwen3-8b',
+      record_kind: 'harness_run',
+      paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
+      paper_id: '1602.04105',
+      dataset: 'RadioML 2016.10A modulation classification',
+      metric: 'accuracy',
+      claimed: 0.874,
+      claim_quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+      measured_accuracy: 0.2684,
+      measured_macro_f1: 0.227,
+      sample_count: 33000,
+      band: 'outside 5% band (lower)',
+      harness: 'deep_agents pattern (local executor telemlebench-deepagents-harness/1; not the deepagents package)',
+      coding_model: 'qwen3:8b (local Ollama, RTX 4090)',
+      repairs_used: 1,
+      scorer: 'trusted sample-ID-aligned scorer (accuracy + macro-F1)',
+      predictions_sha256: '6eb7e20816f10a85ee64d5b6527024e9729e423a7ca1c562e10c8f5075d99a20',
+      code_sha256: '53bbb89a45ad23e50e0ae138c65fac13d7567f3f5745f358c7449daa6dd5ac81',
+      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/a4efb02/reproductions/deepagents-radioml2016-10a-1602.04105',
+      status: 'complete',
+      note: 'Same paper, split, claim, and scorer as the qwen3.8:27b arm; the 27b arm gains +4.2pp accuracy.'
+    }
+  ];
+
   function catalogApi(path) {
     var parsed = new URL(path, 'https://catalog.local');
     var route = parsed.pathname.replace(/\/+$/, '') || '/';
@@ -632,6 +685,12 @@
         });
     }
     if (reproductionMatch) {
+      var recordId = decodeURIComponent(reproductionMatch[1]);
+      var found = null;
+      for (var ri = 0; ri < HARNESS_RUN_RECORDS.length; ri++) {
+        if (HARNESS_RUN_RECORDS[ri].id === recordId) found = HARNESS_RUN_RECORDS[ri];
+      }
+      if (found) return Promise.resolve(found);
       var missing = new Error('No public reproduction study is published.');
       missing.status = 404;
       return Promise.reject(missing);
@@ -650,7 +709,9 @@
     }
     if (route === '/stats' || route === '/catalog/coverage') return catalogStats();
     if (route === '/catalog/sources') return catalogSources();
-    if (route === '/reproductions') return Promise.resolve({ items: [], total: 0 });
+    if (route === '/reproductions') {
+      return Promise.resolve({ items: HARNESS_RUN_RECORDS.slice(), total: HARNESS_RUN_RECORDS.length });
+    }
 
     var err = new Error('Catalog route is not available.');
     err.status = 404;
@@ -957,10 +1018,10 @@
       dataset: text(item.dataset_name || item.name || item.dataset || item.slug, 'Dataset not listed'),
       datasetSlug: text(item.dataset_slug || item.slug, ''),
       task: text(item.task, 'Task not recorded'),
-      track: text(item.protocol_track || item.track, 'paper_only'),
+      track: text(item.record_kind === 'harness_run' ? 'deep agents (pattern)' : (item.protocol_track || item.track), 'paper_only'),
       model: text(item.coding_model || item.model, 'Not recorded'),
       outcome: text(
-        item.outcome || item.status || item.state || item.reproStatus,
+        item.record_kind === 'harness_run' ? (item.band || item.status) : (item.outcome || item.status || item.state || item.reproStatus),
         'queued'
       ),
       claimed: claimed != null && Number.isFinite(claimed) ? claimed : null,
@@ -971,6 +1032,10 @@
         ? Number(item.reproduced_max) : null,
       verifiedRuns: verified ? verifiedRuns : 0,
       verified: verified,
+      recordKind: text(item.record_kind, ''),
+      harnessMeasured: item.measured_accuracy != null ? Number(item.measured_accuracy) : null,
+      harnessModel: text(item.coding_model, ''),
+      harnessNote: text(item.note, ''),
       manual: item.manual_control && item.manual_control.metric_value != null
         ? Number(item.manual_control.metric_value) : null,
       manualPipeline: item.manual_control && item.manual_control.pipeline_artifact
@@ -2124,12 +2189,19 @@
     return '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th>Paper / claim</th><th>Protocol</th><th>Coding model</th><th>Outcome</th><th>Claimed</th><th>Recomputed</th><th>Verification</th></tr></thead><tbody>' +
       rows.map(function (r) {
         var report = r.id ? '#/reproduction/' + encodeURIComponent(r.id) : '';
+        var isHarness = r.recordKind === 'harness_run' && r.harnessMeasured != null;
         var verifiedNote = r.verified
           ? 'Server worker recomputed this score after sample-ID alignment (' + esc(number(r.verifiedRuns)) + ' verified run' + (r.verifiedRuns === 1 ? '' : 's') + ').'
-          : 'No server-verified score is published for this experiment. Unverified or missing runs are never shown as scores.';
+          : (isHarness
+            ? 'Harness-measured score with pinned provenance (model, code and prediction hashes, evidence links on the report). Not a server-verified leaderboard score.'
+            : 'No server-verified score is published for this experiment. Unverified or missing runs are never shown as scores.');
+        var recomputed = r.verified ? r.reproduced : (isHarness ? r.harnessMeasured : null);
+        var badge = r.verified
+          ? statusBadge('Server verified', 'verified')
+          : (isHarness ? statusBadge('Harness-measured', 'unknown') : statusBadge('Not verified', 'unknown'));
         return '<tr><td><strong>' +
           (report ? '<a href="' + report + '">' + esc(r.title) + '</a>' : esc(r.title)) +
-          '</strong><div class="row-meta">' + esc(r.metric) + '</div></td><td>' + esc(r.track.replace(/_/g,' ')) + '</td><td>' + esc(r.model) + '</td><td>' + statusBadge(r.outcome) + '</td><td class="mono">' + esc(r.claimed == null ? '—' : r.claimed) + '</td><td class="mono">' + esc(r.reproduced == null ? '—' : r.reproduced) + '</td><td title="' + esc(verifiedNote) + '">' + statusBadge(r.verified ? 'Server verified' : 'Not verified', r.verified ? 'verified' : 'unknown') + '</td></tr>';
+          '</strong><div class="row-meta">' + esc(r.metric) + '</div></td><td>' + esc(String(r.track).replace(/_/g,' ')) + '</td><td>' + esc(r.model) + '</td><td>' + statusBadge(r.outcome) + '</td><td class="mono">' + esc(r.claimed == null ? '—' : r.claimed) + '</td><td class="mono">' + esc(recomputed == null ? '—' : recomputed) + '</td><td title="' + esc(verifiedNote) + '">' + badge + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
       'Recomputed scores come only from the trusted server worker after sample-ID alignment against hidden labels. ' +
@@ -2352,10 +2424,41 @@
     '</div></main>';
   }
 
+  function harnessRunDetailPage(report) {
+    return '<main id="main"><section class="detail-hero"><div class="container">' +
+      '<div class="breadcrumbs"><a href="#/reproductions">Reproductions</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
+      '<div class="detail-title"><div><div class="eyebrow">Harness-measured reproduction</div><h1>' +
+      esc(text(report.paper_title, 'Experimental claim')) + '</h1><p>' +
+      esc(text(report.dataset, 'Dataset not recorded')) + '</p></div><div class="detail-actions">' +
+      statusBadge('Harness-measured', 'unknown') + '</div></div></div></section>' +
+      '<section class="page"><div class="container"><div class="detail-body"><div>' +
+      '<section class="card panel"><div class="panel-head"><h2>Claim vs measured</h2><span class="id">' +
+      esc(text(report.metric, 'metric not recorded')) + '</span></div>' +
+      '<dl class="kv"><dt>Paper claim</dt><dd class="mono">' + esc(report.claimed) + '</dd>' +
+      '<dt>Harness-measured accuracy</dt><dd class="mono">' + esc(report.measured_accuracy) + '</dd>' +
+      '<dt>Harness-measured macro-F1</dt><dd class="mono">' + esc(report.measured_macro_f1) + '</dd>' +
+      '<dt>Samples scored</dt><dd class="mono">' + esc(number(report.sample_count)) + '</dd>' +
+      '<dt>5% band position</dt><dd>' + esc(text(report.band, 'Not recorded')) + '</dd>' +
+      '<dt>Paper quote</dt><dd><blockquote class="paper-evidence mini">' + esc(text(report.claim_quote, 'Not recorded')) + '</blockquote></dd></dl></section>' +
+      '<section class="card panel"><div class="panel-head"><h2>Provenance</h2></div>' +
+      '<dl class="kv"><dt>Harness</dt><dd>' + esc(text(report.harness, 'Not recorded')) + '</dd>' +
+      '<dt>Coding model</dt><dd class="mono">' + esc(text(report.coding_model, 'Not recorded')) + '</dd>' +
+      '<dt>Repair rounds used</dt><dd class="mono">' + esc(report.repairs_used) + '</dd>' +
+      '<dt>Scorer</dt><dd>' + esc(text(report.scorer, 'Not recorded')) + '</dd>' +
+      '<dt>Predictions SHA-256</dt><dd class="mono">' + esc(text(report.predictions_sha256, '—')) + '</dd>' +
+      '<dt>Training-code SHA-256</dt><dd class="mono">' + esc(text(report.code_sha256, '—')) + '</dd>' +
+      '<dt>Evidence</dt><dd>' + (report.evidence_url ? '<a href="' + esc(report.evidence_url) + '" target="_blank" rel="noopener">Full run bundle (code, logs, predictions)</a>' : 'Not recorded') + '</dd></dl>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
+      esc(text(report.note, '')) + ' This is a harness-measured score with pinned provenance, not a server-verified leaderboard score. ' +
+      'Band positions are never verdicts about the paper authors.</p></section>' +
+      '</div></div></div></section></main>';
+  }
+
   function reproductionDetailPage() {
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading immutable reproduction report…') + '</div></main>';
     if (state.error || !state.reproductionDetail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
     var report = state.reproductionDetail;
+    if (report && report.record_kind === 'harness_run') return harnessRunDetailPage(report);
     var claim = report.claim || {};
     var dataset = report.dataset || {};
     var paper = report.paper || {};
