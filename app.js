@@ -1891,6 +1891,14 @@
     return Array.from(new Set(values.filter(function (v) { return v && v !== 'unknown' && v !== 'Unclassified'; }))).sort();
   }
 
+  function isDownloadableDataset(d) {
+    return Boolean(d && Number(d.releaseCount) > 0);
+  }
+
+  function downloadableCount() {
+    return state.datasets.filter(isDownloadableDataset).length;
+  }
+
   function filteredDatasets() {
     var f = state.filters;
     return state.datasets.filter(function (d) {
@@ -1901,7 +1909,7 @@
         (f.source === 'all' || d.sourceProviders.indexOf(f.source) >= 0) &&
         (f.license === 'all' || d.license === f.license) &&
         (f.publication === 'all' ||
-          (f.publication === 'released' ? d.releaseCount > 0 : d.releaseCount === 0)) &&
+          (f.publication === 'released' ? isDownloadableDataset(d) : !isDownloadableDataset(d))) &&
         (f.papers === 'all' ||
           (f.papers === 'linked' ? d.paperCount > 0 : d.paperCount === 0));
     });
@@ -1924,6 +1932,19 @@
     var counted = document.getElementById('datasets-result-count');
     if (counted) counted.textContent = number(results.length) + ' dataset records';
     container.innerHTML = datasetResults(results);
+    syncDownloadableToggle();
+  }
+
+  // Keeps the one-click downloadable checkbox and the Release select in
+  // agreement without rebuilding the controls (which would drop focus).
+  function syncDownloadableToggle() {
+    var toggle = document.getElementById('filter-downloadable-only');
+    if (toggle) toggle.checked = state.filters.publication === 'released';
+    var select = document.getElementById('filter-publication');
+    if (select) select.value = state.filters.publication;
+    var note = document.getElementById('downloadable-count-note');
+    if (note) note.textContent = number(downloadableCount()) + ' of ' +
+      number(state.datasets.length) + ' downloadable';
   }
 
   // Pushes reset filter state back onto the live controls so clearing filters
@@ -1935,11 +1956,13 @@
       var key = control.getAttribute('data-filter');
       if (key in state.filters) control.value = state.filters[key];
     });
+    syncDownloadableToggle();
     return true;
   }
 
   function datasetsPage() {
     var results = filteredDatasets();
+    var downloadableOnly = state.filters.publication === 'released';
     return '<main id="main" class="tml-page">' +
       '<div class="ow-page-heading"><div><h1>Datasets</h1><p class="tml-page-intro">Browse static wireless and network ML datasets across repositories. ' +
         'Each record keeps its source, task context, public files, prepared releases, and linked papers together.</p></div></div>' +
@@ -1949,13 +1972,20 @@
         '<input id="filter-query" data-filter="query" value="' + esc(state.filters.query) +
           '" placeholder="Search datasets, tasks, domains, or sources…">' +
       '</div>' +
+      '<div class="tml-downloadable-bar" style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+        '<label for="filter-downloadable-only" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">' +
+          '<input type="checkbox" id="filter-downloadable-only" data-action="toggle-downloadable-only"' +
+            (downloadableOnly ? ' checked' : '') + '> Only show downloadable datasets</label>' +
+        '<span id="downloadable-count-note" class="muted" style="font-size:13px;">' + esc(number(downloadableCount())) + ' of ' +
+          esc(number(state.datasets.length)) + ' downloadable</span>' +
+      '</div>' +
       '<div class="tml-filters" aria-label="Dataset filters">' +
         '<div class="field"><label for="filter-task">Task</label><select id="filter-task" data-filter="task">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.tasks;}))), state.filters.task) + '</select></div>' +
         '<div class="field"><label for="filter-origin">Origin</label><select id="filter-origin" data-filter="origin">' + filterOptions(unique(state.datasets.map(function(d){return d.origin;})), state.filters.origin) + '</select></div>' +
         '<div class="field"><label for="filter-access">Access</label><select id="filter-access" data-filter="access">' + filterOptions(unique(state.datasets.map(function(d){return d.access;})), state.filters.access) + '</select></div>' +
         '<div class="field"><label for="filter-source">Source</label><select id="filter-source" data-filter="source">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.sourceProviders;}))), state.filters.source) + '</select></div>' +
         '<div class="field"><label for="filter-license">License</label><select id="filter-license" data-filter="license">' + filterOptions(unique(state.datasets.map(function(d){return d.license;})), state.filters.license) + '</select></div>' +
-        '<div class="field"><label for="filter-publication">Release</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Prepared release available'},{value:'source-only',label:'Source record only'}], state.filters.publication) + '</select></div>' +
+        '<div class="field"><label for="filter-publication">Release</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Downloadable'},{value:'source-only',label:'Not downloadable'}], state.filters.publication) + '</select></div>' +
         '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Linked paper use'},{value:'none',label:'No linked paper use'}], state.filters.papers) + '</select></div>' +
       '</div>' +
       '<div class="tml-result-line"><span id="datasets-result-count">' + esc(number(results.length)) +
@@ -2740,6 +2770,24 @@
     return (labels[state.route.name] ? labels[state.route.name] + ' — ' : '') + 'OpenWirelessLearning';
   }
 
+  function parseDownloadableParam(params) {
+    var raw = params.get('downloadable');
+    if (raw == null) raw = params.get('availability');
+    if (raw == null) raw = params.get('publication');
+    if (raw == null) raw = params.get('release');
+    if (raw == null) return null;
+    var value = String(raw).trim().toLowerCase();
+    if (!value) return null;
+    if (['1', 'true', 'yes', 'only', 'downloadable', 'released', 'available'].indexOf(value) >= 0) {
+      return 'released';
+    }
+    if (['0', 'false', 'no', 'all'].indexOf(value) >= 0) return 'all';
+    if (['source-only', 'source_only', 'source', 'not-downloadable', 'not_downloadable', 'not'].indexOf(value) >= 0) {
+      return 'source-only';
+    }
+    return null;
+  }
+
   function parseRoute() {
     var hash = window.location.hash || '#/home';
     var raw = hash.replace(/^#\/?/, '');
@@ -2754,16 +2802,23 @@
     if (parts[0] === 'reproduction' && parts[1]) return { name:'reproduction', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'baseline' && parts[1]) return { name:'baseline', releaseId:decodeURIComponent(parts.slice(1).join('/')) };
     var name = allowed.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
-    if (name === 'datasets' && params.has('query')) {
-      return { name:'datasets', query: params.get('query') || '' };
+    if (name === 'datasets' && (params.has('query') || parseDownloadableParam(params) !== null)) {
+      return {
+        name:'datasets',
+        query: params.has('query') ? (params.get('query') || '') : undefined,
+        publication: parseDownloadableParam(params)
+      };
     }
     return { name:name };
   }
 
   function syncRoute() {
     var route = parseRoute();
-    if (route.name === 'datasets' && typeof route.query === 'string') {
-      state.filters.query = route.query;
+    if (route.name === 'datasets') {
+      if (typeof route.query === 'string') state.filters.query = route.query;
+      if (route.publication === 'released' || route.publication === 'source-only' || route.publication === 'all') {
+        state.filters.publication = route.publication;
+      }
     }
     state.route = route;
     state.navOpen = false;
@@ -2927,6 +2982,13 @@
     // Repaint the results only. A full render() would replace the control being
     // used, dropping focus mid-interaction - and for the search box it also
     // swallows every keystroke that lands during the rebuild.
+    // updateDatasetResults() also re-syncs the downloadable toggle/count.
+    if (state.route.name === 'datasets') updateDatasetResults();
+    else render();
+  }
+
+  function applyDownloadableToggle(checked) {
+    state.filters.publication = checked ? 'released' : 'all';
     if (state.route.name === 'datasets') updateDatasetResults();
     else render();
   }
@@ -2935,6 +2997,10 @@
     if (event.target.hasAttribute('data-finder-input')) {
       state.finder.query = event.target.value;
       updateFinderPanel(false);
+      return;
+    }
+    if (event.target.getAttribute && event.target.getAttribute('data-action') === 'toggle-downloadable-only') {
+      applyDownloadableToggle(Boolean(event.target.checked));
       return;
     }
     if (event.target.hasAttribute('data-schema-filter')) {
@@ -2962,6 +3028,10 @@
   app.addEventListener('change', function (event) {
     // Text inputs already applied their value on `input`; handling `change` too
     // would redo the work on every Enter press and blur.
+    if (event.target.getAttribute && event.target.getAttribute('data-action') === 'toggle-downloadable-only') {
+      applyDownloadableToggle(Boolean(event.target.checked));
+      return;
+    }
     if (event.target.tagName === 'INPUT') return;
     applyFilter(event);
   });
