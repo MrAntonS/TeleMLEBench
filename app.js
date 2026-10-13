@@ -1072,6 +1072,12 @@
   // Published server-scored baselines from GET /api/v1/baselines. The server
   // derives each record from a completed private evaluation; the client
   // re-checks the publication gate so a malformed row can never render.
+  // Withheld baselines stay in Blob for provenance but never render in the
+  // Scores table. The RadioML CNN run below scored 0.1834 (6053/33000) and
+  // is withheld because the score is too low to show as a baseline.
+  var SUPPRESSED_PUBLIC_BASELINE_RECORDS = {
+    '757a799334cf1532e3e2b03074d3aa2d70b46b04b26196e671cc2eafae1dd8a7': true
+  };
   function normalizePaperClaim(value) {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return null;
     var paperId = text(value.paper_id, '');
@@ -1088,6 +1094,10 @@
   }
 
   function normalizePublicBaseline(item) {
+    var suppressedHash = text(item.record_sha256, '');
+    if (suppressedHash && SUPPRESSED_PUBLIC_BASELINE_RECORDS[suppressedHash]) return null;
+    if (text(item.release_id, '') === 'radioml2016-10a-modulation-classification-v1' &&
+      text(item.model_name, '') === 'qwen3.8-27b-deepagents-cnn') return null;
     var value = item.metric_value == null ? null : Number(item.metric_value);
     var verified = Boolean(
       item.schema_version === 'telemlebench-server-scored-baseline/1' &&
