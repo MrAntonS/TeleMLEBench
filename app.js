@@ -37,6 +37,7 @@
       query: ''
     },
     catalogPage: 1,
+    scorePage: 1,
     navOpen: false
   };
 
@@ -1352,6 +1353,7 @@
     state.error = '';
     state.detail = null;
     state.detailPapersVisible = 5;
+    state.scorePage = 1;
     render();
     return Promise.all([
       api('/datasets/' + encodeURIComponent(slug)),
@@ -2487,18 +2489,24 @@
         '<td class="mono">&mdash;</td>' +
         '<td>' + action + '</td></tr>');
     });
-    return '<div style="overflow-x:auto"><table class="repro-table lb-table"><thead><tr>' +
+    var scorePages = Math.max(1, Math.ceil(rows.length / SCORES_PAGE_SIZE));
+    state.scorePage = Math.min(Math.max(1, state.scorePage || 1), scorePages);
+    var scoreStart = (state.scorePage - 1) * SCORES_PAGE_SIZE;
+    var scoreRows = rows.slice(scoreStart, scoreStart + SCORES_PAGE_SIZE);
+    return '<div data-scores-body><div style="overflow-x:auto"><table class="repro-table lb-table"><thead><tr>' +
       '<th>#</th><th>Method</th><th>Author-claimed</th><th>OWL verified</th><th>Status</th>' +
-      '</tr></thead><tbody>' + rows.join('') +
+      '</tr></thead><tbody>' + scoreRows.join('') +
       '</tbody></table></div>' +
+      (scorePages > 1 ? '<nav class="ow-pagination" aria-label="Score pages"><button class="tml-button" data-action="score-prev"' + (state.scorePage === 1 ? ' disabled' : '') + '>Previous</button><span role="status">Page ' + state.scorePage + ' of ' + scorePages + '</span><button class="tml-button" data-action="score-next"' + (state.scorePage === scorePages ? ' disabled' : '') + '>Next</button></nav>' : '') +
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
       'Every verified score is computed by the trusted server against hidden test labels after sample-ID alignment. ' +
       'Author-reported numbers use the papers\u2019 own splits and are not comparable to server scores on this release. ' +
       'Blank means not yet reproduced here; it is not a verdict about the paper. ' +
-      'Open-run values are OWL\u2019s own code-open reproductions, not server-verified scores.</p>';
+      'Open-run values are OWL\u2019s own code-open reproductions, not server-verified scores.</p></div>';
   }
 
   var DETAIL_PAPERS_PAGE = 5;
+  var SCORES_PAGE_SIZE = 10;
 
   function paperMini(p) {
     var detailUrl = p.id ? '#/paper/' + encodeURIComponent(p.id) : '';
@@ -2621,7 +2629,7 @@
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
       '<section class="page page-detail"><div class="container"><div class="detail-body"><div>' +
         taskAndDataSection(x) +
-        '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '</div>' + scoresLeaderboard(x) + '</section>' +
+        '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>' +
       '</div><aside>' +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
       '</aside></div>' +
@@ -3167,6 +3175,22 @@
       updateDatasetResults();
       var pageButton = app.querySelector('[data-action="' + action + '"]:not([disabled])') || app.querySelector('.ow-pagination button:not([disabled])');
       if (pageButton) pageButton.focus();
+    } else if (action === 'score-prev' || action === 'score-next') {
+      state.scorePage = (state.scorePage || 1) + (action === 'score-next' ? 1 : -1);
+      render();
+      var scoreButton = app.querySelector('[data-action="' + action + '"]:not([disabled])') || app.querySelector('[aria-label="Score pages"] button:not([disabled])');
+      if (scoreButton) scoreButton.focus();
+    } else if (action === 'toggle-scores') {
+      var scoresCard = event.target.closest('section');
+      var scoresBody = scoresCard && scoresCard.querySelector('[data-scores-body]');
+      var toggleButton = event.target.closest('[data-action="toggle-scores"]');
+      if (scoresBody && toggleButton) {
+        var collapsed = !scoresBody.hasAttribute('hidden');
+        if (collapsed) scoresBody.setAttribute('hidden', '');
+        else scoresBody.removeAttribute('hidden');
+        toggleButton.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
+      }
     } else if (action === 'clear-filters') {
       state.catalogPage = 1;
       state.filters = emptyFilters();

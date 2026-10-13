@@ -371,6 +371,47 @@ test('dataset page has no separate harness section; open runs surface through cl
   assertNoClientErrors();
 });
 
+test('dataset scores paginate at ten rows and collapse on demand', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.route('**/api/v1/baselines?*', async (route) => {
+    await route.fulfill({
+      json: {
+        items: Array.from({ length: 11 }, (_, i) => ({
+          ...publicBaseline,
+          baseline_id: 'baseline-fixture-' + i,
+          release_id: 'release-fixture-' + i,
+          model_name: 'model-' + i,
+          paper_claim: {
+            paper_id: '1900.0000' + i,
+            paper_title: 'Fixture Claim Paper ' + i,
+            metric_name: 'accuracy',
+            claimed_value: 0.5 + i * 0.01,
+            quote: 'Fixture claim quote ' + i,
+            split_note: 'Fixture split note.',
+          },
+        })),
+        total: 11,
+      },
+    });
+  });
+  await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
+
+  const table = page.locator('.lb-table');
+  await expect(table.locator('tbody tr')).toHaveCount(10);
+  await expect(page.getByRole('navigation', { name: 'Score pages' })).toContainText('Page 1 of 3');
+  await page.getByRole('navigation', { name: 'Score pages' }).getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('navigation', { name: 'Score pages' })).toContainText('Page 2 of 3');
+  await expect(table.locator('tbody tr td:first-child').first()).toHaveText('11');
+
+  const toggle = page.getByRole('button', { name: 'Collapse' });
+  await toggle.click();
+  await expect(table).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Expand' })).toHaveAttribute('aria-expanded', 'false');
+  await page.getByRole('button', { name: 'Expand' }).click();
+  await expect(table).toBeVisible();
+  assertNoClientErrors();
+});
+
 test('research domain link deep-links the datasets filter and keeps the term visible and editable', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'home'));
