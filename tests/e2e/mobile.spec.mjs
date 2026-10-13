@@ -22,11 +22,11 @@ test('mobile navigation is operable and detail content does not overflow', async
   await page.keyboard.press('Enter');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
-  const papersLink = page.getByRole('link', { name: 'Papers', exact: true }).first();
-  await expect(papersLink).toBeVisible();
-  await papersLink.click();
-  await expect(page).toHaveURL(/#\/papers$/);
-  await expect(page.getByRole('heading', { name: 'Papers' })).toBeVisible();
+  const coverageLink = page.getByRole('link', { name: 'Coverage', exact: true }).first();
+  await expect(coverageLink).toBeVisible();
+  await coverageLink.click();
+  await expect(page).toHaveURL(/#\/coverage$/);
+  await expect(page.getByRole('heading', { name: 'Coverage' })).toBeVisible();
 
   await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
   await expect(page.getByRole('heading', { level: 1, name: 'Metro LTE KPI Handover Dataset' })).toBeVisible();

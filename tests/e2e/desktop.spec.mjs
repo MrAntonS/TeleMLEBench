@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { publicBaseline } from '../fixtures/api-data.mjs';
+import { publicBaseline, reproductionSummary } from '../fixtures/api-data.mjs';
 import { fixtureUrl, monitorClientErrors } from './support.mjs';
 
 test('renders the OpenWirelessLearning precision-instrument visual contract', async ({ page }) => {
@@ -150,14 +150,14 @@ test('finder no-match state links Browse all to the full catalog', async ({ page
   await browseAll.click();
 
   await expect(page).toHaveURL(/#\/datasets$/);
-  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
   assertNoClientErrors();
 });
 test('finder View all preserves the query and clears stale non-query filters', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
-  await page.getByLabel('Task').selectOption('classification');
-  await expect(page.getByLabel('Task')).toHaveValue('classification');
+  await page.getByLabel('Research task').selectOption('classification');
+  await expect(page.getByLabel('Research task')).toHaveValue('classification');
 
   // Navigate home through the app shell so in-memory filter state persists.
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true }).click();
@@ -170,8 +170,8 @@ test('finder View all preserves the query and clears stale non-query filters', a
 
   await finder.getByRole('link', { name: /View all .* in the catalog/ }).click();
   await expect(page).toHaveURL(/#\/datasets\?query=KPI$/);
-  await expect(page.getByLabel('Search')).toHaveValue('KPI');
-  await expect(page.getByLabel('Task')).toHaveValue('all');
+  await expect(page.getByLabel('Search', { exact: true })).toHaveValue('KPI');
+  await expect(page.getByLabel('Research task')).toHaveValue('all');
   await expect(page.locator('.tml-result-line')).toContainText('2 dataset records');
   assertNoClientErrors();
 });
@@ -184,7 +184,7 @@ test('finder Enter submit deep-links the encoded query and catalog input/results
   await page.locator('.ow-finder').getByLabel('Search datasets').press('Enter');
 
   await expect(page).toHaveURL(new RegExp('#/datasets\\?query=' + encodeURIComponent(query) + '$'));
-  await expect(page.getByLabel('Search')).toHaveValue(query);
+  await expect(page.getByLabel('Search', { exact: true })).toHaveValue(query);
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
   assertNoClientErrors();
 });
@@ -239,13 +239,13 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
-  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
   await expect(page.getByText('PUBLIC DATA INDEX')).toHaveCount(0);
   await expect(page.getByText('VISIBLE RECORDS')).toHaveCount(0);
   await expect(page.locator('.tml-result-line')).toContainText('dataset records');
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
 
-  await expect(page.getByLabel('Task')).toContainText('classification');
+  await expect(page.getByLabel('Research task')).toContainText('classification');
   await expect(page.getByLabel('Source')).toContainText('Zenodo');
 
   await page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ }).click();
@@ -262,7 +262,16 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   await expect(baselineRow).toHaveCount(1);
   await expect(baselineRow).toContainText('logistic_regression');
   await expect(baselineRow).toContainText('0.900000');
-  await expect(page.getByText('We train and evaluate every model')).toBeVisible();
+  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle })).toHaveCount(2);
+  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle, exact: true }).first()).toHaveAttribute(
+    'href',
+    '#/reproduction/experiment-1'
+  );
+  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle, exact: true }).nth(1)).toHaveAttribute('href', '#/paper/paper-1');
+  await expect(page.locator('.lb-table').getByRole('link', { name: 'Read evidence →' })).toHaveAttribute('href', '#/paper/paper-1');
+  await expect(page.getByText('2 scores verified · 0 claims · 1 linked papers', { exact: true })).toBeVisible();
+  await expect(page.locator('.ow-more-filters summary')).toContainText('Record details');
+  await page.locator('.ow-more-filters summary').click();
   await expect(page.getByText('Publication review', { exact: true })).toBeVisible();
   await expect(page.getByText('AI · gpt-5.6-sol', { exact: true })).toBeVisible();
   await expect(page.getByText('Review policy', { exact: true })).toBeVisible();
@@ -272,16 +281,93 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
   )).toBeVisible();
   await expect(page.getByText('Human audit', { exact: true })).toBeVisible();
   await expect(page.getByText('Pending', { exact: true })).toBeVisible();
-  await expect(page.locator('.lb-table h3, .lb-table td').getByRole('link', { name: paperTitle })).toHaveCount(1);
-  await expect(page.locator('aside .paper-cards h3').getByRole('link', { name: paperTitle })).toHaveCount(1);
-  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle })).toHaveAttribute(
-    'href',
-    '#/reproduction/experiment-1'
-  );
-  await expect(page.locator('aside .paper-cards h3').getByRole('link', { name: paperTitle })).toHaveAttribute('href', '#/paper/paper-1');
-  await expect(page.locator('aside .pdf-btn').first()).toHaveAttribute('href', 'https://arxiv.org/pdf/2501.00001');
-  await expect(page.getByRole('heading', { name: 'Linked papers' })).toBeVisible();
   await expect(page.getByText('Python loading example')).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('dataset scores table lists author claims after verified rows without sorting by score', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.route('**/api/v1/baselines?*', async (route) => {
+    await route.fulfill({
+      json: {
+        items: [{
+          ...publicBaseline,
+          paper_claim: {
+            paper_id: '1602.04105',
+            paper_title: 'Convolutional Radio Modulation Recognition Networks',
+            metric_name: 'accuracy',
+            claimed_value: 0.99,
+            quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
+            split_note: 'Paper split differs from the release split.',
+          },
+        }],
+        total: 1,
+      },
+    });
+  });
+  await page.route('**/reproductions?*', async (route) => {
+    await route.fulfill({
+      json: {
+        items: [reproductionSummary, {
+          record_kind: 'harness_run',
+          id: 'harness-oshea-fixture',
+          paper_title: 'Convolutional Radio Modulation Recognition Networks (arXiv:1602.04105)',
+          dataset_slug: 'radio-kpi',
+          metric_name: 'accuracy',
+          measured_accuracy: 0.77,
+          coding_model: 'fixture-model',
+          outcome: 'outside_band',
+          status: 'complete',
+        }],
+        total: 2,
+      },
+    });
+  });
+  await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
+
+  const table = page.locator('.lb-table');
+  // Even the highest claim sorts after every verified row: claims are never
+  // ranked against server scores.
+  const claimRow = table.locator('tbody tr').nth(2);
+  await expect(claimRow).toContainText('Convolutional Radio Modulation Recognition Networks');
+  await expect(claimRow.getByText('0.9900', { exact: true })).toBeVisible();
+  await expect(claimRow.getByText('Paper split differs from the release split.')).toBeVisible();
+  // The paper was reproduced by an open OWL run: its score shows in the
+  // claim row, clearly marked as an open run rather than a verified score.
+  await expect(claimRow.getByText('0.7700', { exact: true })).toBeVisible();
+  await expect(claimRow.getByText('Reproduced by OWL', { exact: true })).toBeVisible();
+  await expect(table.getByRole('link', { name: /Convolutional Radio/ })).toHaveAttribute('href', 'https://arxiv.org/abs/1602.04105');
+  await expect(page.getByText('2 scores verified · 1 claims · 1 linked papers', { exact: true })).toBeVisible();
+  await expect(page.getByText(/not comparable to server scores/)).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('dataset page has no separate harness section; open runs surface through claim rows', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.route('**/reproductions?*', async (route) => {
+    await route.fulfill({
+      json: {
+        items: [reproductionSummary, {
+          record_kind: 'harness_run',
+          id: 'harness-fixture-qwen',
+          paper_title: 'Fixture Harness Attempt',
+          dataset_slug: 'radio-kpi',
+          metric_name: 'accuracy',
+          measured_accuracy: 0.42,
+          coding_model: 'fixture-model',
+          outcome: 'outside_band',
+          status: 'complete',
+        }],
+        total: 2,
+      },
+    });
+  });
+  await page.goto(fixtureUrl('populated', 'dataset/radio-kpi'));
+
+  // No separate harness table: an open run without a matching paper claim
+  // renders nowhere; matched runs surface inside their claim row instead.
+  await expect(page.getByRole('heading', { name: 'Harness-measured runs' })).toHaveCount(0);
+  await expect(page.locator('.lb-table').getByText('Fixture Harness Attempt')).toHaveCount(0);
   assertNoClientErrors();
 });
 
@@ -294,7 +380,7 @@ test('research domain link deep-links the datasets filter and keeps the term vis
   await mobilityLink.click();
 
   await expect(page).toHaveURL(/#\/datasets\?query=mobility$/);
-  await expect(page.getByLabel('Search')).toHaveValue('mobility');
+  await expect(page.getByLabel('Search', { exact: true })).toHaveValue('mobility');
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
   assertNoClientErrors();
@@ -305,7 +391,7 @@ test('datasets deep-link query filters directly from the hash URL on load', asyn
   await page.goto(`${fixtureUrl('populated', 'datasets')}?query=mobility`);
 
   await expect(page).toHaveURL(/#\/datasets\?query=mobility$/);
-  await expect(page.getByLabel('Search')).toHaveValue('mobility');
+  await expect(page.getByLabel('Search', { exact: true })).toHaveValue('mobility');
   await expect(page.getByRole('link', { name: /Metro LTE KPI Handover Dataset/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Catalog-only Telecom Dataset/ })).toHaveCount(0);
   assertNoClientErrors();
@@ -315,8 +401,8 @@ test('catalog search keeps focus and caret while filtering as you type', async (
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
-  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
-  const search = page.getByLabel('Search');
+  await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
+  const search = page.getByLabel('Search', { exact: true });
   await search.click();
 
   // Typed character by character rather than filled: a full re-render per
@@ -349,7 +435,7 @@ test('catalog search stays editable after a deep-linked query', async ({ page })
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(`${fixtureUrl('populated', 'datasets')}?query=metro`);
 
-  const search = page.getByLabel('Search');
+  const search = page.getByLabel('Search', { exact: true });
   await expect(search).toHaveValue('metro');
   await search.click();
   await page.keyboard.type('zz', { delay: 30 });
@@ -364,7 +450,7 @@ test('catalog dropdown filters are patched in place, not re-rendered', async ({ 
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
-  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
   const release = page.locator('#filter-publication');
   // Tag the live controls: if a filter change survives with the tags intact,
   // the page patched its results instead of rebuilding the controls.
@@ -374,11 +460,12 @@ test('catalog dropdown filters are patched in place, not re-rendered', async ({ 
 
   await release.selectOption('released');
   await expect(release).toHaveAttribute('data-tagged', 'yes');
-  await expect(page.getByLabel('Search')).toHaveAttribute('data-tagged', 'yes');
+  await expect(page.getByLabel('Search', { exact: true })).toHaveAttribute('data-tagged', 'yes');
   await expect(release).toHaveValue('released');
   await expect(page.locator('#datasets-result-count')).toHaveText('1 dataset records');
 
-  await page.getByLabel('Papers').selectOption('none');
+  await page.locator('.ow-more-filters summary').click();
+  await page.getByLabel('Papers', { exact: true }).selectOption('none');
   await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Clear filters' }).click();
@@ -423,9 +510,9 @@ test('top-bar navigation renders cached dashboard data without a reload', async 
   const assertNoClientErrors = monitorClientErrors(page);
   await page.goto(fixtureUrl('populated', 'datasets'));
 
-  await expect(page.getByRole('heading', { name: 'Datasets' })).toBeVisible();
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Papers', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Papers' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Coverage', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Coverage' })).toBeVisible();
 
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Home', exact: true }).click();
   await expect(page).toHaveURL(/#\/home$/);
@@ -479,13 +566,6 @@ test('empty and unavailable catalogs state different facts', async ({ page }) =>
   await page.goto(fixtureUrl('empty', 'datasets'));
   await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
   await expect(page.getByText('Evidence service unavailable')).toHaveCount(0);
-
-  await page.goto(fixtureUrl('empty', 'papers'));
-  await expect(page.getByRole('heading', { name: 'No evidence-linked paper use yet' })).toBeVisible();
-
-  await page.goto(fixtureUrl('empty', 'reproductions'));
-  await expect(page.getByRole('heading', { name: 'No controlled reproduction record' })).toBeVisible();
-  await expect(page.getByText(/This is not evidence that a paper failed reproduction/)).toBeVisible();
 
   await page.goto(fixtureUrl('error', 'datasets'));
   await expect(page.getByRole('heading', { name: 'Evidence service unavailable' })).toBeVisible();

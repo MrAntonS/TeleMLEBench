@@ -36,6 +36,7 @@
     finder: {
       query: ''
     },
+    catalogPage: 1,
     navOpen: false
   };
 
@@ -102,8 +103,8 @@
 
   function routeNeedsBackend(name) {
     return [
-      'home', 'datasets', 'dataset', 'baseline', 'papers', 'paper',
-      'reproductions', 'reproduction', 'coverage'
+      'home', 'datasets', 'dataset', 'baseline', 'paper',
+      'reproduction', 'coverage'
     ].indexOf(name) >= 0;
   }
 
@@ -599,6 +600,56 @@
     });
   }
 
+  // Demo-curated paper claims, read from the papers on 2026-10-12 for the OAI
+  // workshop demo. These are NOT backend records yet: each carries its
+  // provenance (paper, quote, split note, curator, date) and renders under a
+  // distinct "Not reproduced yet" badge, never sorted against server scores.
+  // Replace with backend-backed dataset-level claims when those exist.
+  var CURATED_PAPER_CLAIMS = {
+    'radioml-2016-10a': [
+      {
+        paperId: '10.3390/s21051577',
+        title: 'Automatic Modulation Recognition Based on a DCN-BiLSTM Network',
+        metric: 'accuracy',
+        claimed: 0.9,
+        quote: 'when SNR is greater than 4 dB, the recognition accuracy of the proposed network is more than 90% under five trainings, covering the entire dataset',
+        splitNote: 'Paper threshold: above 90% past 4 dB. The paper\u2019s exact train/test partition is not recorded in the catalog; OWL evaluated 154k/33k/33k group-separated splits and per-SNR means at 6-18 dB.',
+        curatedFrom: 'paper PDF §4.3 via research server (nextg-06)',
+        curatedAt: '2026-10-13'
+      },
+      {
+        paperId: '1912.03449',
+        title: 'Fully Dense Neural Network for the Automatic Modulation Recognition',
+        metric: 'accuracy',
+        claimed: 0.896,
+        quote: 'Table 2 shows the average recognition rate from 0 to 18 dB is 85.6% with CNNR-IQFOC, while the average recognition rate with FDNN is 89.6%.',
+        splitNote: 'Paper split: 700 train / 100 validation / 200 test signals per modulation per SNR (11 modulations), averaged over 0..+18 dB; differs from this release split (154k train / 33k validation / 33k test, -20..+18 dB).',
+        curatedFrom: 'arXiv PDF 1912.03449',
+        curatedAt: '2026-10-12'
+      },
+      {
+        paperId: '2208.04659',
+        title: 'Ultra Lite Convolutional Neural Network for Fast Automatic Modulation Classification in Low-Resource Scenarios',
+        metric: 'accuracy',
+        claimed: 0.5713,
+        quote: 'The average accuracy of our proposed ULCNN at all SNRs can reach 57.13%.',
+        splitNote: 'Paper split: 77,000 train / 33,000 validation / 110,000 test samples, averaged over all SNRs (-20..+18 dB); differs from this release split (154k train / 33k validation / 33k test). The 62.47% figure in the same paper is the MCLDNN reference model with data augmentation, not the proposed ULCNN.',
+        curatedFrom: 'arXiv PDF 2208.04659',
+        curatedAt: '2026-10-12'
+      },
+      {
+        paperId: '2507.04586',
+        title: 'A Lightweight Deep Learning Model for Automatic Modulation Classification using Dual Path Deep Residual Shrinkage Network',
+        metric: 'accuracy',
+        claimed: 0.612,
+        quote: 'Overall, the average modulation classification accuracy of 61.20%, 63.78%, and 62.13% was achieved, and maximum classification accuracies of 91.23%, 93.64%, and 97.94% were achieved for RML2016.10a, RML2016.10b, and RML2018.01a, respectively.',
+        splitNote: 'Paper split for RML2016.10a: 132k train / 44k validation / 44k test samples, 11 classes, SNR -20..+18 dB; differs from this release split (154k train / 33k validation / 33k test).',
+        curatedFrom: 'arXiv PDF 2507.04586',
+        curatedAt: '2026-10-12'
+      }
+    ]
+  };
+
   // Static harness-measured reproduction records. These are NOT server-verified
   // leaderboard scores: each carries its own provenance (harness, model,
   // scorer, artifact hashes, evidence links) and renders under a distinct
@@ -606,6 +657,7 @@
   var HARNESS_RUN_RECORDS = [
     {
       id: 'real-deepagents-mistralbsm-qwen3.8-27b',
+      dataset_slug: '10-5281__zenodo-20081895',
       record_kind: 'harness_run',
       paper_title: 'MistralBSM: Leveraging Mistral-7B for Vehicular Networks Misbehavior Detection (Hamhoum et al., arXiv:2407.18462)',
       paper_id: '2407.18462',
@@ -629,6 +681,7 @@
     },
     {
       id: 'real-deepagents-veremi-qwen3.8-27b',
+      dataset_slug: '10-5281__zenodo-20081895',
       record_kind: 'harness_run',
       paper_title: 'VeReMi: A Dataset for Comparable Evaluation of Misbehavior Detection in VANETs (van der Heijden et al., arXiv:1804.06701)',
       paper_id: '1804.06701',
@@ -652,6 +705,7 @@
     },
     {
       id: 'real-deepagents-radioml2016-10a-qwen3.8-27b',
+      dataset_slug: 'radioml-2016-10a',
       record_kind: 'harness_run',
       paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
       paper_id: '1602.04105',
@@ -675,6 +729,7 @@
     },
     {
       id: 'harness-radioml2016-10a-qwen3.8-27b',
+      dataset_slug: 'radioml-2016-10a',
       record_kind: 'harness_run',
       paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
       paper_id: '1602.04105',
@@ -697,27 +752,47 @@
       note: 'Methodology replication on the release split (154k train / 33k validation); the paper split differs, so this is not a split-identical rerun. A run with the real deepagents package on the same model is in progress.'
     },
     {
-      id: 'harness-radioml2016-10a-qwen3-8b',
+      id: 'cleanroom-radioml-dcn-bilstm-repaired-5fold',
+      dataset_slug: 'radioml-2016-10a',
       record_kind: 'harness_run',
-      paper_title: "Convolutional Radio Modulation Recognition Networks (O'Shea et al., arXiv:1602.04105)",
-      paper_id: '1602.04105',
+      harness_track: 'clean-room repair',
+      paper_title: 'Automatic Modulation Recognition Based on a DCN-BiLSTM Network (Liu, Gao & Huang, Sensors 2021, doi:10.3390/s21051577)',
+      paper_id: '10.3390/s21051577',
       dataset: 'RadioML 2016.10A modulation classification',
       metric: 'accuracy',
-      claimed: 0.874,
-      claim_quote: 'we achieve roughly a 87.4% classification accuracy across all signal to noise ratios on the test dataset',
-      measured_accuracy: 0.2684,
-      measured_macro_f1: 0.227,
-      sample_count: 33000,
-      band: 'outside 5% band (lower)',
-      harness: 'deep_agents pattern (local executor telemlebench-deepagents-harness/1; not the deepagents package)',
-      coding_model: 'qwen3:8b (local Ollama, RTX 4090)',
+      claimed: 0.9,
+      claim_quote: 'when SNR is greater than 4 dB, the recognition accuracy of the proposed network is more than 90% under five trainings, covering the entire dataset',
+      measured_accuracy: 0.905,
+      measured_macro_f1: null,
+      sample_count: 15400,
+      band: 'meets the preregistered >=90% rule at all 7 SNRs (thinnest margin +0.14 pp at 6 dB)',
+      harness: 'supervised clean-room repair; frozen config, fresh 5-fold rerun, untouched test folds',
       repairs_used: 1,
-      scorer: 'trusted sample-ID-aligned scorer (accuracy + macro-F1)',
-      predictions_sha256: '6eb7e20816f10a85ee64d5b6527024e9729e423a7ca1c562e10c8f5075d99a20',
-      code_sha256: '53bbb89a45ad23e50e0ae138c65fac13d7567f3f5745f358c7449daa6dd5ac81',
-      evidence_url: 'https://github.com/asaenko_ncstate/TeleCom/tree/a4efb02/reproductions/deepagents-radioml2016-10a-1602.04105',
+      scorer: 'in-run test-fold scoring on untouched folds (not server-verified)',
       status: 'complete',
-      note: 'Same paper, split, claim, and scorer as the qwen3.8:27b arm; the 27b arm gains +4.2pp accuracy.'
+      note: 'Preregistered C1 (frozen 2026-10-08): five-fold mean accuracy >= 90% at each SNR 6-18 dB; per-SNR means 0.9014-0.9069. Evidence lives on the research server at isolation/2026-10-08-radioml-dcn-bilstm-cleanroom/phase-6-training-repaired/C1_EVALUATION.md (nextg-06, not a public URL). 15,400 test samples per fold across 5 folds.'
+    },
+    {
+      id: 'qwen-radioml-dcn-bilstm-codefix-5fold',
+      dataset_slug: 'radioml-2016-10a',
+      record_kind: 'harness_run',
+      harness_track: 'qwen code-fix',
+      paper_title: 'Automatic Modulation Recognition Based on a DCN-BiLSTM Network (Liu, Gao & Huang, Sensors 2021, doi:10.3390/s21051577)',
+      paper_id: '10.3390/s21051577',
+      dataset: 'RadioML 2016.10A modulation classification',
+      metric: 'accuracy',
+      claimed: 0.9,
+      claim_quote: 'when SNR is greater than 4 dB, the recognition accuracy of the proposed network is more than 90% under five trainings, covering the entire dataset',
+      measured_accuracy: 0.8997,
+      measured_macro_f1: null,
+      sample_count: 15400,
+      band: 'C1 mean 0.8997, 3.3e-5 below the 0.90 threshold; 3 of 7 SNRs >= 90% (marginal)',
+      harness: 'Qwen code-fix on frozen clean-room code (sole fix: per-sample input scaling in data.py)',
+      coding_model: 'Qwen 27b (per run snapshot names)',
+      repairs_used: 1,
+      scorer: 'in-run test-fold scoring on untouched folds (not server-verified)',
+      status: 'complete',
+      note: 'Genuine learning result, not a collapse artifact (val loss ~1.08 vs 2.398 pre-fix), but short of the threshold: frame as marginal, not a clean success. Evidence lives on the research server at isolation/2026-10-08-radioml-qwen-code-fix/QWEN_FINAL/FINAL_CV_RESULTS.md (nextg-06, not a public URL).'
     }
   ];
 
@@ -779,7 +854,14 @@
     if (route === '/stats' || route === '/catalog/coverage') return catalogStats();
     if (route === '/catalog/sources') return catalogSources();
     if (route === '/reproductions') {
-      return Promise.resolve({ items: HARNESS_RUN_RECORDS.slice(), total: HARNESS_RUN_RECORDS.length });
+      var onlySlug = parsed.searchParams.get('dataset');
+      var harnessItems = HARNESS_RUN_RECORDS.slice();
+      if (onlySlug) {
+        harnessItems = harnessItems.filter(function (record) {
+          return record.dataset_slug === onlySlug;
+        });
+      }
+      return Promise.resolve({ items: harnessItems, total: harnessItems.length });
     }
 
     var err = new Error('Catalog route is not available.');
@@ -1103,7 +1185,7 @@
       dataset: text(item.dataset_name || item.name || item.dataset || item.slug, 'Dataset not listed'),
       datasetSlug: text(item.dataset_slug || item.slug, ''),
       task: text(item.task, 'Task not recorded'),
-      track: text(item.record_kind === 'harness_run' ? 'deep agents (pattern)' : (item.protocol_track || item.track), 'paper_only'),
+      track: text(item.record_kind === 'harness_run' ? (item.harness_track || 'deep agents (pattern)') : (item.protocol_track || item.track), 'paper_only'),
       model: text(item.coding_model || item.model, 'Not recorded'),
       outcome: text(
         item.record_kind === 'harness_run' ? (item.band || item.status) : (item.outcome || item.status || item.state || item.reproStatus),
@@ -1300,7 +1382,8 @@
             bundle: b.record,
             predictions: b.predictions,
             labels: b.labels,
-            created: b.published
+            created: b.published,
+            paperClaim: b.paperClaim || null
           };
         });
       state.detail = {
@@ -1329,29 +1412,6 @@
     });
   }
 
-  function loadPapers() {
-    state.loading = true;
-    state.error = '';
-    render();
-    Promise.all([
-      api('/papers?limit=200'),
-      optional('/catalog/coverage')
-    ]).then(function (values) {
-      state.papers = list(values[0]).map(normalizePaper);
-      if (values[1]) {
-        state.coverage = {
-          summary: values[1],
-          sources: state.coverage ? state.coverage.sources : []
-        };
-      }
-    }).catch(function (err) {
-      state.error = err.message || 'Paper metadata could not be loaded.';
-    }).finally(function () {
-      state.loading = false;
-      render();
-    });
-  }
-
   function loadPaperDetail(id) {
     state.loading = true;
     state.error = '';
@@ -1361,20 +1421,6 @@
       state.paperDetail = payload;
     }).catch(function (err) {
       state.error = err.message || 'Paper evidence could not be loaded.';
-    }).finally(function () {
-      state.loading = false;
-      render();
-    });
-  }
-
-  function loadReproductions() {
-    state.loading = true;
-    state.error = '';
-    render();
-    api('/reproductions?limit=200').then(function (payload) {
-      state.reproductions = list(payload).map(normalizeReproduction);
-    }).catch(function (err) {
-      state.error = err.message || 'Reproduction records could not be loaded.';
     }).finally(function () {
       state.loading = false;
       render();
@@ -1441,18 +1487,23 @@
     state.loading = true;
     state.error = '';
     render();
-    Promise.all([optional('/catalog/coverage'), optional('/stats'), optional('/catalog/sources')]).then(function (values) {
-      var sources = list(values[2]).map(function (s) {
-        return {
-          provider: text(s.provider, 'Unknown source'),
-          status: text(s.status, 'unknown'),
-          seen: Number(s.records_seen) || 0,
-          kept: Number(s.records_kept) || 0,
-          lastSync: s.last_sync || '',
-          authenticated: Boolean(s.authenticated)
-        };
+    Promise.all([optional('/catalog/coverage'), optional('/stats'), loadPublishedReleaseCatalog()]).then(function (values) {
+      var registry = values[2] && Array.isArray(values[2].items)
+        ? values[2].items
+        : (Array.isArray(values[2]) ? values[2] : []);
+      var releaseSlugs = {};
+      registry.forEach(function (release) {
+        var slug = release.dataset_slug ||
+          (Array.isArray(release.dataset_aliases) && release.dataset_aliases[0]);
+        if (slug) releaseSlugs[String(slug).toLowerCase()] = true;
       });
-      state.coverage = { summary: values[0] || values[1] || {}, sources: sources };
+      state.coverage = {
+        summary: values[0] || values[1] || {},
+        releaseStats: values[2] == null ? null : {
+          releases: registry.length,
+          datasets: Object.keys(releaseSlugs).length
+        }
+      };
     }).catch(function (err) {
       state.error = err.message || 'Coverage data could not be loaded.';
     }).finally(function () {
@@ -1472,9 +1523,7 @@
   }
   function navLink(route, label) {
     var active = state.route.name === route ||
-      (route === 'datasets' && state.route.name === 'dataset') ||
-      (route === 'papers' && state.route.name === 'paper') ||
-      (route === 'reproductions' && state.route.name === 'reproduction');
+      (route === 'datasets' && state.route.name === 'dataset');
     return '<a class="tml-navlink' + (active ? ' active' : '') + '" href="#/' + route + '"' +
       (active ? ' aria-current="page"' : '') + '>' + esc(label) + '</a>';
   }
@@ -1488,8 +1537,6 @@
       '<nav class="tml-nav ' + (state.navOpen ? 'open' : '') + '" aria-label="Main navigation">' +
         navLink('home', 'Home') +
         navLink('datasets', 'Datasets') +
-        navLink('papers', 'Papers') +
-        navLink('reproductions', 'Reproductions') +
         navLink('coverage', 'Coverage') +
         navLink('contribute', 'Contribute') +
         navLink('methodology', 'Methodology') +
@@ -1501,7 +1548,7 @@
     return '<footer class="tml-footer"><div class="tml-footer-inner">' +
       '<div><strong>OpenWirelessLearning</strong><span>A public catalog of wireless ML datasets, prepared releases, and research evidence.</span></div>' +
       '<div class="tml-footer-links"><a href="#/datasets">Datasets</a>' +
-        '<a href="#/papers">Papers</a><a href="#/coverage">Coverage</a>' +
+        '<a href="#/coverage">Coverage</a>' +
         '<a href="https://github.com/MrAntonS/TeleMLEBench" target="_blank" rel="noopener">GitHub ↗</a></div>' +
     '</div></footer>';
   }
@@ -1674,7 +1721,7 @@
         '<div class="ow-finder-search">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
           '<input id="finder-query" data-finder-input type="search" value="' + esc(q) +
-            '" placeholder="Search datasets, tasks, domains, or sources…" autocomplete="off" spellcheck="false">' +
+            '" placeholder="Search datasets or research tasks…" autocomplete="off" spellcheck="false">' +
         '</div>' +
         '<div class="ow-finder-topics" role="group" aria-label="Browse by topic">' + topics + '</div>' +
       '</form>' +
@@ -1737,29 +1784,32 @@
       ' <span>(' + esc(number(score.correct)) + '/' + esc(number(score.sampleCount)) + ' · ' + esc(score.model) + ')</span></span>';
   }
 
+  var FEATURED_DATASETS = ['radioml 2016.10a', 'veremi', 'wisig', 'ujiindoorloc'];
+  var DATASET_DESCRIPTIONS = {
+    'radioml 2016.10a': 'Recognize modulation types from simulated radio signals at different noise levels.',
+    'veremi': 'Detect misbehavior in vehicle-to-vehicle messages using simulated traffic data.',
+    'wisig': 'Identify Wi-Fi transmitters from recorded radio signals.',
+    'ujiindoorloc': 'Estimate indoor location using Wi-Fi signal-strength fingerprints.',
+    'cicids2017': 'Study network intrusion detection using captured traffic and labeled network flows.',
+    'ciciot2023': 'Classify attacks in IoT network traffic using labeled packet and flow data.',
+    'n-baiot': 'Detect IoT botnet activity from network traffic features.',
+    'veremi extension': 'Investigate vehicle-network attacks using simulated messages and trajectories.',
+    'topologybench': 'Explore network topology using graphs and associated features.'
+  };
   function datasetCard(d) {
     var category = d.task === 'Needs task adapter' ? d.domain : d.task;
-    var releaseLabel = d.releaseCount > 0
-      ? d.releaseCount + (d.releaseCount === 1 ? ' public release' : ' public releases')
-      : 'No prepared release';
-    return '<a class="tml-card tml-dataset-card" href="#/dataset/' +
-      encodeURIComponent(d.slug) + '">' +
-      '<div class="tml-card-top"><span class="tml-category">' +
-        esc(category) + '</span><span class="tml-record-id">' + esc(d.slug) + '</span></div>' +
-      '<h3>' + esc(d.name) + '</h3>' +
-      '<p class="tml-clamp2">' + esc(d.description) + '</p>' +
-      '<div class="tml-card-bottom">' +
-        '<div><div class="tml-meta-label">Primary source</div>' +
-          '<div class="tml-meta-value">' + esc(d.source) + '</div></div>' +
-        '<div class="tml-card-counts">' +
-          '<div><strong class="mono">' + esc(number(d.fileCount || 0)) + '</strong><span> files</span></div>' +
-          '<div><strong class="mono">' + esc(number(d.paperCount || 0)) + '</strong><span> papers</span></div>' +
-        '</div>' +
-      '</div><div class="tml-release-line"><span>' + esc(releaseLabel) + '</span>' +
-        '<span>' + esc(d.access) + '</span></div>' +
-      '<div class="tml-verified-line">' + verifiedScoreLine(d) + '</div>' +
-      '<div class="tml-verified-line">' + baselineScoreLine(d) + '</div></a>';
+    var description = DATASET_DESCRIPTIONS[d.name.toLowerCase()] || d.description;
+    var availability = d.releaseCount > 0 ? 'Download through OWL' : 'No prepared release';
+    return '<a class="tml-card tml-dataset-card" href="#/dataset/' + encodeURIComponent(d.slug) + '">' +
+      '<div class="tml-card-top"><span class="tml-category">' + esc(category) + '</span></div>' +
+      '<h3>' + esc(d.name) + '</h3><p class="tml-clamp2">' + esc(description) + '</p>' +
+      '<div class="ow-card-origin">' + esc(d.origin === 'unknown' ? 'Origin not recorded' : d.origin) + '</div>' +
+      '<div class="ow-card-badges"><span>' + esc(availability) + '</span>' +
+      (d.baselineScore ? '<span>Baseline available</span>' : '') +
+      (d.verifiedScore ? '<span>Verified reproduction available</span>' : '') +
+      '</div><div class="ow-card-open">View dataset →</div></a>';
   }
+
   function loading(message) {
     return '<div class="tml-state" role="status"><span class="tml-spinner" aria-hidden="true"></span>' +
       '<p>' + esc(message || 'Loading evidence…') + '</p></div>';
@@ -1916,9 +1966,23 @@
   }
 
   function datasetResults(results) {
-    return state.loading ? loading() : state.error ? errorBox() : results.length
-      ? '<div class="tml-cardgrid">' + results.map(datasetCard).join('') + '</div>'
-      : '<div class="tml-state"><h3>No matching dataset records</h3><p>Clear one or more filters to widen the catalog.</p><button class="tml-button" data-action="clear-filters">Clear filters</button></div>';
+    if (state.loading) return loading();
+    if (state.error) return errorBox();
+    if (!results.length) return '<div class="tml-state"><h3>No matching dataset records</h3><p>Clear one or more filters to widen the catalog.</p><button class="tml-button" data-action="clear-filters">Clear filters</button></div>';
+    var filtered = Object.keys(state.filters).some(function (key) {
+      return key === 'query' ? Boolean(state.filters[key].trim()) : state.filters[key] !== 'all';
+    });
+    var featured = filtered ? [] : FEATURED_DATASETS.map(function (name) {
+      return results.find(function (d) { return d.name.toLowerCase() === name; });
+    }).filter(Boolean);
+    var catalog = results.filter(function (d) { return featured.indexOf(d) < 0; });
+    var pages = Math.max(1, Math.ceil(catalog.length / 8));
+    state.catalogPage = Math.min(Math.max(1, state.catalogPage), pages);
+    var start = (state.catalogPage - 1) * 8;
+    var html = featured.length ? '<section class="ow-catalog-section" aria-label="Featured datasets"><h2>Featured datasets</h2><p>Selected wireless tasks with prepared releases and research to explore.</p><div class="tml-cardgrid">' + featured.map(datasetCard).join('') + '</div></section>' : '';
+    if (catalog.length) html += '<section class="ow-catalog-section" aria-label="Catalog results"><h2>' + (filtered ? 'Search results' : featured.length ? 'More datasets' : 'All datasets') + '</h2><div class="tml-cardgrid">' + catalog.slice(start, start + 8).map(datasetCard).join('') + '</div>' +
+      (pages > 1 ? '<nav class="ow-pagination" aria-label="Dataset pages"><button class="tml-button" data-action="catalog-prev"' + (state.catalogPage === 1 ? ' disabled' : '') + '>Previous</button><span role="status">Page ' + state.catalogPage + ' of ' + pages + '</span><button class="tml-button" data-action="catalog-next"' + (state.catalogPage === pages ? ' disabled' : '') + '>Next</button></nav>' : '') + '</section>';
+    return html;
   }
 
   // Repaints only the filter-dependent regions of the datasets page. The filter
@@ -1944,7 +2008,7 @@
     if (select) select.value = state.filters.publication;
     var note = document.getElementById('downloadable-count-note');
     if (note) note.textContent = number(downloadableCount()) + ' of ' +
-      number(state.datasets.length) + ' downloadable';
+      number(state.datasets.length) + ' downloadable through OWL';
   }
 
   // Pushes reset filter state back onto the live controls so clearing filters
@@ -1962,34 +2026,28 @@
 
   function datasetsPage() {
     var results = filteredDatasets();
-    var downloadableOnly = state.filters.publication === 'released';
     return '<main id="main" class="tml-page">' +
-      '<div class="ow-page-heading"><div><h1>Datasets</h1><p class="tml-page-intro">Browse static wireless and network ML datasets across repositories. ' +
+      '<div class="ow-page-heading"><div><h1>Datasets</h1><p class="tml-page-intro">Browse static trainable ML datasets for wireless and network research. ' +
         'Each record keeps its source, task context, public files, prepared releases, and linked papers together.</p></div></div>' +
       '<div class="tml-filter-search" role="search">' +
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
         '<label class="sr-only" for="filter-query">Search</label>' +
         '<input id="filter-query" data-filter="query" value="' + esc(state.filters.query) +
-          '" placeholder="Search datasets, tasks, domains, or sources…">' +
-      '</div>' +
-      '<div class="tml-downloadable-bar" style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
-        '<label for="filter-downloadable-only" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">' +
-          '<input type="checkbox" id="filter-downloadable-only" data-action="toggle-downloadable-only"' +
-            (downloadableOnly ? ' checked' : '') + '> Only show downloadable datasets</label>' +
-        '<span id="downloadable-count-note" class="muted" style="font-size:13px;">' + esc(number(downloadableCount())) + ' of ' +
-          esc(number(state.datasets.length)) + ' downloadable</span>' +
+          '" placeholder="Search datasets or research tasks…">' +
       '</div>' +
       '<div class="tml-filters" aria-label="Dataset filters">' +
-        '<div class="field"><label for="filter-task">Task</label><select id="filter-task" data-filter="task">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.tasks;}))), state.filters.task) + '</select></div>' +
-        '<div class="field"><label for="filter-origin">Origin</label><select id="filter-origin" data-filter="origin">' + filterOptions(unique(state.datasets.map(function(d){return d.origin;})), state.filters.origin) + '</select></div>' +
+        '<div class="field"><label for="filter-task">Research task</label><select id="filter-task" data-filter="task">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.tasks;}))), state.filters.task) + '</select></div>' +
+        '<div class="field"><label for="filter-publication">Availability</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Download through OWL'},{value:'source-only',label:'No OWL release'}], state.filters.publication) + '</select></div>' +
+      '</div><details class="ow-more-filters"><summary>More filters</summary><div class="tml-filters">' +
+        '<div class="field"><label for="filter-origin">Data origin</label><select id="filter-origin" data-filter="origin">' + filterOptions(unique(state.datasets.map(function(d){return d.origin;})), state.filters.origin) + '</select></div>' +
         '<div class="field"><label for="filter-access">Access</label><select id="filter-access" data-filter="access">' + filterOptions(unique(state.datasets.map(function(d){return d.access;})), state.filters.access) + '</select></div>' +
         '<div class="field"><label for="filter-source">Source</label><select id="filter-source" data-filter="source">' + filterOptions(unique([].concat.apply([], state.datasets.map(function(d){return d.sourceProviders;}))), state.filters.source) + '</select></div>' +
         '<div class="field"><label for="filter-license">License</label><select id="filter-license" data-filter="license">' + filterOptions(unique(state.datasets.map(function(d){return d.license;})), state.filters.license) + '</select></div>' +
-        '<div class="field"><label for="filter-publication">Release</label><select id="filter-publication" data-filter="publication">' + choiceOptions([{value:'released',label:'Downloadable'},{value:'source-only',label:'Not downloadable'}], state.filters.publication) + '</select></div>' +
+
         '<div class="field"><label for="filter-papers">Papers</label><select id="filter-papers" data-filter="papers">' + choiceOptions([{value:'linked',label:'Linked paper use'},{value:'none',label:'No linked paper use'}], state.filters.papers) + '</select></div>' +
       '</div>' +
-      '<div class="tml-result-line"><span id="datasets-result-count">' + esc(number(results.length)) +
-        ' dataset records</span><span>Scope: static trainable ML for wireless systems</span></div>' +
+      '</details><div class="tml-result-line"><span id="datasets-result-count">' + esc(number(results.length)) +
+        ' dataset records</span><span id="downloadable-count-note">' + esc(downloadableCount()) + ' of ' + esc(state.datasets.length) + ' downloadable through OWL</span></div>' +
       '<div id="datasets-results">' + datasetResults(results) + '</div>' +
       '</main>';
   }
@@ -2017,12 +2075,13 @@
       return '<div class="empty"><h3>No immutable task release</h3><p class="muted">No target, sample boundary, leakage policy, and split assignment have passed publication review for this version.</p></div>';
     }
     var tasks = detail.tasks.map(function (task) {
+      var status = task.adapter_status || '';
       return '<div class="source-row"><div><div class="row-title">' +
         esc(text(task.task_family || task.task_key, 'Task')) +
         '</div><div class="row-meta">' +
         esc(text(task.recipe_version, 'recipe not recorded')) + ' · ' +
         esc(text(task.adapter_status, 'unknown')) +
-        '</div></div>' + statusBadge(task.adapter_status || 'unknown') + '</div>';
+        '</div></div>' + (status && status !== 'unknown' ? statusBadge(status) : '') + '</div>';
     }).join('');
     var releases = detail.releases.map(function (release) {
       var manifest = API_BASE
@@ -2163,12 +2222,52 @@
       rows + '</tbody></table></div>';
   }
 
+  function compactCount(value) {
+    var n = Number(value) || 0;
+    if (n >= 1000) {
+      var k = n / 1000;
+      return (k >= 100 ? Math.round(k) : Math.round(k * 10) / 10) + 'k';
+    }
+    return String(n);
+  }
+
+  // Proportional picture of what is inside the release: split sizes, sample
+  // shape, and target. Renders nothing when the release has no split counts.
+  function splitSchematic(detail) {
+    var release = detail.publicRelease;
+    var counts = release && release.split && release.split.counts;
+    if (!release || !counts || !(Number(counts.train) > 0)) return '';
+    var train = Number(counts.train) || 0;
+    var validation = Number(counts.validation) || 0;
+    var test = Number(counts.test) || 0;
+    var total = train + validation + test;
+    if (!total) return '';
+    function width(v) { return Math.max(4, Math.round(100 * v / total)); }
+    var facts = '<span><b>' + esc(number(train)) + '</b> train</span>' +
+      '<span><b>' + esc(number(validation)) + '</b> validation</span>' +
+      '<span><b>' + esc(number(test)) + '</b> test</span>';
+    if (release.feature_count) facts += '<span><b>' + esc(number(release.feature_count)) + '</b> features / sample</span>';
+    var targets = Array.isArray(release.target_fields) ? release.target_fields : [];
+    if (targets.length) facts += '<span>target: <b>' + esc(targets.join(', ')) + '</b></span>';
+    var splitBits = [];
+    if (release.split && release.split.strategy) splitBits.push(release.split.strategy + '-separated split');
+    if (release.split && release.split.seed != null) splitBits.push('seed ' + release.split.seed);
+    if (splitBits.length) facts += '<span>' + esc(splitBits.join(' · ')) + '</span>';
+    return '<div class="splitbar" role="img" aria-label="Split: ' +
+      esc(number(train)) + ' train, ' + esc(number(validation)) + ' validation, ' +
+      esc(number(test)) + ' test"><span class="tr" style="width:' + width(train) + '%">' +
+      esc(compactCount(train)) + ' train</span><span class="va" style="width:' +
+      width(validation) + '%">' + esc(compactCount(validation)) + '</span><span class="te" style="width:' +
+      width(test) + '%">' + esc(compactCount(test)) + ' test</span></div>' +
+      '<div class="specfacts">' + facts + '</div>';
+  }
+
   function taskAndDataSection(detail) {
     var label = derivedTaskLabel(detail);
     return '<section class="card panel"><div class="panel-head"><div><div class="eyebrow">ML task</div>' +
       '<h2 style="margin-top:10px">' + esc(label || 'What this data supports') + '</h2></div>' +
       statusBadge(detail.taskProfile ? 'suggested' : (detail.publicRelease ? 'release-defined' : 'unreleased')) + '</div>' +
-      '<p class="definition">' + esc(taskSentence(detail)) + '</p>' +
+      '<p class="definition">' + esc(taskSentence(detail)) + '</p>' + splitSchematic(detail) +
       metadataTaskRows(detail) +
       schemaBlock(detail) +
       '<p class="muted" style="margin-top:14px;font-size:11px;line-height:1.6">The default platform split is 70/15/15 with seed 42. ' +
@@ -2176,10 +2275,114 @@
       '<a class="btn-link" href="#/methodology">Read methodology →</a></p></section>';
   }
 
-  // One leaderboard per dataset: every trusted score on the release metric,
-  // sorted descending. The baseline row is the visual reference line — rows
-  // above it beat the baseline, rows below it do not.
+  // One leaderboard per dataset: verified server scores first (sorted
+  // descending), then author-reported paper claims in record order, then
+  // linked papers without a recorded claim. Claims are never sorted against
+  // server scores: every claim carries its own split context, and blank means
+  // not yet reproduced here — never a verdict about the paper.
+  function datasetClaimEntries(detail) {
+    var seen = {};
+    var rows = [];
+    function push(claim) {
+      if (!claim || !claim.paperId || seen[claim.paperId]) return;
+      seen[claim.paperId] = true;
+      rows.push(claim);
+    }
+    (Array.isArray(detail.baselines) ? detail.baselines : []).forEach(function (b) { push(b.paperClaim); });
+    var slug = (state.route && state.route.slug) ||
+      (detail.dataset && detail.dataset.slug) || '';
+    (CURATED_PAPER_CLAIMS[slug] || []).forEach(push);
+    return { rows: rows, seen: seen };
+  }
+
+  function claimRowMeta(claim) {
+    var parts = [];
+    if (claim.metric) parts.push(claim.metric);
+    if (claim.paperId) parts.push(claim.paperId);
+    if (claim.splitNote) parts.push(claim.splitNote);
+    return parts.map(function (p) { return esc(p); }).join(' · ');
+  }
+
+  // Demo-curated paper titles for linked papers that have no recorded claim
+  // (hence no entry above) and whose catalog title is only an arXiv ID.
+  // Same provenance rules as CURATED_PAPER_CLAIMS: replace with backend
+  // paper metadata when it exists.
+  var CURATED_PAPER_TITLES = {
+    '2204.03737': 'Mixing Signals: Data Augmentation Approach for Deep Learning Based Modulation Recognition'
+  };
+
+  // Demo-curated linked papers for dataset pages whose catalog paper records
+  // are missing entirely (title is not even an arXiv ID). Same provenance
+  // rules as CURATED_PAPER_CLAIMS: replace with backend paper metadata and a
+  // machine-checked usage row when those exist. Entries carry their evidence
+  // quote inline because there is no catalog usage row to hold it yet.
+  var CURATED_LINKED_PAPERS = {
+    'radioml-2016-10a': [
+      {
+        id: '10.3390/s21051577',
+        title: 'Automatic Modulation Recognition Based on a DCN-BiLSTM Network',
+        authors: 'Kai Liu, Wanjun Gao, Qinghua Huang',
+        year: '2021',
+        url: 'https://doi.org/10.3390/s21051577',
+        evidence: 'This paper uses the open dataset named RML2016.10a. (§2 Signal Model)',
+        pending: true,
+        curatedAt: '2026-10-13'
+      }
+    ]
+  };
+
+  function arxivIdOf(p) {
+    var fromTitle = p.title ? String(p.title).replace(/^arxiv:/i, '') : '';
+    if (/^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(fromTitle)) return fromTitle;
+    var m = p.url ? String(p.url).match(/arxiv\.org\/abs\/([0-9]{4}\.[0-9]{4,5})/) : null;
+    return m ? m[1] : '';
+  }
+
+  function curatedTitleFor(arxiv) {
+    if (!arxiv) return '';
+    var slugs = Object.keys(CURATED_PAPER_CLAIMS);
+    for (var i = 0; i < slugs.length; i += 1) {
+      var list = CURATED_PAPER_CLAIMS[slugs[i]];
+      for (var j = 0; j < list.length; j += 1) {
+        if (list[j].paperId === arxiv) return list[j].title;
+      }
+    }
+    return CURATED_PAPER_TITLES[arxiv] || '';
+  }
+
+  function paperDisplay(p) {
+    var rawTitle = text(p.title, '');
+    var generic = !rawTitle || rawTitle === 'Untitled paper' ||
+      /^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(rawTitle.replace(/^arxiv:/i, ''));
+    var arxiv = arxivIdOf(p);
+    return {
+      title: generic ? (curatedTitleFor(arxiv) || rawTitle || 'Linked paper') : rawTitle,
+      arxiv: arxiv,
+      generic: generic
+    };
+  }
+
+  function paperRowMeta(p) {
+    var parts = [];
+    if (p.authors && p.authors !== 'Authors not indexed') parts.push(p.authors);
+    if (p.year && p.year !== '—') parts.push(p.year);
+    return parts.map(function (part) { return esc(part); }).join(' · ');
+  }
+
+  function paperTableUrl(p) {
+    if (p.id) return '#/paper/' + encodeURIComponent(p.id);
+    return p.url || '';
+  }
+
   function scoresLeaderboard(detail) {
+    var claims = datasetClaimEntries(detail);
+    var slug = (state.route && state.route.slug) ||
+      (detail.dataset && detail.dataset.slug) || '';
+    var papers = Array.isArray(detail.papers) ? detail.papers.slice() : [];
+    (CURATED_LINKED_PAPERS[slug] || []).forEach(function (cp) {
+      var known = papers.some(function (p) { return p.id && p.id === cp.id; });
+      if (!known) papers.push(cp);
+    });
     var entries = [];
     (Array.isArray(detail.baselines) ? detail.baselines : []).forEach(function (b) {
       if (!b.verified || b.value == null) return;
@@ -2205,58 +2408,94 @@
         link: r.id ? '#/reproduction/' + encodeURIComponent(r.id) : ''
       });
     });
-    if (!entries.length) {
+    if (!entries.length && !claims.rows.length && !papers.length) {
       return '<div class="empty"><h3>No published scores yet</h3><p class="muted">Scores appear here after trusted server evaluation. Self-reported numbers are never shown.</p></div>';
     }
     entries.sort(function (a, b) { return b.score - a.score; });
+    var rows = entries.map(function (entry, index) {
+      var name = entry.link
+        ? '<a href="' + esc(entry.link) + '">' + esc(entry.name) + '</a>'
+        : esc(entry.name);
+      return '<tr class="' + (entry.kind === 'baseline' ? 'lb-baseline' : '') + '">' +
+        '<td class="mono">' + (index + 1) + '</td>' +
+        '<td><strong>' + name + '</strong>' +
+        '<div class="row-meta">' + esc(entry.note) + '</div></td>' +
+        '<td class="mono">&mdash;</td>' +
+        '<td class="mono"><strong>' + esc(entry.score.toFixed(6)) + '</strong></td>' +
+        '<td>' + (entry.kind === 'baseline'
+          ? '<span class="lb-tag">Baseline</span>'
+          : statusBadge('reproduction', 'verified')) + '</td></tr>';
+    });
+    var n = entries.length;
+    var harnessRuns = (Array.isArray(detail.reproductions) ? detail.reproductions : []).filter(function (r) {
+      return !r.verified && r.recordKind === 'harness_run' && r.harnessMeasured != null;
+    });
+    function harnessBest(paperId) {
+      var best = null;
+      var bestId = '';
+      var count = 0;
+      harnessRuns.forEach(function (r) {
+        if (paperId && r.title && r.title.indexOf(paperId) >= 0) {
+          count += 1;
+          if (best == null || r.harnessMeasured > best) { best = r.harnessMeasured; bestId = r.id; }
+        }
+      });
+      return count ? { value: best, runs: count, id: bestId } : null;
+    }
+    claims.rows.forEach(function (claim) {
+      n += 1;
+      var isArxiv = /^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(claim.paperId);
+      var title = isArxiv
+        ? '<a href="https://arxiv.org/abs/' + encodeURIComponent(claim.paperId) + '" target="_blank" rel="noopener">' + esc(claim.title) + '</a>'
+        : esc(claim.title);
+      var ow = harnessBest(claim.paperId);
+      var verifiedCell = ow
+        ? '<a href="#/reproduction/' + encodeURIComponent(ow.id) + '"><strong>' + esc(ow.value.toFixed(4)) + '</strong></a>'
+        : '&mdash;';
+      var statusCell = ow
+        ? '<span class="tag-owl">Reproduced by OWL</span>'
+        : '<span class="tag-soon">Not reproduced yet</span>';
+      var context = claimRowMeta(claim) + (ow && ow.runs > 1 ? ' · best of ' + ow.runs + ' open runs' : '');
+      rows.push('<tr><td class="mono">' + n + '</td>' +
+        '<td><strong>' + title + '</strong>' +
+        '<div class="row-meta">' + context + '</div></td>' +
+        '<td class="mono">' + esc(claim.claimed.toFixed(4)) + '</td>' +
+        '<td class="mono">' + verifiedCell + '</td>' +
+        '<td>' + statusCell + '</td></tr>');
+    });
+    papers.forEach(function (p) {
+      var display = paperDisplay(p);
+      if (claims.seen[p.id] || (display.arxiv && claims.seen[display.arxiv])) return;
+      n += 1;
+      var url = p.pending && p.url ? p.url
+        : ((display.generic && display.arxiv)
+          ? 'https://arxiv.org/abs/' + encodeURIComponent(display.arxiv)
+          : paperTableUrl(p));
+      var name = url
+        ? '<a href="' + esc(url) + '"' + (url.charAt(0) === '#' ? '' : ' target="_blank" rel="noopener"') + '>' + esc(display.title) + '</a>'
+        : esc(display.title);
+      var meta = paperRowMeta(p);
+      var action = p.pending
+        ? '<span class="tag-soon">Catalog entry pending</span>'
+        : (p.id
+          ? '<a class="evlink" href="#/paper/' + encodeURIComponent(p.id) + '">Read evidence →</a>'
+          : '<span class="row-meta">No recorded claim</span>');
+      rows.push('<tr><td class="mono">' + n + '</td>' +
+        '<td><strong>' + name + '</strong>' +
+        (meta ? '<div class="row-meta">' + meta + '</div>' : '') + '</td>' +
+        '<td class="mono">&mdash;</td>' +
+        '<td class="mono">&mdash;</td>' +
+        '<td>' + action + '</td></tr>');
+    });
     return '<div style="overflow-x:auto"><table class="repro-table lb-table"><thead><tr>' +
-      '<th>#</th><th>Method</th><th>Metric</th><th>Score</th><th>Kind</th>' +
-      '</tr></thead><tbody>' +
-      entries.map(function (entry, index) {
-        var name = entry.link
-          ? '<a href="' + esc(entry.link) + '">' + esc(entry.name) + '</a>'
-          : esc(entry.name);
-        return '<tr class="' + (entry.kind === 'baseline' ? 'lb-baseline' : '') + '">' +
-          '<td class="mono">' + (index + 1) + '</td>' +
-          '<td><strong>' + name + '</strong>' +
-          '<div class="row-meta">' + esc(entry.note) + '</div></td>' +
-          '<td>' + esc(entry.metric) + '</td>' +
-          '<td class="mono"><strong>' + esc(entry.score.toFixed(6)) + '</strong></td>' +
-          '<td>' + (entry.kind === 'baseline'
-            ? '<span class="lb-tag">Baseline</span>'
-            : statusBadge('reproduction', 'verified')) + '</td></tr>';
-      }).join('') +
+      '<th>#</th><th>Method</th><th>Author-claimed</th><th>OWL verified</th><th>Status</th>' +
+      '</tr></thead><tbody>' + rows.join('') +
       '</tbody></table></div>' +
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
-      'Every score is computed by the trusted server against hidden test labels after sample-ID alignment. ' +
-      'The baseline is the reference row: entries above it beat the baseline, entries below it do not. ' +
-      'Group-, site-, or time-separated releases score lower than random splits by design.</p>';
-  }
-
-  function paperRows(papers) {
-    if (!papers.length) return '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">A citation alone is not accepted as dataset use. Machine-linked relationships require an inspectable evidence passage and remain open to correction.</p></div>';
-    return '<div class="paper-cards">' + paperCards(papers) + '</div>';
-  }
-
-  function paperCards(papers) {
-    return papers.map(function (p) {
-      var detailUrl = p.id ? '#/paper/' + encodeURIComponent(p.id) : '';
-      var venue = text(p.venue, '');
-      return '<article class="paper-card">' +
-        '<div class="paper-card-meta">' +
-          (venue && venue !== 'Venue not indexed' ? '<span class="paper-venue">' + esc(venue) + '</span>' : '<span></span>') +
-          '<span class="paper-year">' + esc(p.year) + '</span>' +
-        '</div>' +
-        '<h3>' +
-          (detailUrl ? '<a href="' + detailUrl + '">' + esc(p.title) + '</a>' :
-            p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) +
-        '</h3>' +
-        '<p class="paper-authors">' + esc(p.authors) + '</p>' +
-        (p.evidence
-          ? '<blockquote class="paper-evidence">' + esc(p.evidence) + '</blockquote>'
-          : '<p class="muted" style="font-size:12px">Relationship recorded; the public evidence span is not available in this response.</p>') +
-      '</article>';
-    }).join('');
+      'Every verified score is computed by the trusted server against hidden test labels after sample-ID alignment. ' +
+      'Author-reported numbers use the papers\u2019 own splits and are not comparable to server scores on this release. ' +
+      'Blank means not yet reproduced here; it is not a verdict about the paper. ' +
+      'Open-run values are OWL\u2019s own code-open reproductions, not server-verified scores.</p>';
   }
 
   var DETAIL_PAPERS_PAGE = 5;
@@ -2326,6 +2565,22 @@
       'No row is a verdict about the paper authors.</p>';
   }
 
+  function heroFacts(d, x) {
+    var hasRelease = (Array.isArray(x.releases) && x.releases.length) || x.publicRelease;
+    var facts = [
+      ['Availability', hasRelease ? 'Download through OWL' : 'No prepared release']
+    ];
+    if (d.license && d.license !== 'Not recorded' && d.license !== 'unknown') facts.push(['License', d.license]);
+    if (d.access && d.access !== 'Not recorded' && d.access !== 'unknown') facts.push(['Access', d.access]);
+    var source = (x.sources && x.sources[0] && (x.sources[0].provider || x.sources[0].landing_url)) || d.source;
+    if (source && source !== 'unknown' && source !== 'curated' && source !== 'Not recorded') facts.push(['Source', source]);
+    return facts.length
+      ? '<div class="hero-facts">' + facts.map(function (row) {
+        return '<div><b>' + esc(row[0]) + '</b>' + esc(row[1]) + '</div>';
+      }).join('') + '</div>'
+      : '';
+  }
+
   function detailPage() {
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading source, release, paper, and reproduction evidence…') + '</div></main>';
     if (state.error || !state.detail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
@@ -2338,15 +2593,15 @@
       : '';
     var scoresCount = (Array.isArray(x.baselines) ? x.baselines : []).filter(function (b) { return b.verified; }).length +
       (Array.isArray(x.reproductions) ? x.reproductions : []).filter(function (r) { return r.verified && r.reproduced != null; }).length;
-    var scoresBadge = scoresCount
-      ? '<span class="id">' + esc(number(scoresCount)) + (scoresCount === 1 ? ' score' : ' scores') + '</span>'
-      : '';
-    var heroTags = unique([taskLabel].concat(
-      [d.domain, d.origin].filter(function (v) {
-        return v && v !== 'unknown' && v !== 'unclassified';
-      }),
-      d.tags.slice(0, 3)
-    ).filter(Boolean));
+    var claimCount = datasetClaimEntries(x).rows.length;
+    var linkedCount = (Array.isArray(x.papers) ? x.papers : []).length;
+    var detailSlug = (state.route && state.route.slug) || '';
+    (CURATED_LINKED_PAPERS[detailSlug] || []).forEach(function (cp) {
+      var known = (Array.isArray(x.papers) ? x.papers : []).some(function (p) { return p.id && p.id === cp.id; });
+      if (!known) linkedCount += 1;
+    });
+    var scoresBadge = '<span class="id">' + esc(number(scoresCount)) + (scoresCount === 1 ? ' score' : ' scores') + ' verified · ' +
+      esc(number(claimCount)) + ' claims · ' + esc(number(linkedCount)) + ' linked papers</span>';
     var facts = [
       ['Canonical ID', d.id, true],
       ['Version', d.version !== 'Not recorded' ? d.version : ''],
@@ -2360,30 +2615,26 @@
       return '<dt>' + esc(row[0]) + '</dt><dd' + (row[2] ? ' class="mono"' : '') + '>' + esc(row[1]) + '</dd>';
     }).join('');
     return '<main id="main">' +
-      '<section class="detail-hero"><div class="container"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
-        '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(d.description) + '</p>' +
-        (heroTags.length ? '<div class="tag-row" style="margin-top:14px">' + heroTags.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+      '<section class="detail-hero"><div class="container narrow-center"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
+        '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(typeof DATASET_DESCRIPTIONS === 'object' && DATASET_DESCRIPTIONS[(d.name || '').toLowerCase()] || d.description) + '</p>' +
         '</div>' +
-        '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div></div></section>' +
-      '<section class="page"><div class="container"><div class="detail-body"><div>' +
+        '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
+      '<section class="page page-detail"><div class="container"><div class="detail-body"><div>' +
         taskAndDataSection(x) +
-        '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
         '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '</div>' + scoresLeaderboard(x) + '</section>' +
-        '<section class="card panel"><div class="panel-head"><h2>Where this data comes from</h2><span class="id">' + esc(number(d.sourceCount || x.sources.length)) + ' records</span></div>' +
-          '<dl class="kv" style="margin-bottom:16px">' +
-            '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
-            '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
-            (d.doi ? '<dt>DOI</dt><dd class="mono">' + esc(d.doi) + '</dd>' : '') +
-          '</dl>' +
-          '<div class="source-list">' + sourceRows(x) + '</div></section>' +
       '</div><aside>' +
-        '<section class="card panel"><div class="panel-head"><h3>Linked papers</h3><span class="id">' +
-          esc(number(x.papers.length)) + ' · machine checked</span></div>' +
-          paperMiniPaged(x.papers, state.detailPapersVisible) + '</section>' +
-        '<section class="card panel"><h3>Record facts</h3><dl class="kv">' + facts + '</dl></section>' +
-      '</aside></div></div></section></main>';
+        '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
+      '</aside></div>' +
+      '<section class="card panel" style="margin-top:20px"><div class="panel-head"><h2>Where this data comes from</h2><span class="id">' + esc(number(d.sourceCount || x.sources.length)) + ' records</span></div>' +
+        '<dl class="kv" style="margin-bottom:16px">' +
+          '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
+          '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
+          (d.doi ? '<dt>DOI</dt><dd class="mono">' + esc(d.doi) + '</dd>' : '') +
+        '</dl>' +
+        '<div class="source-list">' + sourceRows(x) + '</div></section>' +
+      '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
+      '</div></section></main>';
   }
-
   function baselinePage() {
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading the replication guide…') + '</div></main>';
     if (state.error || !state.baselineGuide) {
@@ -2497,20 +2748,6 @@
       'The server score above was recomputed on hidden release labels and is not a verdict about the paper.</p></section>';
   }
 
-  function papersPage() {
-    var coverageCounts = (
-      state.coverage && state.coverage.summary &&
-      (state.coverage.summary.counts || state.coverage.summary)
-    ) || {};
-    var candidateMessage =
-      number(coverageCounts.cataloged_papers) + ' paper records and ' +
-      number(coverageCounts.paper_candidates) +
-      ' dataset-use candidates are cataloged; none has passed exact-use confirmation yet.';
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Papers</h1><p class="tml-page-intro">Papers connected to datasets by machine-checked usage evidence, not citation alone.</p></div><p class="section-copy">Every link includes an inspectable passage and paper-text hash. These are evidence-linked records, not a claim that every link has been manually verified. Reproduction requires open-access full text or a lawful user-supplied copy.</p></div>' +
-      (state.loading ? loading('Loading paper metadata…') : state.error ? errorBox() : state.papers.length ? '<div class="paper-list">' + paperRows(state.papers) + '</div>' : '<div class="empty"><h3>No evidence-linked paper use yet</h3><p class="muted">' + esc(candidateMessage) + '</p></div>') +
-    '</div></main>';
-  }
-
   function paperDetailPage() {
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading paper-use evidence…') + '</div></main>';
     if (state.error || !state.paperDetail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
@@ -2519,8 +2756,17 @@
     var usages = Array.isArray(raw.dataset_usage) ? raw.dataset_usage :
       (Array.isArray(raw.datasets) ? raw.datasets : []);
     var versions = Array.isArray(raw.versions) ? raw.versions : [];
+    var backSlug = '';
+    usages.some(function (usage) {
+      var slug = usage.dataset_slug || usage.dataset;
+      if (slug) { backSlug = slug; return true; }
+      return false;
+    });
+    var crumbs = backSlug
+      ? '<a href="#/dataset/' + encodeURIComponent(backSlug) + '">Dataset</a><span>/</span><span>' + esc(paper.id) + '</span>'
+      : '<a href="#/datasets">Datasets</a><span>/</span><span>' + esc(paper.id) + '</span>';
     return '<main id="main"><section class="detail-hero"><div class="container">' +
-      '<div class="breadcrumbs"><a href="#/papers">Papers</a><span>/</span><span>' + esc(paper.id) + '</span></div>' +
+      '<div class="breadcrumbs">' + crumbs + '</div>' +
       '<div class="detail-title"><div><div class="eyebrow">Dataset-use evidence</div><h1>' + esc(paper.title) + '</h1><p>Relationships appear here after a machine check finds an exact passage linking this paper version to training or evaluation on a dataset version. The passage remains visible for audit and correction.</p></div>' +
       '<div class="detail-actions">' + externalButton(paper.url, 'Open lawful source') + '</div></div></div></section>' +
       '<section class="page"><div class="container"><div class="detail-body"><div>' +
@@ -2549,21 +2795,14 @@
       '</dl></section></aside></div></div></section></main>';
   }
 
-  function reproductionsPage() {
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Reproductions</h1><p class="tml-page-intro">Reproduction reports that record what ran and how it was scored.</p></div><p class="section-copy">Paper-only and artifact-assisted tracks stay separate. Each report records what ran, what information was available, and whether the result can be compared with the paper.</p></div>' +
-      '<div class="evidence" style="margin-bottom:20px"><strong>How to read this page:</strong> an unavailable study is not a failed reproduction. Missing data, unsupported tasks, runtime faults, and under-specified methods remain distinct outcomes.</div>' +
-      (state.loading ? loading('Loading reproduction records…') : state.error ? errorBox() : reproductionRows(state.reproductions)) +
-    '</div></main>';
-  }
-
   function harnessRunDetailPage(report) {
-    return '<main id="main"><section class="detail-hero"><div class="container">' +
-      '<div class="breadcrumbs"><a href="#/reproductions">Reproductions</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
+    return '<main id="main"><section class="detail-hero"><div class="container narrow-center">' +
+      '<div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
       '<div class="detail-title"><div><div class="eyebrow">Harness-measured reproduction</div><h1>' +
       esc(text(report.paper_title, 'Experimental claim')) + '</h1><p>' +
       esc(text(report.dataset, 'Dataset not recorded')) + '</p></div><div class="detail-actions">' +
       statusBadge('Harness-measured', 'unknown') + '</div></div></div></section>' +
-      '<section class="page"><div class="container"><div class="detail-body"><div>' +
+      '<section class="page page-detail"><div class="container narrow-center"><div class="detail-body"><div>' +
       '<section class="card panel"><div class="panel-head"><h2>Claim vs measured</h2><span class="id">' +
       esc(text(report.metric, 'metric not recorded')) + '</span></div>' +
       '<dl class="kv"><dt>Paper claim</dt><dd class="mono">' + esc(report.claimed == null ? '— (pattern-level claim, see quote)' : report.claimed) + '</dd>' +
@@ -2608,6 +2847,10 @@
       });
     });
     var uniqueSeeds = Array.from(new Set(runSeeds.map(String)));
+    var backSlug = dataset.slug || '';
+    var backCrumbs = backSlug
+      ? '<a href="#/dataset/' + encodeURIComponent(backSlug) + '">Dataset</a><span>/</span><span>' + esc(report.id) + '</span>'
+      : '<a href="#/datasets">Datasets</a><span>/</span><span>' + esc(report.id) + '</span>';
     var executionSummary = runCount
       ? number(runCount) + ' run' + (runCount === 1 ? '' : 's') +
         (uniqueSeeds.length ? ' · recorded seeds: ' + uniqueSeeds.join(', ') : '')
@@ -2632,13 +2875,13 @@
           '<div class="empty"><h3>No executions recorded</h3><p class="muted">Scheduling an experiment is not counted as an execution.</p></div>') +
         '</section>';
     }).join('');
-    return '<main id="main"><section class="detail-hero"><div class="container">' +
-      '<div class="breadcrumbs"><a href="#/reproductions">Reproductions</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
+    return '<main id="main"><section class="detail-hero"><div class="container narrow-center">' +
+      '<div class="breadcrumbs">' + backCrumbs + '</div>' +
       '<div class="detail-title"><div><div class="eyebrow">Controlled reproduction report</div><h1>' +
       esc(text(paper.title || report.paper_title || claim.title, 'Experimental claim')) + '</h1><p>' +
       esc(text(dataset.name || report.dataset_name, 'Dataset not recorded')) +
       '</p></div><div class="detail-actions">' + statusBadge(report.outcome || report.status) + '</div></div></div></section>' +
-      '<section class="page"><div class="container"><div class="detail-body"><div>' +
+      '<section class="page page-detail"><div class="container narrow-center"><div class="detail-body"><div>' +
       '<section class="card panel"><div class="panel-head"><h2>Claim and conditions</h2><span class="id">' +
       esc(text(claim.metric_name, 'metric not recorded')) + '</span></div>' +
       '<dl class="kv"><dt>Reported value</dt><dd class="mono">' + esc(claim.reported_value == null ? 'Not recorded' : claim.reported_value) +
@@ -2689,7 +2932,7 @@
   }
 
   function methodologyPage() {
-    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">Source, release, paper, and reproduction records stay separate and traceable.</p>' +
+    return '<main id="main" class="page page-detail"><div class="container narrow-center prose"><h1 class="tml-page-title">Methodology</h1><p class="tml-page-intro">Source, release, paper, and reproduction records stay separate and traceable.</p>' +
       '<p>OWL separates discovery, publication, and research claims. A source record can be cataloged without being downloadable. A dataset can be mirrored without having a safe ML task adapter. A paper can be linked without being reproducible. Each state stays visible.</p>' +
       '<div class="steps">' +
         '<article class="step"><div><h3>Source and review</h3><p>Harvest machine-readable metadata, preserve every provider version, resolve identity using DOI and explicit relations, then apply deterministic source checks and AI semantic review. Legal and sensitivity gates separately control payload acquisition and release. Human audits run retroactively and can correct or withdraw a record.</p></div></article>' +
@@ -2704,30 +2947,29 @@
   }
 
   function coveragePage() {
-    var c = state.coverage || { summary:{}, sources:[] };
+    var c = state.coverage || { summary:{} };
     var summary = c.summary || {};
     var s = summary.counts || summary;
-    var sync = summary.sync || {};
-    return '<main id="main" class="page"><div class="container"><div class="section-head"><div><h1 class="tml-page-title">Coverage</h1><p class="tml-page-intro">Coverage reports which sources are indexed and what remains incomplete.</p></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
+    var rel = c.releaseStats;
+    var discovered = number(s.discovered != null ? s.discovered : s.datasets);
+    var active = number(s.approved_static_ml != null ? s.approved_static_ml : (s.approved_static != null ? s.approved_static : state.datasets.length));
+    var linked = number(s.paper_linked != null ? s.paper_linked : s.confirmed_paper_links);
+    var released = rel ? number(rel.releases) : '—';
+    var releasedDatasets = rel ? number(rel.datasets) : '—';
+    return '<main id="main" class="page page-detail"><div class="container narrow-center"><div class="section-head"><div><h1 class="tml-page-title">Coverage</h1><p class="tml-page-intro">Coverage reports which sources are indexed and what remains incomplete.</p></div><p class="section-copy">“All” means the maintained telecom query registry, trusted indexes, and curated gold inventory—not every record on the internet. Source failures and missing credentials remain visible coverage limits.</p></div>' +
       (state.loading ? loading('Loading source coverage…') : state.error ? errorBox() :
-        '<div class="grid coverage-grid">' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.discovered != null ? s.discovered : s.datasets)) + '</strong><h3>Discovered candidates</h3><p>Raw candidates before relevance, usability, license, and publication review.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.approved_static_ml != null ? s.approved_static_ml : (s.approved_static != null ? s.approved_static : state.datasets.length))) + '</strong><h3>Active ML records</h3><p>Static trainable records exposed after deterministic checks and AI metadata review. Human audits run retroactively and can correct or withdraw a record.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.published)) + '</strong><h3>Published releases</h3><p>Immutable task releases with public manifests, checksums, and reviewed split assignments.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.paper_candidates)) + '</strong><h3>Paper-use candidates</h3><p>Source-linked papers queued for exact evidence confirmation across ' + esc(number(s.paper_candidate_datasets)) + ' dataset concepts.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.paper_linked != null ? s.paper_linked : s.confirmed_paper_links)) + '</strong><h3>Evidence-linked paper relationships</h3><p>Machine-checked relationships with an exact passage and paper-text hash. They remain auditable and correctable.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(s.acquired)) + '</strong><h3>Acquired versions</h3><p>Reviewed dataset versions whose bytes passed access, quota, archive, and content-safety checks.</p></article>' +
-          '<article class="card coverage-card"><strong>' + esc(number(sync.terminal)) + ' / ' + esc(number(sync.total)) + '</strong><h3>Terminal source scans</h3><p>Complete or explicitly waived registry queries. Registry: ' + esc(text(summary.registry_version, 'not reported')) + '.</p></article>' +
-        '</div>' +
-        '<div class="section-head" style="margin-top:46px"><div><div class="eyebrow">Source registry</div><h2>Synchronization state</h2></div><p class="section-copy">Operational errors are summarized, not exposed with internal URLs or credentials.</p></div>' +
-        '<div class="grid coverage-grid">' + c.sources.map(function (src) {
-          return '<article class="card coverage-card"><div class="card-kicker"><span class="id">' + esc(src.authenticated ? 'authenticated' : 'anonymous') + '</span>' + statusBadge(src.status) + '</div><h3>' + esc(src.provider) + '</h3><p>' + esc(number(src.seen)) + ' records seen · ' + esc(number(src.kept)) + ' retained<br>Last complete sync: ' + esc(date(src.lastSync)) + '</p></article>';
-        }).join('') + '</div>') +
+      '<div class="prose-narr">' +
+        '<p>OWL watches a maintained registry of telecom data sources. Of everything discovered so far, <strong><span class="bignum">' + esc(discovered) + ' datasets</span></strong> passed relevance, usability, license, and publication review and are active, trainable records in the <a href="#/datasets">catalog</a>.</p>' +
+        '<p>For <strong><span class="bignum">' + esc(releasedDatasets) + ' of those datasets</span></strong> we prepared immutable releases — documented splits, checksums, and manifests — so anyone can download the exact bytes, train a model, and verify it against hidden labels. <a href="#/datasets?availability=released">Browse downloadable datasets →</a></p>' +
+        '<p>Papers connect to datasets only through machine-checked usage evidence: an exact passage plus a paper-text hash. <strong><span class="bignum">' + esc(linked) + '</span></strong> <strong>Evidence-linked paper relationships</strong> are recorded across the catalog. Each one stays auditable and correctable; a citation alone never counts as dataset use.</p>' +
+        '<h2>What remains incomplete</h2>' +
+        '<p>Paper-use candidates still queued for exact evidence confirmation. Dataset versions whose bytes have not yet passed access, quota, archive, and content-safety checks. Registry queries that have not completed or were explicitly waived.</p>' +
+      '</div>') +
     '</div></main>';
   }
 
   function contributePage() {
-    return '<main id="main" class="page"><div class="container prose"><h1 class="tml-page-title">Catalog contributions</h1><p class="tml-page-intro">Improve the public record through GitHub issues and pull requests.</p><p>Dataset and evidence corrections are made through GitHub issues and pull requests. Published supervised releases also accept authenticated prediction uploads for private, server-verified scoring.</p>' +
+    return '<main id="main" class="page page-detail"><div class="container narrow-center prose"><h1 class="tml-page-title">Catalog contributions</h1><p class="tml-page-intro">Improve the public record through GitHub issues and pull requests.</p><p>Dataset and evidence corrections are made through GitHub issues and pull requests. Published supervised releases also accept authenticated prediction uploads for private, server-verified scoring.</p>' +
       '<div class="grid card-grid" style="margin-top:28px">' +
         '<article class="card panel"><h3>Suggest a dataset</h3><p class="muted">Provide a landing page, stable identifier, license, task description, and why it contains static telecom ML data.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Open an issue ↗</a></article>' +
         '<article class="card panel"><h3>Link a paper</h3><p class="muted">Name the dataset version and quote the passage showing actual training or evaluation use.</p><a class="btn btn-light" href="https://github.com/MrAntonS/TeleMLEBench/issues/new" target="_blank" rel="noopener">Submit evidence ↗</a></article>' +
@@ -2739,9 +2981,7 @@
     if (state.route.name === 'datasets') return datasetsPage();
     if (state.route.name === 'dataset') return detailPage();
     if (state.route.name === 'baseline') return baselinePage();
-    if (state.route.name === 'papers') return papersPage();
     if (state.route.name === 'paper') return paperDetailPage();
-    if (state.route.name === 'reproductions') return reproductionsPage();
     if (state.route.name === 'reproduction') return reproductionDetailPage();
     if (state.route.name === 'methodology') return methodologyPage();
     if (state.route.name === 'coverage') return coveragePage();
@@ -2796,7 +3036,7 @@
     var queryString = question >= 0 ? raw.slice(question + 1) : '';
     var params = new URLSearchParams(queryString);
     var parts = path.split('/').filter(Boolean);
-    var allowed = ['home','datasets','papers','reproductions','methodology','coverage','contribute'];
+    var allowed = ['home','datasets','methodology','coverage','contribute'];
     if (parts[0] === 'dataset' && parts[1]) return { name:'dataset', slug:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'paper' && parts[1]) return { name:'paper', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'reproduction' && parts[1]) return { name:'reproduction', id:decodeURIComponent(parts.slice(1).join('/')) };
@@ -2820,6 +3060,7 @@
         state.filters.publication = route.publication;
       }
     }
+    state.catalogPage = 1;
     state.route = route;
     state.navOpen = false;
     state.error = '';
@@ -2837,9 +3078,7 @@
     if (state.route.name === 'home' || state.route.name === 'datasets') loadCore();
     else if (state.route.name === 'dataset') loadDetail(state.route.slug);
     else if (state.route.name === 'baseline') loadBaselineGuide(state.route.releaseId);
-    else if (state.route.name === 'papers') loadPapers();
     else if (state.route.name === 'paper') loadPaperDetail(state.route.id);
-    else if (state.route.name === 'reproductions') loadReproductions();
     else if (state.route.name === 'reproduction') loadReproductionDetail(state.route.id);
     else if (state.route.name === 'coverage') loadCoverage();
     else render();
@@ -2870,9 +3109,7 @@
   function retry() {
     state.error = '';
     if (state.route.name === 'dataset') loadDetail(state.route.slug);
-    else if (state.route.name === 'papers') loadPapers();
     else if (state.route.name === 'paper') loadPaperDetail(state.route.id);
-    else if (state.route.name === 'reproductions') loadReproductions();
     else if (state.route.name === 'reproduction') loadReproductionDetail(state.route.id);
     else if (state.route.name === 'coverage') loadCoverage();
     else { state.datasetsLoaded = false; loadCore(); }
@@ -2925,7 +3162,13 @@
     } else if (action === 'browse-all-finder') {
       state.finder.query = '';
       state.filters = emptyFilters();
+    } else if (action === 'catalog-prev' || action === 'catalog-next') {
+      state.catalogPage += action === 'catalog-next' ? 1 : -1;
+      updateDatasetResults();
+      var pageButton = app.querySelector('[data-action="' + action + '"]:not([disabled])') || app.querySelector('.ow-pagination button:not([disabled])');
+      if (pageButton) pageButton.focus();
     } else if (action === 'clear-filters') {
+      state.catalogPage = 1;
       state.filters = emptyFilters();
       if (state.route.name === 'datasets' && syncDatasetFilterControls()) updateDatasetResults();
       else render();
@@ -2979,6 +3222,7 @@
     var key = event.target.getAttribute('data-filter');
     if (!key || !(key in state.filters)) return;
     state.filters[key] = event.target.value;
+    state.catalogPage = 1;
     // Repaint the results only. A full render() would replace the control being
     // used, dropping focus mid-interaction - and for the search box it also
     // swallows every keystroke that lands during the rebuild.
@@ -3405,12 +3649,14 @@
         'error-callback': function () {
           turnstileToken = '';
           submit.disabled = true;
-          setEvaluatorStatus(status, 'Human verification failed to load. Please retry.', true);
+          challengeField.style.display = 'none';
+          setEvaluatorStatus(status, 'Human verification could not load on this host, so prediction scoring is unavailable here.', false);
         }
       });
     }).catch(function (error) {
       submit.disabled = true;
-      setEvaluatorStatus(status, error && error.message ? error.message : 'Human verification is unavailable.', true);
+      challengeField.style.display = 'none';
+      setEvaluatorStatus(status, 'Human verification is unavailable on this host, so prediction scoring is unavailable here.', false);
     });
 
     form.addEventListener('submit', async function (event) {

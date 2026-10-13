@@ -17,10 +17,11 @@ test('landmarks, names, focus order, and skip navigation support keyboard users'
   await expect(page.getByRole('main')).toBeFocused();
   await expect(page).toHaveURL(/#\/datasets$/);
 
-  const labels = ['Search', 'Task', 'Origin', 'Access', 'Source', 'License', 'Release', 'Papers'];
+  const labels = ['Research task', 'Availability', 'Origin', 'Access', 'Source', 'License', 'Papers'];
   for (const label of labels) {
     await expect(page.getByLabel(label)).toHaveCount(1);
   }
+  await expect(page.getByLabel('Search', { exact: true })).toHaveCount(1);
 
   await expect(page.locator('img:not([alt])')).toHaveCount(0);
   await expect(page.locator('button:not([aria-label])')).toHaveCount(0);
