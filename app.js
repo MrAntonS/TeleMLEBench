@@ -2067,21 +2067,6 @@
     return url ? '<a class="btn btn-ghost" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + ' ↗</a>' : '';
   }
 
-  function sourceRows(detail) {
-    var sources = detail.sources.length ? detail.sources : [{
-      provider: detail.dataset.source,
-      landing_url: detail.dataset.url,
-      external_id: detail.dataset.raw.hf_id || detail.dataset.id,
-      access_status: detail.dataset.access
-    }];
-    return sources.map(function (s) {
-      var url = safeUrl(s.landing_url || s.url || s.canonical_link);
-      var provider = text(s.provider, 'Source record');
-      return '<div class="source-row"><div><div class="row-title">' + esc(provider) + '</div><div class="row-meta">' + esc(text(s.external_id || s.provider_id || s.version, 'identifier not listed')) + '</div></div>' +
-        (url ? '<a class="btn btn-light" href="' + esc(url) + '" target="_blank" rel="noopener">Open record ↗</a>' : statusBadge(s.access_status || detail.dataset.access)) + '</div>';
-    }).join('');
-  }
-
   function taskReleaseRows(detail) {
     if (!detail.tasks.length && !detail.releases.length) {
       return '<div class="empty"><h3>No immutable task release</h3><p class="muted">No target, sample boundary, leakage policy, and split assignment have passed publication review for this version.</p></div>';
@@ -2643,13 +2628,6 @@
       '</div><aside>' +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
       '</aside></div>' +
-      '<section class="card panel" style="margin-top:20px"><div class="panel-head"><h2>Where this data comes from</h2><span class="id">' + esc(number(d.sourceCount || x.sources.length)) + ' records</span></div>' +
-        '<dl class="kv" style="margin-bottom:16px">' +
-          '<dt>License</dt><dd>' + esc(d.license) + '</dd>' +
-          '<dt>Access</dt><dd>' + esc(d.access) + '</dd>' +
-          (d.doi ? '<dt>DOI</dt><dd class="mono">' + esc(d.doi) + '</dd>' : '') +
-        '</dl>' +
-        '<div class="source-list">' + sourceRows(x) + '</div></section>' +
       '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
       '</div></section></main>';
   }

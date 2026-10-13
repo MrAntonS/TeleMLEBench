@@ -79,7 +79,7 @@ expect(app.includes('scoresLeaderboard'), 'dataset scores leaderboard is missing
 expect(app.includes('lb-baseline'), 'baseline reference row is missing from the leaderboard');
 expect(app.includes('data-schema-filter'), 'schema field filter is missing');
 expect(app.includes('data-action="schema-show-all"'), 'schema expander is missing');
-expect(app.includes('Where this data comes from'), 'plain-language source section is missing');
+expect(!app.includes('Where this data comes from'), 'duplicate bottom source section returned');
 expect(app.includes('Replicate this baseline') || app.includes('Baseline replication guide'), 'baseline replication guide is missing');
 expect(app.includes('#/baseline/'), 'baseline guide links are missing');
 expect(app.includes('Download main.py'), 'one-click replication download is missing');
