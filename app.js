@@ -970,7 +970,7 @@
       '<option value="paper"' + ((state.owlSort || 'paper') === 'paper' ? ' selected' : '') + '>Paper order</option>' +
       '<option value="gap"' + (state.owlSort === 'gap' ? ' selected' : '') + '>Largest gap</option>' +
       '<option value="muse"' + (state.owlSort === 'muse' ? ' selected' : '') + '>Highest Muse OA</option></select></div></div>' +
-      '<div class="paper-cards">' + cards + '</div>';
+      '<div class="paper-cards ow-paper-grid">' + cards + '</div>';
   }
 
   function owlStudyMetrics(study) {
@@ -986,7 +986,7 @@
     function stat(label, value) {
       return '<div class="coverage-card"><div class="row-meta">' + esc(label) + '</div><strong>' + esc(value) + '</strong></div>';
     }
-    return '<div class="coverage-grid" style="margin:0 0 16px" role="group" aria-label="Study-wide counts">' +
+    return '<div class="ow-metric-row" role="group" aria-label="Study-wide counts">' +
       stat('Papers studied', String(exps.length).padStart(2, '0')) +
       stat('Missing-spec rows', String(missTotal)) +
       stat('Fidelity ledger rows', String(fidTotal)) +
@@ -1047,7 +1047,7 @@
   }
 
   function owlResultsMode(study) {
-    return '<div class="tml-splitgrid">' +
+    return '<div class="ow-results-grid">' +
       '<section class="card panel"><div class="panel-head"><h3>Overall accuracy comparison</h3><span class="id">Overall accuracy · percent</span></div>' +
       owlComparisonTable(study) + '</section>' +
       '<section class="card panel"><div class="panel-head"><h3>Published vs author vs Muse</h3><span class="id">Axis 0–70%</span></div>' +
@@ -1080,7 +1080,7 @@
         '<p class="definition">220,000 I/Q signal examples spanning 11 modulation classes and 20 SNRs (\u221220 to +18 dB in 2 dB steps), each sequence 2 \u00d7 128. The validated local study copy was used; identity with the original upstream release remains unverified.</p>' +
         '<p><a class="btn btn-light" href="#/methodology">Read methodology \u2192</a></p></section>';
     } else if (tab === 'papers') {
-      body = '<section class="card panel"><div class="panel-head"><h3>Linked papers</h3><span class="id">6 papers</span></div><div class="paper-cards">' +
+      body = '<section class="card panel"><div class="panel-head"><h3>Linked papers</h3><span class="id">6 papers</span></div><div class="paper-cards ow-paper-grid">' +
         (study.experiments || []).map(function (ex) {
           var paper = ex.paper || {};
           return '<article class="paper-card"><div class="paper-card-meta"><span>' + esc(String(paper.short || '').toUpperCase()) + '</span><span>' + esc(paper.year || '') + '</span></div>' +
@@ -3156,6 +3156,11 @@
     }).map(function (row) {
       return '<dt>' + esc(row[0]) + '</dt><dd' + (row[2] ? ' class="mono"' : '') + '>' + esc(row[1]) + '</dd>';
     }).join('');
+    var owlSlug = (state.route && state.route.slug) || (x.dataset && x.dataset.slug) || '';
+    var hasOwlStudy = false;
+    try { hasOwlStudy = !!owlStudyForSlug(owlSlug); } catch (_) { hasOwlStudy = false; }
+    var scoresPanel = hasOwlStudy ? '' :
+      '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>';
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container narrow-center"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
         '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(typeof DATASET_DESCRIPTIONS === 'object' && DATASET_DESCRIPTIONS[(d.name || '').toLowerCase()] || d.description) + '</p>' +
@@ -3163,11 +3168,11 @@
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
       '<section class="page page-detail"><div class="container"><div class="detail-body"><div>' +
         taskAndDataSection(x) +
-        '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>' +
-        owlStudySection((state.route && state.route.slug) || (x.dataset && x.dataset.slug) || '') +
+        scoresPanel +
       '</div><aside>' +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
       '</aside></div>' +
+      owlStudySection(owlSlug) +
       '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
       '</div></section></main>';
   }

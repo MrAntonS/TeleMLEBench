@@ -834,9 +834,10 @@ test('radioml dataset shows artifact-audited six-paper comparison with correct n
   // Author-code multi-seed preserved
   await expect(page.getByText('62.37%', { exact: false }).first()).toBeVisible();
   await expect(page.getByText('61.78%', { exact: false }).first()).toBeVisible();
+  // Deprecated Scores leaderboard is hidden where the audit lives
+  await expect(page.getByRole('heading', { name: 'Scores' })).toHaveCount(0);
   // Existing dataset features preserved
   await expect(page.getByRole('heading', { name: 'Get the data' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Scores' })).toBeVisible();
   assertNoClientErrors();
 });
 
