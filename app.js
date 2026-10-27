@@ -38,7 +38,11 @@
     },
     catalogPage: 1,
     scorePage: 1,
-    navOpen: false
+    navOpen: false,
+    owlDatasetTab: 'reproductions',
+    owlMode: 'results',
+    owlSort: 'paper',
+    owlDetailTab: 'overview'
   };
 
   var app = document.getElementById('app');
@@ -797,6 +801,517 @@
     }
   ];
 
+  // Artifact-audited RadioML2016.10a six-paper study (generated from owl-reproductions catalog v1.0.0).
+  // Label: Artifact-audited reproduction study (never Server verified). Splits/seeds differ; do not rank.
+  var OWL_RADIOML_STUDY = {"study_id":"radioml2016-10a-six-paper-2026-10","study_title":"Artifact-audited six-paper RadioML2016.10a reproduction study","dataset_slug":"radioml-2016-10a","coding_model":"Muse Spark 1.3","label":"Artifact-audited reproduction study (not server-verified leaderboard)","repo_url":"https://github.com/MrAntonS/owl-reproductions","repo_version":"v1.0.0","experiments":[{"experiment_id":"owl-radioml-amc-net","paper":{"experiment_id":"owl-radioml-amc-net","short":"amc-net","title":"AMC-Net: An Effective Network for Automatic Modulation Classification","authors":"Jiawei Zhang, Tiantian Wang, Zhixi Feng, Shuyuan Yang","venue":"arXiv preprint eess.SP (ICASSP 2023 per caller; proceedings version unavailable)","year":2023,"arxiv_id":"2304.00445","doi":"10.48550/arXiv.2304.00445","paper_url":"https://arxiv.org/abs/2304.00445","author_repo_url":"https://github.com/zjwfufu/AMC-Net","author_commit":"38bedf5a41f779de355466b199e7630dfcb99cd0","author_license":"MIT"},"published_oa":0.6251,"author_oas":[0.6227954545454546,0.6237272727272727,0.61775],"author_runs_meta":[{"kind":"author_checkpoint","seed":null,"oa":0.6227954545454546},{"kind":"from_scratch_author_pipeline","seed":2022,"oa":0.6237272727272727},{"kind":"from_scratch_author_pipeline","seed":2023,"oa":0.61775}],"author_mean_oa":0.6207386363636364,"author_mean_per_snr":{"-20":0.09257575757575758,"-18":0.09545454545454546,"-16":0.10166666666666667,"-14":0.12787878787878787,"-12":0.1687878787878788,"-10":0.25,"-8":0.39530303030303027,"-6":0.5613636363636364,"-4":0.7148484848484848,"-2":0.8324242424242424,"0":0.888939393939394,"2":0.8995454545454545,"4":0.9054545454545454,"6":0.9071212121212121,"8":0.9090909090909092,"10":0.9165151515151515,"12":0.9184848484848485,"14":0.9124242424242425,"16":0.9168181818181819,"18":0.9137878787878787},"muse_oa":0.5946590909090909,"muse_macro_f1":0.6114246099448772,"muse_kappa":0.554125,"muse_per_snr":{"-20":0.09409090909090909,"-18":0.09727272727272727,"-16":0.10136363636363636,"-14":0.13954545454545456,"-12":0.17181818181818181,"-10":0.25545454545454543,"-8":0.37454545454545457,"-6":0.5331818181818182,"-4":0.6627272727272727,"-2":0.7718181818181818,"0":0.8286363636363636,"2":0.8622727272727273,"4":0.8681818181818182,"6":0.8681818181818182,"8":0.8790909090909091,"10":0.8781818181818182,"12":0.8722727272727273,"14":0.8759090909090909,"16":0.8759090909090909,"18":0.8827272727272727},"muse_n_test":44000,"muse_split":"stratified per (modulation,SNR): 600 train / 200 val / 200 test of 1000 per key, seed 0","muse_split_sha":"ada29821e275c254c41105b669804d2a7199c6cdc4d1496ab80e5cd638997b07","muse_source_sha":"0a403e231edeb77fddca7057bde86c773efd5ae47a6736822fa813056ac755ca","muse_per_run":null,"difference_pp":-3.044090909090913,"experiment_date":"2026-10-27","published_per_snr":null,"method_fidelity":{"followed":["Backbone Conv1d 36->64->128->256, kernels 1x3, ReLU, no BN/pooling (as stated)","MSM 3x Conv2d(1->12) kernels (2,3)/(2,5)/(2,7) +BN+ReLU concat 36ch","ACM Linear 128->48->128 Tanh gate + IFFT residual","Classifier GAP + FC 512/256/11","Cross-entropy, Adam, Xavier init"],"deviated":["LR 3e-4 + clip 1.0 vs stated 1e-3 (instability documented)"],"ambiguous":["FFM orientation (temporal vs channel); paper Eq.5 shapes vs text/figure"],"omitted":["Batch size, max epochs, Adam betas, dk, BN/dropout details"],"author_differs":["Author pipeline batch 64 lr 1e-3 patience 10 (config unchanged); no author-track file patches"],"unknown":["Whether proceedings ICASSP version differs from arXiv v1"]},"missing_specifications":[{"category":"dataset/split","item":"Split seed and stratification","paper_status":"Paper omitted information","author_implementation":"Author code split uses its own seed/indices (seed couples split/init/shuffle; seed-2023 test split differs); exact membership unavailable in this catalog","muse_implementation":"Stratified per (modulation,SNR): 600/200/200 of 1000 per key, seed 0 (M1)","evidence":"Paper Sec 3.2 '6:2:2 randomly selected from each modulation format in different SNRs' (PAPER_SPECIFICATION.md)","impact":"Untested hypothesis (expected medium: seeds shift OA ~\u00b10.5-1pp)"},{"category":"preprocessing","item":"Input normalization","paper_status":"Paper omitted information","author_implementation":"Unavailable in this catalog","muse_implementation":"None (raw I/Q float32 as stored)","evidence":"No normalization stated (MISSING_PARAMETERS.md)","impact":"Untested hypothesis (expected low)"},{"category":"architecture","item":"FFM dk and orientation; backbone norm/pooling","paper_status":"Paper ambiguous","author_implementation":"Author-code differs in places (see study README); not re-derived here","muse_implementation":"dk=64 (heads=2, params 454,527 vs 0.47M); temporal LxL attention; no FFM residual/norm/FFN; no backbone BN","evidence":"Paper Sec 2.2 Eq.5-7 + Fig.1; M10-M12","impact":"Empirically tested effect (temporal vs channel orientation: observed no effect in tested configuration, val acc identical); dk choice untested hypothesis"},{"category":"optimization","item":"Batch size; optimizer details","paper_status":"Paper omitted information","author_implementation":"Author config batch 64, lr 1e-3, patience 10 (config/2016.10a.yml unchanged)","muse_implementation":"Batch 256, Adam defaults, lr 3e-4 + grad clip 1.0 (deviation: stated lr 1e-3 unstable)","evidence":"M2/M4; FINAL_REPORT.md deviation note","impact":"Empirically tested effect (lr 1e-3 val oscillation 1.2-4.0 in 3 runs; 3e-4 stable)"},{"category":"regularization","item":"Dropout / weight decay / scheduler","paper_status":"Paper omitted information","author_implementation":"Unavailable in this catalog","muse_implementation":"None stated so none used; no scheduler","evidence":"MISSING_PARAMETERS M13","impact":"Untested hypothesis"},{"category":"checkpoint selection","item":"Early stopping signal and max epochs","paper_status":"Paper-specified method followed (with inferred max)","author_implementation":"Author: val-loss patience 10, max 100 epochs","muse_implementation":"Val cross-entropy, patience 10, min-delta 0.0, restore best, max 100 epochs","evidence":"Paper patience 10; M3","impact":"Plausible technical impact (longer training unlikely to change result)"},{"category":"evaluation","item":"Metric aggregation over SNRs","paper_status":"Paper-specified method followed","author_implementation":"Overall micro accuracy over all test examples","muse_implementation":"Overall micro accuracy + sklearn macro-F1 + Cohen kappa; per-SNR from test split","evidence":"Paper Sec 3.3; metrics.py verified vs sklearn","impact":"Observed no effect in tested configuration (metric code parity-checked)"}],"limitations":["Stated lr 1e-3 unstable in faithful implementation (3 full runs val oscillation 1.2-4.0, early stop on noise ep~14 best val 0.54-0.56); frozen model uses lr 3e-4 + clip 1.0 (deviation).","Single seed; paper reports no seeds/runs/std. Seed spread in author from-scratch runs 0.60pp (n=2, descriptive only).","No per-SNR tabulated published values (Fig.2a curves only); published series not reconstructed.","Headline kappa/OA inconsistency preserved (62.51% implies kappa 0.5876 vs reported 0.5885); cause untested.","Dataset identity/sample order vs original DeepSig not independently proven; test-eval ledger repairs disclosed in study methodology."]},{"experiment_id":"owl-radioml-awn","paper":{"experiment_id":"owl-radioml-awn","short":"awn","title":"Toward the Automatic Modulation Classification With Adaptive Wavelet Network","authors":"Jiawei Zhang, Tiantian Wang, Zhixi Feng, Shuyuan Yang","venue":"IEEE Transactions on Cognitive Communications and Networking, vol. 9, no. 3, pp. 549-563","year":2023,"arxiv_id":null,"doi":"10.1109/TCCN.2023.3252580","paper_url":"https://doi.org/10.1109/TCCN.2023.3252580","author_repo_url":"https://github.com/zjwfufu/AWN","author_commit":"0b3d2b2d3d5d4761e73eb91e223844b4b8585b53","author_license":"MIT"},"published_oa":0.6244,"author_oas":[0.622,0.61825,0.6181136363636364],"author_runs_meta":[{"kind":"author_checkpoint","seed":null,"oa":0.622},{"kind":"from_scratch_author_pipeline","seed":2022,"oa":0.61825},{"kind":"from_scratch_author_pipeline","seed":2023,"oa":0.6181136363636364}],"author_mean_oa":0.6181818181818182,"author_mean_per_snr":{"-20":0.09545454545454546,"-18":0.09787878787878788,"-16":0.10303030303030303,"-14":0.12787878787878787,"-12":0.16636363636363635,"-10":0.25666666666666665,"-8":0.3889393939393939,"-6":0.5528787878787879,"-4":0.6983333333333334,"-2":0.8137878787878788,"0":0.8783333333333333,"2":0.900151515151515,"4":0.9034848484848484,"6":0.916969696969697,"8":0.9065151515151516,"10":0.9181818181818181,"12":0.9206060606060605,"14":0.9142424242424242,"16":0.9151515151515152,"18":0.9142424242424242},"muse_oa":0.5945227272727273,"muse_macro_f1":0.6212461748542604,"muse_kappa":0.553975,"muse_per_snr":{"-20":0.08954545454545454,"-18":0.09454545454545454,"-16":0.09409090909090909,"-14":0.10318181818181818,"-12":0.12545454545454546,"-10":0.20454545454545456,"-8":0.335,"-6":0.5,"-4":0.685,"-2":0.7918181818181819,"0":0.8422727272727273,"2":0.8681818181818182,"4":0.8777272727272727,"6":0.8868181818181818,"8":0.9031818181818182,"10":0.8954545454545455,"12":0.9027272727272727,"14":0.89,"16":0.9009090909090909,"18":0.9},"muse_n_test":44000,"muse_split":"stratified per (modulation,SNR): 600/200/200 of 1000 -> 132k/44k/44k, seed=0","muse_split_sha":"7bdc58fe1e45524ad7b1608194b9e162c1f8fa342eed0ab930fdf0d5533aaef3","muse_source_sha":"6b8aed1ef58a6fc828fcd830df235e75d33450d28eaa1f86acdc561536babfe8","muse_per_run":null,"difference_pp":-2.9877272727272697,"experiment_date":"2026-10-27","published_per_snr":null,"method_fidelity":{"followed":["Initial convs 2x7/1x5/1x3 64ch BN+ReLU; T=1 lifting reflection-pad P/U; GAP+concat(128); SENet attention; FC(128->320->11); 0.11M params","Loss CE + 0.01*mean|H| + 0.01*|mean(L)-mean(F)| per Alg.1","Split 6:2:2 stratified per (mod,SNR)"],"deviated":["Early stopping on val-CE patience 10 vs paper 'verification loss' (total loss) patience 5"],"ambiguous":["BN omission in text vs Fig.2a; kernel 1x5 vs 1x3; Eq.24 vs Alg.1 regularizer"],"omitted":["Seed, optimizer betas, scheduler, dropout"],"author_differs":["Author code unspecified here beyond audit; no comparison fabricated"],"unknown":["Exact author split membership"]},"missing_specifications":[{"category":"dataset/split","item":"Stratified split RNG/seed","paper_status":"Paper omitted information","author_implementation":"Author pipeline split seed/indices unavailable in this catalog","muse_implementation":"Stratified per (mod,SNR) 600/200/600? 600/200/200, seed 0 (RandomState(0))","evidence":"Paper 6:2:2 stratified per (mod,SNR); no seed (M1)","impact":"Untested hypothesis (expected \u00b10.3pp)"},{"category":"preprocessing","item":"Input normalization","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"Raw I/Q float32 as-is","evidence":"None mentioned (M2)","impact":"Untested hypothesis (expected small)"},{"category":"architecture","item":"Conv padding, BN placement, P/U second conv, attention bottleneck, classifier","paper_status":"Paper ambiguous","author_implementation":"Unavailable in this catalog","muse_implementation":"Conv2d(2x7) pad (0,3); Conv1d-5 pad2; Conv1d-3 pad1; BN+ReLU per Fig.2a; depthwise second conv (groups=C); bottleneck C/4; FC(128->320->11)","evidence":"M3-M8; param count 112,619 matches 0.11M (validates reading)","impact":"Empirically tested effect (depthwise + bottleneck required to match 0.11M)"},{"category":"optimization","item":"Early-stopping signal and patience","paper_status":"Paper-specified method deviated from","author_implementation":"Unavailable","muse_implementation":"Val cross-entropy patience 10 (deviation: paper 'verification loss' on regularized total loss stopped at ep8 val~51%; CE used instead)","evidence":"M10-M11; FINAL_REPORT.md","impact":"Empirically tested effect (total-loss stopping undertrains; CE stopping +5-10pp vs premature stop)"},{"category":"regularization","item":"Loss regularization form (Eq.24 vs Alg.1)","paper_status":"Paper ambiguous","author_implementation":"Unavailable","muse_implementation":"Alg.1 (mean(|H|)+|mean(L)-mean(F)|), lambda 0.01 each","evidence":"M9","impact":"Plausible technical impact (terms ~1e-3)"},{"category":"checkpoint selection","item":"Max epochs","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"Max 50 epochs, best-val checkpoint","evidence":"M11","impact":"Untested hypothesis"},{"category":"evaluation","item":"Single run vs mean; metric definitions","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"Single seed-0 run; OA=micro accuracy, MF1=sklearn macro, kappa=sklearn","evidence":"M13-M14","impact":"Untested hypothesis (run variance ~\u00b10.5pp)"}],"limitations":["Early-stopping deviation: total-loss stopping fires ep8 (val ~51%); frozen uses val-CE patience 10 (documented).","Single seed; paper states no seeds/runs. Run noise ~\u00b10.5pp does not explain 3pp gap.","Framework drift (torch 2.4 vs 1.7, RTX 4090 vs GTX 2080Ti) may shift results slightly.","Per-SNR published values are curves only (Fig.3a/4/8); not reconstructed.","High-SNR definition ambiguous (whether 0 dB included)."]},{"experiment_id":"owl-radioml-icrnna","paper":{"experiment_id":"owl-radioml-icrnna","short":"icrnna","title":"Improved automatic modulation recognition using deep learning with additive attention","authors":"Noureddine El-Haryqy, Anass Kharbouche, Hamza Ouamna, Zhour Madini, Younes Zouine","venue":"Results in Engineering 26 (2025) 104783, Elsevier","year":2025,"arxiv_id":null,"doi":"10.1016/j.rineng.2025.104783","paper_url":"https://doi.org/10.1016/j.rineng.2025.104783","author_repo_url":"https://github.com/noureddine395/mproved-automatic-modulation-recognition-using-deep-learning-with-additive-attention","author_commit":"ac000a0d38d6b783ac9e3a92eee328d4ff107316","author_license":"MIT"},"published_oa":0.6324,"author_oas":[0.6337575757575757],"author_runs_meta":[{"kind":"from_scratch_author_pipeline","seed":"PYTHONHASHSEED=0 / RANDOM_STATE=2016","oa":0.6337575757575757}],"author_mean_oa":0.6337575757575757,"author_mean_per_snr":{"-20":0.08225108225108226,"-18":0.09692956050571945,"-16":0.094712376525276,"-14":0.11838006230529595,"-12":0.15980629539951574,"-10":0.2452130945027795,"-8":0.3981818181818182,"-6":0.5861258083480305,"-4":0.7421307506053268,"-2":0.8674065420560748,"0":0.9166666666666666,"2":0.9222676797194623,"4":0.9258104738154613,"6":0.9297520661157025,"8":0.9308022045315371,"10":0.936756418284283,"12":0.9303604153940135,"14":0.9329863370201692,"16":0.9295261239368166,"18":0.9332161687170475},"muse_oa":0.609,"muse_macro_f1":0.6305626350200574,"muse_kappa":0.5699,"muse_per_snr":{"-20":0.09696969696969697,"-18":0.09212121212121212,"-16":0.10121212121212121,"-14":0.11878787878787879,"-12":0.15696969696969698,"-10":0.20424242424242425,"-8":0.33575757575757575,"-6":0.5648484848484848,"-4":0.7048484848484848,"-2":0.8272727272727273,"0":0.8751515151515151,"2":0.8824242424242424,"4":0.9036363636363637,"6":0.9024242424242425,"8":0.8987878787878788,"10":0.9090909090909091,"12":0.9024242424242425,"14":0.9012121212121212,"16":0.9006060606060606,"18":0.9012121212121212},"muse_n_test":33000,"muse_split":"70/15/15 random split stratified by joint (modulation,SNR), seed 42; test = 15% (33000 examples)","muse_split_sha":"ee5fd4b2ed837f0e2636f0ffb06c7804389945b2c0088bed74e13e5b8b15db6b","muse_source_sha":"a4c07fac94118d7daee67dbe2986ed4915ab88b8bd543a243cb74ba6a58a4ee7","muse_per_run":null,"difference_pp":-2.3399999999999976,"experiment_date":"2026-10-27","published_per_snr":{"-10":0.2532,"-8":0.3745,"-6":0.5526,"-4":0.7113,"-2":0.8511,"0":0.9221,"2":0.934,"4":0.9302},"method_fidelity":{"followed":["Architecture per Fig.2/Sec.3 (params 794,699 = 0.79M)","Paper LR schedule, split ratio, dropout/L2 as specified where given"],"deviated":["Batch 128 vs paper 32 (budget); 26/58 epochs run"],"ambiguous":["Optimizer, loss, conv padding, attention exact form, normalization, stratification/seed"],"omitted":["Seeds, repeats, std"],"author_differs":["Author TF2.17/Keras3 in-script constants (RANDOM_STATE 2016, Adam 1e-3 clipnorm 1.0, batch 32, ES+ReduceLROnPlateau+Checkpoint)"],"unknown":["Whether full 58 epochs closes gap"]},"missing_specifications":[{"category":"dataset/split","item":"Split method/seed/stratification","paper_status":"Paper omitted information","author_implementation":"Author: RANDOM_STATE 2016 (in-script constant); no stratification stated","muse_implementation":"Seeded shuffle seed 42 stratified by joint (mod,SNR) via sklearn, 70/15/15","evidence":"M9; author FROZEN_CONFIG RANDOM_STATE 2016","impact":"Plausible technical impact (plain random ~= stratified in expectation)"},{"category":"preprocessing","item":"Normalization","paper_status":"Paper omitted information","author_implementation":"None described","muse_implementation":"Global standardization with train mean/std (~-0.00027/0.00604)","evidence":"M8 (raw ~0.006 needs rescaling; per-sample norm would destroy amplitude)","impact":"Plausible technical impact (medium)"},{"category":"architecture","item":"Conv padding/channel order; LSTM return-sequences; attention exact form; BN placement","paper_status":"Paper ambiguous","author_implementation":"Unavailable in this catalog beyond audit","muse_implementation":"Conv1d stride1 same-pad; in_channels=2; both BiLSTMs return full sequences; per-timestep additive self-attention attn_dim=128, dropout 0.1, LayerNorm; BN on feature dim","evidence":"M3-M7","impact":"Untested hypothesis (attention form medium; if LSTM single-output would be high \u2014 tested configuration uses sequences)"},{"category":"optimization","item":"Optimizer, batch, epochs run","paper_status":"Paper omitted information (batch paper-specified but deviated)","author_implementation":"Author: Adam 1e-3 clipnorm 1.0, batch 32, max 100, ES(val_loss,6)+ReduceLROnPlateau","muse_implementation":"Adam lr 1e-3 wd 1e-4; batch 128 (deviation, budget: 32 would exceed 60-min); 26/58 epochs run, best-val checkpoint","evidence":"M1/M10/M14; FINAL_REPORT budget note (epoch time 36s->5min under contention)","impact":"Empirically tested effect (val still rising +0.3pp/2ep at stop; full 58 likely closes part of -2.3pp gap)"},{"category":"regularization","item":"Weight decay, grad clip, dropout","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"wd 1e-4, grad clip 5.0, attention dropout 0.1","evidence":"M12","impact":"Untested hypothesis (stability only)"},{"category":"checkpoint selection","item":"Early stopping / ModelCheckpoint","paper_status":"Paper omitted information","author_implementation":"Author: ModelCheckpoint(val_accuracy) + ES(val_loss,6)","muse_implementation":"Full 58-epoch schedule, best val-accuracy checkpoint (no hard early stop)","evidence":"M11","impact":"Plausible technical impact"},{"category":"evaluation","item":"Metric definition","paper_status":"Paper-specified method followed","author_implementation":"Overall accuracy pooled","muse_implementation":"Overall micro accuracy + per-SNR + macro-F1 + kappa (standard reading of 'average accuracy')","evidence":"M13","impact":"Observed no effect in tested configuration"}],"limitations":["Time-budget deviation: batch 128 vs paper 32; 26/58 epochs run (val still rising +0.3pp/2ep at freeze under contention). Full 58 epochs would likely close part of gap.","Single run; paper gives no seeds/error bars.","Optimizer/loss/padding/attention/normalization inferred (see MISSING_PARAMETERS.md).","Text variant 63.39% inconsistent with headline 63.24% (0.15pp); anchor uses 63.24%.","Author evaluated weights are in-memory best-val_loss-restored, not saved best-val_accuracy checkpoint."]},{"experiment_id":"owl-radioml-mcdformer","paper":{"experiment_id":"owl-radioml-mcdformer","short":"mcdformer","title":"Multi-Channel Convolutional Distilled Transformer for Automatic Modulation Classification","authors":"Zhenhua Chen, Xinze Zhang, Kun He","venue":"2024 International Joint Conference on Neural Networks (IJCNN), IEEE","year":2024,"arxiv_id":null,"doi":"10.1109/IJCNN60899.2024.10650112","paper_url":"https://doi.org/10.1109/IJCNN60899.2024.10650112","author_repo_url":"https://github.com/JHL-HUST/MCDformer","author_commit":"3c30d0624cb26caea4af7386df6cc31dc27b3644","author_license":"Apache-2.0"},"published_oa":0.6335,"author_oas":[0.62723],"author_runs_meta":[{"kind":"from_scratch_author_pipeline","seed":2022,"oa":0.62723}],"author_mean_oa":0.62723,"author_mean_per_snr":null,"muse_oa":0.6301136363636364,"muse_macro_f1":0.6575866047012844,"muse_kappa":0.593125,"muse_per_snr":{"-20":0.09045454545454545,"-18":0.09545454545454546,"-16":0.09727272727272727,"-14":0.10863636363636364,"-12":0.13318181818181818,"-10":0.20136363636363636,"-8":0.3809090909090909,"-6":0.6327272727272727,"-4":0.7686363636363637,"-2":0.8504545454545455,"0":0.9009090909090909,"2":0.9231818181818182,"4":0.9227272727272727,"6":0.9154545454545454,"8":0.9286363636363636,"10":0.93,"12":0.9359090909090909,"14":0.9290909090909091,"16":0.9281818181818182,"18":0.9290909090909091},"muse_n_test":44000,"muse_split":"stratified-(mod,snr) 60/20/20 seed=0","muse_split_sha":"fe6db4b057c0c5da98e606beeeaa406b6c11456149f2ed947463355e0b8c02ef","muse_source_sha":"429b7203deb54fc2a55da63eeea9a3e0d787b1a18c755b3ee831d31a861983ae","muse_per_run":null,"difference_pp":-0.33863636363635763,"experiment_date":"2026-10-27","published_per_snr":null,"method_fidelity":{"followed":["FDDM shared 32-unit MLP gate; CNN kernels/channels 36/64/128/256; 2-head attention dk=L/h; distillation Conv1d 256ch; last-step readout; MLP hidden 256; Adam lr 0.0005 batch 32 dropout 0.5"],"deviated":[],"ambiguous":["CNN activation (ReLU text/Fig vs Elu Eq.4); padding (1,0) impossible as printed; interval labels; 'jointly map' wording"],"omitted":["Epochs, scheduler, weight decay, loss, seed, init, checkpoint rule, tuning"],"author_differs":["Pre-LN vs post-LN; single complex FFT vs separate I/Q FFT; dropout scope; distillation BN/ELU order + circular padding; lr 0.00054 vs 0.0005"],"unknown":["Same-membership as AMC-Net split unverifiable"]},"missing_specifications":[{"category":"dataset/split","item":"Train/val/test ratio + seed + stratification","paper_status":"Paper omitted information","author_implementation":"Author: 600/200/200 per (mod,SNR) cell, seed 2022 (TaskLoader.py:161-188); same-membership as AMC-Net release unverifiable","muse_implementation":"Stratified-by-(mod,SNR) 60/20/20, seed 0 (132k/44k/44k)","evidence":"Paper 'same split as AMC-Net/AWN' no ratio/seed (M1); author code 600/200/200 seed 2022","impact":"Untested hypothesis (expected medium ~1-2pp for ratio; stratification avoids leakage)"},{"category":"preprocessing","item":"FFT/IFFT norm; data normalization","paper_status":"Paper omitted information","author_implementation":"Author: none (raw amplitude)","muse_implementation":"torch.fft/ifft unnormalized forward, real part + residual; no data norm","evidence":"M2/M12","impact":"Untested hypothesis (expected low)"},{"category":"architecture","item":"FDDM MLP activations/complex handling; CNN padding/activation order; Transformer FFN/norms/distillation; readout","paper_status":"Paper ambiguous (CNN activation contradictory; padding impossible as printed)","author_implementation":"Author code differs from paper in 5 places: pre-LN vs post-LN; single complex FFT vs separate I/Q FFT; dropout only in Transformer+classifier (not after every layer); distillation BN/ELU order swapped + circular padding; lr 0.00054 vs 0.0005 (see PAPER_AUDIT)","muse_implementation":"Magnitude-spectrum shared MLP 128->32->ReLU->128->Sigmoid; padding (0,1); Conv->BN->ReLU; pre-norm Transformer FFN 4L ReLU dropout 0.5; last time-step pooling; distillation Conv1d 256ch +ELU+BN+MaxPool","evidence":"M3-M9; PAPER_AUDIT discrepancies 1-4","impact":"Untested hypothesis (FFN width/gate medium; padding forced by stated shapes low)"},{"category":"optimization","item":"Optimizer, lr, batch, epochs/scheduler","paper_status":"Paper-specified method followed (lr/batch/Adam/dropout 0.5)","author_implementation":"Author: Adam defaults, lr 0.00054 gamma 0.3254 milestone 13 (never fires, patience 10), batch 32, max 200","muse_implementation":"Adam lr 0.0005 batch 32, no scheduler, max 40, early stop val-acc patience 6 (budget-stopped ep14 best ep14)","evidence":"Paper Sec IV.A.3; M11; author exp_config/zhenhua/rml16a.py","impact":"Plausible technical impact (longer training could add ~1pp; val plateaued 63.0-63.2)"},{"category":"regularization","item":"Dropout placement; weight decay","paper_status":"Paper ambiguous (says after each layer; code only in Transformer+classifier)","author_implementation":"Author: 0.5 only in Transformer+classifier","muse_implementation":"Dropout 0.5 after attention and FFN (pre-norm variant)","evidence":"PAPER_AUDIT dropout row; M6","impact":"Untested hypothesis"},{"category":"checkpoint selection","item":"Checkpoint rule","paper_status":"Paper omitted information","author_implementation":"Author: best val-accuracy checkpoint","muse_implementation":"Best-val checkpoint (ep14 val 63.18%)","evidence":"Author _baseTrainer.py:259-269; M11","impact":"Observed no effect in tested configuration (selection on validation only; test touched once)"},{"category":"evaluation","item":"Metric aggregation; interval labels","paper_status":"Paper ambiguous (interval labels mislabelled)","author_implementation":"Overall = mean over all 20 SNRs (balanced); interval headers appear mislabelled 7/8/5 vs 7/7/6 (reproduces all six overalls)","muse_implementation":"Overall micro accuracy + sklearn macro-F1/kappa; intervals on SNR subsets","evidence":"PAPER_AUDIT interval-label check; M14","impact":"Observed no effect in tested configuration (overall self-consistent; do not relabel intervals silently)"}],"limitations":["Time-budget deviation: training stopped ep14 (~25min, val plateau 63.0-63.2) of max 40; longer training might close low-SNR gap.","Frozen pipeline crashed twice pre-results (config accessor; tuple unpack); fixed with re-freeze, no test-based tuning; hashes re-verified.","Split inferred ('same as AMC-Net/AWN', no ratio/seed): 60/20/20 seed 0; different ratios/seeds plausibly explain \u00b12pp low-SNR gap.","Interval column labels appear mislabelled (7/8/5 vs 7/7/6); overalls self-consistent \u2014 intervals not silently relabelled.","MUSE paper_reported.source label 'MCDformer-A' is ambiguous: 63.35 belongs to full MCDformer (ablation MCDformer_A is 63.07)."]},{"experiment_id":"owl-radioml-cdscnn","paper":{"experiment_id":"owl-radioml-cdscnn","short":"cdscnn","title":"Complex-Valued Depthwise Separable Convolutional Neural Network for Automatic Modulation Classification","authors":"Chenghong Xiao, Shuyuan Yang, Zhixi Feng","venue":"IEEE Transactions on Instrumentation and Measurement, vol. 72, Art. no. 2522310","year":2023,"arxiv_id":null,"doi":"10.1109/TIM.2023.3298657","paper_url":"https://doi.org/10.1109/TIM.2023.3298657","author_repo_url":"https://github.com/Patrick-Nick/CDSCNN","author_commit":"8ac8d7078f8adf46e30a98b3f30ddea012857d6a","author_license":"Not stated (all rights reserved; not mirrored here; linked only)"},"published_oa":0.6263,"author_oas":[0.5859545454545455],"author_runs_meta":[{"kind":"author_model+paper_protocol_harness","seed":0,"oa":0.5859545454545455}],"author_mean_oa":0.5859545454545455,"author_mean_per_snr":{"-20":0.09545454545454546,"-18":0.09545454545454546,"-16":0.10363636363636364,"-14":0.13090909090909092,"-12":0.17727272727272728,"-10":0.2672727272727273,"-8":0.3709090909090909,"-6":0.5336363636363637,"-4":0.6463636363636364,"-2":0.7618181818181818,"0":0.8054545454545454,"2":0.850909090909091,"4":0.8618181818181818,"6":0.8536363636363636,"8":0.86,"10":0.8590909090909091,"12":0.86,"14":0.8545454545454545,"16":0.8627272727272727,"18":0.8681818181818182},"muse_oa":0.5911,"muse_macro_f1":0.6077,"muse_kappa":0.5502,"muse_per_snr":{"-20":0.0977,"-18":0.0964,"-16":0.1027,"-14":0.1464,"-12":0.1586,"-10":0.24359999999999998,"-8":0.3768,"-6":0.5073,"-4":0.6464,"-2":0.7523000000000001,"0":0.8286,"2":0.8564,"4":0.8673000000000001,"6":0.88,"8":0.8814,"10":0.8764,"12":0.8809,"14":0.8776999999999999,"16":0.8709,"18":0.8741},"muse_n_test":22000,"muse_split":"per (modulation,SNR) cell: 800 train / 100 val / 100 test, seed 12345","muse_split_sha":"77f8a4f5001846b6b5ee10f569f53e50991988279ecf7c708637e1ec7a555434","muse_source_sha":"9ffdc845c4b162ba1e943e5b2ef05380b2c702a74c4737f0ba9eb319bd65235b","muse_per_run":[58.22,60.0],"difference_pp":-3.520000000000001,"experiment_date":"2026-10-27","published_per_snr":null,"method_fidelity":{"followed":["Eq.(1)-(10),(17) units; 7 CDSC blocks (Fig.4 optimum); param count 0.335M vs 0.33M"],"deviated":["Batch 1024/512 vs 128 (budget); 2 runs vs 10-run mean"],"ambiguous":["Per-layer widths (Fig.3 partial); CMP k/s; shortcut form; CBN mom/eps; init; cosine exact form; precision averaging"],"omitted":["Split seed; max epochs; min_delta; 10b hyperparams"],"author_differs":["Source CBN init beta0/gamma diag 1/sqrt2/gamma off 0 vs Muse 1/random; biased vs unbiased convs; stem s1-same vs s2-valid; CMP k2 vs k3-s2-p1; avg-pooled vs strided CC shortcuts; extra post-add ReLU in 7 blocks"],"unknown":["Sensitivity beyond seed 0 (W vs C identical through ep10; seeds 1/2+10-seed final cancelled for time)"]},"missing_specifications":[{"category":"dataset/split","item":"Split seed; re-split vs fixed","paper_status":"Paper omitted information","author_implementation":"Harness split 800/100/100 per cell (reconstructed pipeline; no complete driver in release)","muse_implementation":"Per-(mod,SNR) 800/100/100, seed 12345, train seeds 0/1","evidence":"M1; AUTHOR FINAL_REPORT harness note","impact":"Untested hypothesis (expected negligible ~0.3% std)"},{"category":"preprocessing","item":"None stated","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"Raw I/Q as stored","evidence":"No preprocessing stated","impact":"Untested hypothesis"},{"category":"architecture","item":"Channel widths/block interior; pooling/strides; shortcut; CBN details; init","paper_status":"Paper ambiguous (Fig.3 labels partial)","author_implementation":"Author model wrapped (stem s1-same vs s2-valid; CBN init diag1+random off; bias=False; CMP k3-s2-p1; strided CC; no post-add ReLU)","muse_implementation":"Stem CC 1->8->16, stages to 32/64, 7x64ch CDSC blocks, head 64->128, CDSC 128->256, CAP, CFC 256->11 (0.335M vs 0.33M); CMP k2 s2; 1x1 complex conv+ CBN shortcuts; CBN momentum 0.1 eps 1e-5; PyTorch default init","evidence":"M2-M6; SPEC_COMPARISON mismatches","impact":"Plausible technical impact (width reading medium ~1pp)"},{"category":"optimization","item":"Cosine schedule form; batch; runs","paper_status":"Paper-specified method followed (with budget deviations)","author_implementation":"Harness: Adam lr 0.001 batch 128 WarmRestarts(T0=10) max 200","muse_implementation":"CosineAnnealingWarmRestarts(T0=10); batch 1024/512 (deviation: paper 128, shared-GPU throughput); 2 seeds vs 10-run mean; max 35","evidence":"M7-M9; FINAL_REPORT budget compromises","impact":"Untested hypothesis (MUSE '<0.5pp batch' assertion is untested; do not treat as evidence)"},{"category":"regularization","item":"Precision/recall averaging; max epochs; min_delta","paper_status":"Paper omitted information","author_implementation":"Unavailable","muse_implementation":"Cross-entropy; patience 10; best-val checkpoint","evidence":"MISSING_PARAMETERS.md","impact":"Untested hypothesis"},{"category":"checkpoint selection","item":"Best-val selection","paper_status":"Paper-specified method followed","author_implementation":"Best epoch 8 val 1.1085","muse_implementation":"Best val seed0 ep6 1.1441 / seed1 ep8 1.1358 vs paper min val 1.038","evidence":"TRAINING_HISTORY.csv; logs","impact":"Empirically tested effect (validation trailed paper before any test access: no overfitting to test)"},{"category":"evaluation","item":"Mean over runs; per-SNR","paper_status":"Paper-specified method followed","author_implementation":"Single seed 0 harness","muse_implementation":"Two-seed mean 59.11% (58.22, 60.00); per-SNR in percent; low-SNR -14..-2 mean 43.5% vs paper 43.62% nearly exact","evidence":"RESULTS.json","impact":"Observed no effect in tested configuration (curve shape/confusions reproduce)"}],"limitations":["Time-budget deviations: Muse batch 1024/512 vs paper 128; 2 seeds vs 10-run mean; max 35; no 10b cross-dataset.","Author 58.60% is NOT a release: released model + reconstructed paper-protocol harness (no complete driver in release).","Published 62.63% is a ten-run mean with no std/CI; 1- vs 2- vs 10-run means not comparable; no CIs inferred.","Muse '<0.5pp batch' and '\u00b10.3pp spread' assertions are untested priors \u2014 not evidence.","Both Muse (1.136/1.144) and harness (1.109) val losses sit above paper min val 1.038 before any test access."]},{"experiment_id":"owl-radioml-mccfn","paper":{"experiment_id":"owl-radioml-mccfn","short":"mccfn","title":"A Multi-scale Complex-valued Convolutional Fusion Network for Automatic Modulation Recognition","authors":"An Li, Yue Li, Qiang Zhang, Ping Chen","venue":"Mobile Networks and Applications (2026) 31:231-239, Springer","year":2026,"arxiv_id":null,"doi":"10.1007/s11036-026-02513-9","paper_url":"https://doi.org/10.1007/s11036-026-02513-9","author_repo_url":"https://github.com/Miraitwo/MCCFN","author_commit":"a8dfcdc7047d73d0c7ed430078bca5d830a680a7","author_license":"Not stated (all rights reserved; not mirrored here; linked only)"},"published_oa":0.6341,"author_oas":[0.6195133149678604],"author_runs_meta":[{"kind":"from_scratch_author_pipeline","seed":2022,"oa":0.6195133149678604}],"author_mean_oa":0.6195133149678604,"author_mean_per_snr":{"-20":0.09090909090909091,"-18":0.09090909090909091,"-16":0.09550045913682277,"-14":0.11294765840220386,"-12":0.15794306703397612,"-10":0.25436179981634527,"-8":0.40771349862258954,"-6":0.5647382920110193,"-4":0.6923783287419651,"-2":0.837465564738292,"0":0.8980716253443526,"2":0.8953168044077136,"4":0.9090909090909091,"6":0.9237832874196511,"8":0.9136822773186409,"10":0.9109274563820018,"12":0.9090909090909091,"14":0.9054178145087236,"16":0.9155188246097337,"18":0.9044995408631772},"muse_oa":0.6201818181818182,"muse_macro_f1":0.6433034578594786,"muse_kappa":0.5822,"muse_per_snr":{"-20":0.09818181818181818,"-18":0.0890909090909091,"-16":0.09545454545454546,"-14":0.11,"-12":0.1509090909090909,"-10":0.2390909090909091,"-8":0.37727272727272726,"-6":0.5836363636363636,"-4":0.7181818181818181,"-2":0.8354545454545454,"0":0.8836363636363637,"2":0.8863636363636364,"4":0.9081818181818182,"6":0.9209090909090909,"8":0.9209090909090909,"10":0.9163636363636364,"12":0.9136363636363637,"14":0.9254545454545454,"16":0.92,"18":0.9109090909090909},"muse_n_test":22000,"muse_split":"stratified per-(mod,SNR) 700/200/100, seed 42 (train/val/test 7:2:1)","muse_split_sha":"a8912f3ef14bdba2dd4ad5b80368b836a6b1f56a925c859a9fdf9e90ae20ba4e","muse_source_sha":"18cce68fedb5c410af44dbfc08b531da953663c0f2b3126ee48d28f8fe04ac71","muse_per_run":null,"difference_pp":-1.391818181818183,"experiment_date":"2026-10-27","published_per_snr":null,"method_fidelity":{"followed":["Multi-scale complex Conv1d k7/5/3 12ch concat 36 + 4 stacked complex blocks 48/64/128/256 k3 + 2-head attention + GAP + FC(256,512)+dynamic dropout+FC(512,11); Eq.10 cross-terms; dual-trigger LR + dynamic dropout per Algs 1-2 literally"],"deviated":[],"ambiguous":["Attention dk/dv, dropout placement, epochs, split procedure"],"omitted":["Seeds, error bars, FLOPs derivation"],"author_differs":["Author latent 512 hard-coded (yaml 320 stale); split 700/201/99; early stopped ep45"],"unknown":["Exact 63.41% reconstruction (lands 1.4pp lower; reporting omits load-bearing details)"]},"missing_specifications":[{"category":"dataset/split","item":"Split construction 7:2:1","paper_status":"Paper omitted information","author_implementation":"Author: per-(mod,SNR) 700/201/99 (float truncation) totals 154k/44k/21.78k","muse_implementation":"Stratified per-(mod,SNR) 700/200/100 seed 42 (154k/44k/22k)","evidence":"M1; author TRAINING_LOG 700/201/99","impact":"Untested hypothesis (expected \u00b10.5pp)"},{"category":"preprocessing","item":"Normalization","paper_status":"Paper omitted information","author_implementation":"None","muse_implementation":"None (raw I/Q float32)","evidence":"M2","impact":"Untested hypothesis (low)"},{"category":"architecture","item":"Complex-conv channel semantics; kernel sizes; attention dk/dv; dropout placement","paper_status":"Paper omitted information","author_implementation":"Unavailable beyond audit","muse_implementation":"Real-channel reading (Cout/2 complex filters); k3/p1 all blocks; dk=dv=64 h=2 tokens=C (273k vs 250k +9%); shared p (init 0.5) on both dropouts per Alg.2","evidence":"M3-M6; Fig.1 shapes","impact":"Plausible technical impact (attention dims medium; channel semantics low-medium)"},{"category":"optimization","item":"LR schedule aggressiveness; epochs; split seed","paper_status":"Paper ambiguous","author_implementation":"Author: latent 512 hard-coded (yaml 320 stale); batch 128; early stopped ep45 (patience 10); LR halvings x0.5 + dropout 0.3->0.6 observed","muse_implementation":"Adam 0.001 batch 128 CE 50 epochs best min-val-loss (ep16 val 1.0441 val acc 62.26%; best val acc 62.37% ep26); dual-trigger LR + dynamic dropout per Algs 1-2 literally (lr collapses 1e-3->1e-10 by ep50, dropout pins 0.6 early, training stalls ~ep20)","evidence":"M7 + FINAL_REPORT gap analysis; author TRAINING_LOG","impact":"Plausible technical impact (milder schedule/longer high-lr phase would likely recover ~1pp)"},{"category":"regularization","item":"Dynamic dropout schedule","paper_status":"Paper-specified method followed","author_implementation":"Dropout stepping 0.3->0.6","muse_implementation":"Same schedule literally","evidence":"Algs 1-2","impact":"Empirically tested effect (schedule stalls training as implemented)"},{"category":"checkpoint selection","item":"Best checkpoint rule","paper_status":"Paper omitted information","author_implementation":"Best val-accuracy","muse_implementation":"Best min-val-loss (ep16)","evidence":"FINAL_REPORT.md","impact":"Plausible technical impact"},{"category":"evaluation","item":"Aggregation undefined; single run","paper_status":"Paper omitted information","author_implementation":"Single values, no seeds/error bars","muse_implementation":"Single run (variance ~\u00b10.5pp); overall micro + macro-F1 + kappa; peak 92.55% @14dB vs paper 93.66%","evidence":"M-paper reporting","impact":"Untested hypothesis"}],"limitations":["Paper LR schedule very aggressive: train-val gap >0.01 almost always; val-loss noise triggers Ces decay collapsing lr to ~1e-10 by ep50 and pinning dropout at 0.6 early; training stalls ~ep20.","Single run; paper gives no seeds/error bars (variance ~\u00b10.5pp).","Attention dk/dv, dropout placement, epochs, split procedure omitted (load-bearing for exact replication).","Table (63.41) vs abstract (63.415) differs by half-cent boundary value: consistent with rounding to 2dp but ambiguous, not unequivocally established.","Possible split mismatch (paper 7:2:1 construction unknown)."]}]};
+  // Artifact-audited RadioML2016.10a six-paper study (generated from owl-reproductions catalog v1.0.0).
+  // Label: Artifact-audited reproduction study (never Server verified). Splits/seeds differ; do not rank.
+
+  function owlStudyForSlug(slug) {
+    try {
+      if (typeof OWL_RADIOML_STUDY !== 'object' || !OWL_RADIOML_STUDY) return null;
+      if (String(slug || '').toLowerCase() !== String(OWL_RADIOML_STUDY.dataset_slug || '').toLowerCase()) return null;
+      return OWL_RADIOML_STUDY;
+    } catch (_) { return null; }
+  }
+
+  function owlExperimentById(id) {
+    try {
+      if (typeof OWL_RADIOML_STUDY !== 'object' || !OWL_RADIOML_STUDY) return null;
+      var list = OWL_RADIOML_STUDY.experiments || [];
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i] && list[i].experiment_id === id) return list[i];
+      }
+      return null;
+    } catch (_) { return null; }
+  }
+
+  function owlPct(frac) {
+    var n = Number(frac);
+    if (!Number.isFinite(n)) return 'Unavailable';
+    return (n * 100).toFixed(2) + '%';
+  }
+
+  function owlPp(diff) {
+    var n = Number(diff);
+    if (!Number.isFinite(n)) return 'Unavailable';
+    var sign = n > 0 ? '+' : (n < 0 ? '\u2212' : '');
+    return sign + Math.abs(n).toFixed(2) + ' pp';
+  }
+
+  function owlAuthorCell(ex) {
+    var metas = Array.isArray(ex.author_runs_meta) ? ex.author_runs_meta : [];
+    if (!metas.length && Array.isArray(ex.author_oas)) {
+      metas = ex.author_oas.map(function (v) { return { kind: '', seed: null, oa: v }; });
+    }
+    if (!metas.length) return '<span class="row-meta">Unavailable</span>';
+    var parts = metas.map(function (m) {
+      var label = '';
+      if (m.kind === 'author_checkpoint') label = 'ckpt';
+      else if (m.kind === 'from_scratch_author_pipeline') label = m.seed == null ? 'scratch' : 'seed ' + m.seed;
+      else if (m.kind === 'author_model+paper_protocol_harness') label = 'harness seed ' + m.seed;
+      else label = m.seed == null ? 'run' : 'seed ' + m.seed;
+      return '<span class="mono">' + esc(owlPct(m.oa)) + '</span> <span class="row-meta">' + esc(label) + '</span>';
+    });
+    var mean = Number(ex.author_mean_oa);
+    var meanNote = Number.isFinite(mean) && metas.length > 1
+      ? '<div class="row-meta">mean ' + esc(owlPct(mean)) + ' (explicit; n=' + metas.length + ')</div>'
+      : '';
+    return parts.join('<br>') + meanNote;
+  }
+
+  function owlMuseCell(ex) {
+    var main = '<span class="mono"><strong>' + esc(owlPct(ex.muse_oa)) + '</strong></span>';
+    if (Array.isArray(ex.muse_per_run) && ex.muse_per_run.length > 1) {
+      var runs = ex.muse_per_run.map(function (v) {
+        var n = Number(v);
+        var frac = n > 1 ? n / 100 : n;
+        return owlPct(frac);
+      }).join(', ');
+      return main + '<div class="row-meta">two-run mean; ' + esc(runs) + '</div>';
+    }
+    var ntest = ex.muse_n_test != null ? '<div class="row-meta">n=' + esc(number(ex.muse_n_test)) + '</div>' : '';
+    return main + ntest;
+  }
+
+  function owlComparisonTable(study) {
+    var exps = Array.isArray(study.experiments) ? study.experiments : [];
+    if (!exps.length) return '<div class="empty"><h3>No artifact-audited reproduction study</h3><p class="muted">No public reproduction study is published for this dataset.</p></div>';
+    var rows = exps.map(function (ex) {
+      var paper = ex.paper || {};
+      var link = '#/reproduction/' + encodeURIComponent(ex.experiment_id);
+      var diff = Number(ex.difference_pp);
+      var diffLabel = owlPp(diff);
+      return '<tr>' +
+        '<td><strong><a href="' + esc(link) + '">' + esc(text(paper.title, ex.experiment_id)) + '</a></strong>' +
+        '<div class="row-meta">' + esc(text(paper.authors, '')) + (paper.year ? ' · ' + esc(paper.year) : '') + '</div></td>' +
+        '<td class="mono">' + esc(owlPct(ex.published_oa)) + '</td>' +
+        '<td>' + owlAuthorCell(ex) + '</td>' +
+        '<td>' + owlMuseCell(ex) + '</td>' +
+        '<td class="mono">' + esc(diffLabel) + '</td></tr>';
+    }).join('');
+    return '<div style="overflow-x:auto"><table class="repro-table" aria-label="Artifact-audited six-paper comparison, overall accuracy"><thead><tr>' +
+      '<th scope="col">Paper</th><th scope="col">Published overall accuracy</th>' +
+      '<th scope="col">Author-code overall accuracy</th><th scope="col">Muse Spark 1.3 overall accuracy</th>' +
+      '<th scope="col">Difference (Muse minus published)</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
+      'Overall accuracy over all SNRs (−20..+18 dB), pooled. Difference in percentage points. ' +
+      'Seeds, splits, training budgets, and evaluation procedures differ across columns; ' +
+      'do not rank papers by these numbers. CDSCNN published is a ten-run mean; Muse is a two-run mean (58.22%, 60.00%). ' +
+      'CDSCNN author 58.60% uses the released model plus a reconstructed training pipeline (no complete driver in the release). ' +
+      'Label: Artifact-audited reproduction study — not server-verified leaderboard scores.</p>';
+  }
+
+  function owlSorted(exps) {
+    var list = Array.isArray(exps) ? exps.slice() : [];
+    var sort = state.owlSort || 'paper';
+    if (sort === 'gap') list.sort(function (a, b) { return Math.abs(Number(b.difference_pp)) - Math.abs(Number(a.difference_pp)); });
+    else if (sort === 'muse') list.sort(function (a, b) { return Number(b.muse_oa) - Number(a.muse_oa); });
+    return list;
+  }
+
+  function owlGroupedChart(study) {
+    var exps = Array.isArray(study.experiments) ? study.experiments : [];
+    if (!exps.length) return '';
+    var W = 520, H = 300, PL = 40, PT = 14, PB = 34, PR = 8;
+    var max = 70, plotH = H - PT - PB, baseline = PT + plotH;
+    function y(v) { return baseline - (v / max) * plotH; }
+    var grid = '';
+    for (var k = 0; k <= 70; k += 10) {
+      grid += '<line x1="' + PL + '" y1="' + y(k) + '" x2="' + (W - PR) + '" y2="' + y(k) + '" stroke="rgba(144,144,150,.22)" stroke-width="1"/>' +
+        '<text x="' + (PL - 7) + '" y="' + (y(k) + 3) + '" text-anchor="end" font-size="9" fill="#8b9298" font-family="IBM Plex Mono,monospace">' + k + '</text>';
+    }
+    var bars = '';
+    exps.forEach(function (ex, i) {
+      var cx = 68 + i * 74;
+      var vals = [
+        [Number(ex.published_oa) > 1 ? Number(ex.published_oa) / 100 : Number(ex.published_oa), '#8b9298', 'Published'],
+        [Number(ex.author_mean_oa) > 1 ? Number(ex.author_mean_oa) / 100 : Number(ex.author_mean_oa), '#5b616e', 'Author mean'],
+        [Number(ex.muse_oa) > 1 ? Number(ex.muse_oa) / 100 : Number(ex.muse_oa), '#9cf0ff', 'Muse']
+      ];
+      vals.forEach(function (v, j) {
+        var frac = v[0] * 100;
+        if (!Number.isFinite(frac)) return;
+        var h = frac / max * plotH, bx = cx + (j - 1) * 17;
+        bars += '<rect x="' + bx + '" y="' + (baseline - h) + '" width="14" height="' + Math.max(1, h) + '" fill="' + v[1] + '"' + (j === 1 ? ' opacity=".85"' : '') + '>' +
+          '<title>' + esc(String((ex.paper && ex.paper.short) || ex.experiment_id).toUpperCase() + ': ' + v[2] + ' ' + owlPct(v[0])) + '</title></rect>';
+      });
+      var short = String((ex.paper && ex.paper.short) || ex.experiment_id).toUpperCase();
+      bars += '<text x="' + (cx + 7) + '" y="' + (baseline + 18) + '" text-anchor="middle" font-size="9" fill="#8b9298" font-family="IBM Plex Mono,monospace">' + esc(short) + '</text>';
+    });
+    return '<div style="overflow-x:auto"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Grouped bar chart of overall accuracy for all six papers" style="min-width:480px;width:100%;height:auto;display:block">' +
+      grid + bars + '</svg></div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font:500 9px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:#8b9298">' +
+      '<span><span style="display:inline-block;width:14px;height:8px;background:#8b9298;vertical-align:middle;margin-right:6px"></span>Published</span>' +
+      '<span><span style="display:inline-block;width:14px;height:8px;background:#5b616e;vertical-align:middle;margin-right:6px"></span>Author mean</span>' +
+      '<span><span style="display:inline-block;width:14px;height:8px;background:#9cf0ff;vertical-align:middle;margin-right:6px"></span>Muse</span></div>' +
+      '<p class="muted" style="margin-top:10px;font-size:11px;line-height:1.6">Axis 0–70%. Bars compare overall accuracy, not accuracy by SNR. Author bar is the explicit mean of preserved runs.</p>';
+  }
+
+  function owlPaperCards(study) {
+    var exps = owlSorted(study.experiments);
+    var cards = exps.map(function (ex) {
+      var paper = ex.paper || {};
+      var diff = Number(ex.difference_pp);
+      var near = Math.abs(diff) < 1;
+      return '<article class="paper-card" style="display:flex;flex-direction:column">' +
+        '<div class="paper-card-meta"><span>' + esc(String(paper.short || '').toUpperCase()) + '</span><span class="tag">Audited</span></div>' +
+        '<h3><a href="#/reproduction/' + encodeURIComponent(ex.experiment_id) + '">' + esc(text(paper.title, ex.experiment_id)) + '</a></h3>' +
+        '<p class="paper-authors">' + esc(text(paper.authors, '')) + '</p>' +
+        '<div class="paper-mini-actions" style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(144,144,150,.2);padding-top:11px">' +
+        '<span class="mono" style="color:' + (near ? 'var(--green)' : 'var(--red)') + '">' + esc(owlPp(diff)) + '</span>' +
+        '<a class="mini-link" href="#/reproduction/' + encodeURIComponent(ex.experiment_id) + '">Review evidence →</a></div></article>';
+    }).join('');
+    return '<div class="subheader" style="display:flex;align-items:end;justify-content:space-between;gap:16px;margin:18px 0 10px"><div><h3 style="margin:0">Individual reproduction records</h3>' +
+      '<p class="muted" style="margin:4px 0 0;font-size:12px">Open any study for methodology differences, grouped specification gaps and evidence.</p></div>' +
+      '<div class="controls"><label class="row-meta" for="owl-sort">Sort</label> ' +
+      '<select id="owl-sort" data-action="owl-sort" aria-label="Sort papers">' +
+      '<option value="paper"' + ((state.owlSort || 'paper') === 'paper' ? ' selected' : '') + '>Paper order</option>' +
+      '<option value="gap"' + (state.owlSort === 'gap' ? ' selected' : '') + '>Largest gap</option>' +
+      '<option value="muse"' + (state.owlSort === 'muse' ? ' selected' : '') + '>Highest Muse OA</option></select></div></div>' +
+      '<div class="paper-cards">' + cards + '</div>';
+  }
+
+  function owlStudyMetrics(study) {
+    var exps = Array.isArray(study.experiments) ? study.experiments : [];
+    var missTotal = 0, fidTotal = 0;
+    exps.forEach(function (ex) {
+      missTotal += Array.isArray(ex.missing_specifications) ? ex.missing_specifications.length : 0;
+      var f = ex.method_fidelity || {};
+      ['followed', 'deviated', 'ambiguous', 'omitted', 'author_differs', 'unknown'].forEach(function (k) {
+        fidTotal += Array.isArray(f[k]) ? f[k].length : 0;
+      });
+    });
+    function stat(label, value) {
+      return '<div class="coverage-card"><div class="row-meta">' + esc(label) + '</div><strong>' + esc(value) + '</strong></div>';
+    }
+    return '<div class="coverage-grid" style="margin:0 0 16px" role="group" aria-label="Study-wide counts">' +
+      stat('Papers studied', String(exps.length).padStart(2, '0')) +
+      stat('Missing-spec rows', String(missTotal)) +
+      stat('Fidelity ledger rows', String(fidTotal)) +
+      stat('Author commits pinned', String(exps.length)) + '</div>';
+  }
+
+  function owlGapsMode(study) {
+    var cats = {};
+    (study.experiments || []).forEach(function (ex) {
+      (ex.missing_specifications || []).forEach(function (r) {
+        var c = text(r.category, 'Uncategorized');
+        if (!cats[c]) cats[c] = { papers: {}, rows: [] };
+        cats[c].papers[ex.experiment_id] = true;
+        cats[c].rows.push({ ex: ex, r: r });
+      });
+    });
+    var names = Object.keys(cats).sort();
+    var cards = names.map(function (c) {
+      var info = cats[c];
+      var n = Object.keys(info.papers).length;
+      var impacts = {};
+      info.rows.forEach(function (x) {
+        var im = text(x.r.impact, 'Unavailable');
+        impacts[im] = (impacts[im] || 0) + 1;
+      });
+      var topImpact = Object.keys(impacts).sort(function (a, b) { return impacts[b] - impacts[a]; })[0] || 'Unavailable';
+      return '<div class="coverage-card"><div class="paper-card-meta"><span>' + esc(c) + '</span><span class="tag">' + esc(n + ' / 6') + '</span></div>' +
+        '<h3 style="margin:10px 0 6px;font-size:14px">Represented in ' + esc(String(n)) + ' of 6 papers</h3>' +
+        '<p>' + esc(String(info.rows.length) + ' audit rows across the study.') + '</p>' +
+        '<p class="row-meta">Top impact: ' + esc(topImpact) + '</p></div>';
+    }).join('');
+    return '<div class="evidence" style="margin-bottom:12px">Grouped categories cover paper omissions, ambiguities and paper–code contradictions. Counts are categories represented, not causal impact frequencies. A plausible impact is not a measured effect.</div>' +
+      '<div class="coverage-grid">' + cards + '</div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">For complete row-level accounting open each reproduction record\u2019s Specification &amp; methods tab.</p>';
+  }
+
+  function owlEvidenceMode(study) {
+    var totals = { followed: 0, deviated: 0, ambiguous: 0, omitted: 0, author_differs: 0, unknown: 0 };
+    (study.experiments || []).forEach(function (ex) {
+      var f = ex.method_fidelity || {};
+      Object.keys(totals).forEach(function (k) { totals[k] += Array.isArray(f[k]) ? f[k].length : 0; });
+    });
+    function row(label, v) { return '<tr><td>' + esc(label) + '</td><td class="mono">' + esc(number(v)) + '</td></tr>'; }
+    return '<div class="tml-splitgrid">' +
+      '<section class="card panel"><h3>Methodological faithfulness audit</h3>' +
+      '<p class="muted" style="line-height:1.7">Post-hoc comparison of Muse implementation choices against paper text and author code. Counts are ledger rows, not error counts and not causal effects.</p>' +
+      '<div style="overflow-x:auto"><table class="repro-table"><thead><tr><th scope="col">Classification</th><th scope="col">Rows</th></tr></thead><tbody>' +
+      row('Followed paper side', totals.followed) + row('Paper-specified deviated', totals.deviated) +
+      row('Paper ambiguous', totals.ambiguous) + row('Paper omitted', totals.omitted) +
+      row('Author code differs', totals.author_differs) + row('Unknown / untested', totals.unknown) +
+      '</tbody></table></div></section>' +
+      '<section class="card panel"><h3>What the evidence does not prove</h3><ul style="margin:0;padding-left:18px;color:#a5acb1;line-height:1.7">' +
+      '<li>Tested seeds and splits are not identical across tracks.</li>' +
+      '<li>Original dataset byte-level identity and within-cell order remain unverified.</li>' +
+      '<li>Some final test launches were repaired and re-frozen; the historical test set was not fully blind.</li>' +
+      '<li>Most missing choices were not tested through controlled ablations.</li>' +
+      '<li>Matching accuracy is not an implementation-fidelity score.</li></ul></section></div>';
+  }
+
+  function owlResultsMode(study) {
+    return '<div class="tml-splitgrid">' +
+      '<section class="card panel"><div class="panel-head"><h3>Overall accuracy comparison</h3><span class="id">Overall accuracy · percent</span></div>' +
+      owlComparisonTable(study) + '</section>' +
+      '<section class="card panel"><div class="panel-head"><h3>Published vs author vs Muse</h3><span class="id">Axis 0–70%</span></div>' +
+      owlGroupedChart(study) + '</section></div>' + owlPaperCards(study);
+  }
+
+  function owlStudySection(slug) {
+    var study = owlStudyForSlug(slug);
+    if (!study) {
+      return '<section class="card panel"><div class="panel-head"><h2>Reproduction studies</h2><span class="id">unavailable</span></div>' +
+        '<div class="empty"><h3>No artifact-audited reproduction study</h3><p class="muted">No public reproduction study catalog is available for this dataset.</p></div></section>';
+    }
+    var tab = state.owlDatasetTab || 'reproductions';
+    var mode = state.owlMode || 'results';
+    function dtab(name, label, count) {
+      var active = (tab === name) ? ' active' : '';
+      var pressed = (tab === name) ? ' aria-selected="true"' : ' aria-selected="false"';
+      return '<button type="button" role="tab" data-action="owl-dataset-tab" data-tab="' + name + '" class="tml-button' + active + '"' + pressed + '>' + esc(label) + (count != null ? ' <span class="id">' + esc(count) + '</span>' : '') + '</button>';
+    }
+    function mtab(name, label) {
+      var active = (mode === name) ? ' active' : '';
+      var pressed = (mode === name) ? ' aria-selected="true"' : ' aria-selected="false"';
+      return '<button type="button" role="tab" data-action="owl-mode" data-mode="' + name + '"' + pressed + ' class="tml-button' + active + '">' + esc(label) + '</button>';
+    }
+    var tabs = '<div role="tablist" aria-label="Dataset sections" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+      dtab('overview', 'Overview') + dtab('papers', 'Linked papers', '6') + dtab('reproductions', 'Reproduction studies', '6') + dtab('methodology', 'Methodology & limitations') + '</div>';
+    var body = '';
+    if (tab === 'overview') {
+      body = '<section class="card panel"><div class="panel-head"><h3>Dataset overview</h3></div>' +
+        '<p class="definition">220,000 I/Q signal examples spanning 11 modulation classes and 20 SNRs (\u221220 to +18 dB in 2 dB steps), each sequence 2 \u00d7 128. The validated local study copy was used; identity with the original upstream release remains unverified.</p>' +
+        '<p><a class="btn btn-light" href="#/methodology">Read methodology \u2192</a></p></section>';
+    } else if (tab === 'papers') {
+      body = '<section class="card panel"><div class="panel-head"><h3>Linked papers</h3><span class="id">6 papers</span></div><div class="paper-cards">' +
+        (study.experiments || []).map(function (ex) {
+          var paper = ex.paper || {};
+          return '<article class="paper-card"><div class="paper-card-meta"><span>' + esc(String(paper.short || '').toUpperCase()) + '</span><span>' + esc(paper.year || '') + '</span></div>' +
+            '<h3><a href="#/reproduction/' + encodeURIComponent(ex.experiment_id) + '">' + esc(text(paper.title, '')) + '</a></h3>' +
+            '<p class="paper-authors">' + esc(text(paper.authors, '')) + '</p>' +
+            '<div class="paper-mini-actions"><span class="row-meta">Published OA ' + esc(owlPct(ex.published_oa)) + '</span><a class="mini-link" href="#/reproduction/' + encodeURIComponent(ex.experiment_id) + '">Reproduction \u2192</a></div></article>';
+        }).join('') + '</div></section>';
+    } else if (tab === 'methodology') {
+      body = '<section class="card panel"><div class="panel-head"><h3>Methodology &amp; limitations</h3></div>' +
+        '<p class="definition">Two-track source-first study. Track A evaluated author-associated implementations; Track B independently reconstructed methods from papers with Muse Spark 1.3, without author source access. Seeds, splits, budgets and hardware were not all controlled.</p>' +
+        '<ul style="margin:0;padding-left:18px;color:#a5acb1;line-height:1.7">' +
+        '<li>Dataset identity / sample order vs original DeepSig unverified.</li>' +
+        '<li>Some test launches repaired and re-frozen; historical test set not fully blind.</li>' +
+        '<li>CDSCNN published 62.63% is a 10-run mean; Muse 59.11% is a 2-run mean.</li>' +
+        '<li>CDSCNN author 58.60% uses released model plus reconstructed pipeline.</li>' +
+        '<li>Time-budget deviations in ICRNNA / MCDformer / CDSCNN Muse runs.</li></ul>' +
+        '<p style="margin-top:12px"><a class="btn btn-light" href="' + esc(study.repo_url) + '" target="_blank" rel="noopener">Open owl-reproductions \u2197</a></p></section>';
+    } else {
+      body = '<section class="card panel" aria-labelledby="owl-study-heading"><div class="panel-head"><div>' +
+        '<div class="eyebrow">Study / RadioML2016.10a</div>' +
+        '<h2 id="owl-study-heading" style="margin-top:10px">Reproduction studies</h2></div>' +
+        '<span class="id">' + esc(number((study.experiments || []).length)) + ' papers</span></div>' +
+        '<p class="definition">Independent Muse Spark 1.3 paper-only reconstructions compared with published results and separate author-code runs. Evidence for audit \u2014 not a method ranking.</p>' +
+        '<div class="evidence" style="margin-bottom:12px"><strong>Interpretation.</strong> Experiments used different seeds, splits, budgets and sometimes protocols. Numerical agreement does not imply faithful implementation. No series is a server-verified leaderboard score.</div>' +
+        owlStudyMetrics(study) +
+        '<div role="tablist" aria-label="Reproduction study sections" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">' +
+        mtab('results', 'Accuracy comparison') + mtab('gaps', 'Grouped specification gaps') + mtab('evidence', 'Study provenance') + '</div>' +
+        (mode === 'gaps' ? owlGapsMode(study) : mode === 'evidence' ? owlEvidenceMode(study) : owlResultsMode(study)) +
+        '</section>';
+    }
+    return tabs + body;
+  }
+
+
+  function owlSnrSvg(ex) {
+    var snrs = [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18];
+    function normMap(m) {
+      var out = {};
+      if (!m) return out;
+      Object.keys(m).forEach(function (k) {
+        var v = Number(m[k]);
+        if (v > 1) v = v / 100;
+        if (Number.isFinite(v)) out[String(k)] = v;
+      });
+      return out;
+    }
+    var muse = normMap(ex.muse_per_snr);
+    var author = normMap(ex.author_mean_per_snr);
+    var pub = normMap(ex.published_per_snr);
+    var W = 640, H = 240, PL = 44, PR = 12, PT = 14, PB = 30;
+    var iw = W - PL - PR, ih = H - PT - PB;
+    function x(i) { return PL + (i / (snrs.length - 1)) * iw; }
+    function y(v) { return PT + (1 - Math.max(0, Math.min(1, v))) * ih; }
+    function path(map) {
+      var pts = [];
+      snrs.forEach(function (s, i) {
+        var v = map[String(s)];
+        if (v == null) return;
+        pts.push(x(i).toFixed(1) + ',' + y(v).toFixed(1));
+      });
+      return pts.length > 1 ? 'M' + pts.join(' L') : '';
+    }
+    function dots(map, color) {
+      return snrs.map(function (s, i) {
+        var v = map[String(s)];
+        if (v == null) return '';
+        return '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="2.4" fill="' + color + '"><title>' + esc(s + ' dB: ' + owlPct(v)) + '</title></circle>';
+      }).join('');
+    }
+    var grid = [0, 0.25, 0.5, 0.75, 1].map(function (v) {
+      return '<line x1="' + PL + '" y1="' + y(v) + '" x2="' + (W - PR) + '" y2="' + y(v) + '" stroke="rgba(144,144,150,.22)" stroke-width="1"/>' +
+        '<text x="' + (PL - 6) + '" y="' + (y(v) + 3) + '" text-anchor="end" font-size="9" fill="#8b9298" font-family="IBM Plex Mono,monospace">' + Math.round(v * 100) + '%</text>';
+    }).join('') +
+      snrs.filter(function (s) { return s % 10 === 0; }).map(function (s) {
+        var i = snrs.indexOf(s);
+        return '<text x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="9" fill="#8b9298" font-family="IBM Plex Mono,monospace">' + s + '</text>';
+      }).join('');
+    var musePath = path(muse), authorPath = path(author), pubPath = path(pub);
+    var legend = '<div style="display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 4px;font:500 9px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:#8b9298">' +
+      (musePath ? '<span><span style="display:inline-block;width:18px;height:2px;background:#9cf0ff;vertical-align:middle;margin-right:6px"></span>Muse Spark 1.3</span>' : '') +
+      (authorPath ? '<span><span style="display:inline-block;width:18px;height:0;border-top:2px dashed #8b9298;vertical-align:middle;margin-right:6px"></span>Author-code mean</span>' : '') +
+      (pubPath ? '<span><span style="display:inline-block;width:18px;height:0;border-top:2px dotted #e7c47a;vertical-align:middle;margin-right:6px"></span>Published (tabulated only)</span>' : '') +
+      '</div>';
+    var svg = '<div style="overflow-x:auto"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Accuracy by SNR for ' + esc(ex.experiment_id) + '" style="min-width:520px;width:100%;height:auto;display:block">' +
+      grid +
+      (authorPath ? '<path d="' + authorPath + '" fill="none" stroke="#8b9298" stroke-width="1.6" stroke-dasharray="5 4"/>' : '') +
+      (pubPath ? '<path d="' + pubPath + '" fill="none" stroke="#e7c47a" stroke-width="1.6" stroke-dasharray="2 3"/>' : '') +
+      (musePath ? '<path d="' + musePath + '" fill="none" stroke="#9cf0ff" stroke-width="2"/>' : '') +
+      dots(muse, '#9cf0ff') +
+      '<text x="' + (PL + iw / 2) + '" y="' + (H - 0) + '" text-anchor="middle" font-size="9" fill="#737b80" font-family="IBM Plex Mono,monospace"></text>' +
+      '</svg></div>';
+    var tableRows = snrs.map(function (s) {
+      var k = String(s);
+      return '<tr><td class="mono">' + s + ' dB</td><td class="mono">' +
+        (muse[k] != null ? esc(owlPct(muse[k])) : '<span class="row-meta">Unavailable</span>') + '</td><td class="mono">' +
+        (author[k] != null ? esc(owlPct(author[k])) : '<span class="row-meta">Unavailable</span>') + '</td><td class="mono">' +
+        (pub[k] != null ? esc(owlPct(pub[k])) : '<span class="row-meta">—</span>') + '</td></tr>';
+    }).join('');
+    var table = '<details style="margin-top:10px"><summary style="cursor:pointer;color:#9cf0ff;font-size:12px;font-weight:600">Per-SNR data table (screen-reader and mobile fallback)</summary>' +
+      '<div style="overflow-x:auto;margin-top:10px"><table class="repro-table"><thead><tr><th scope="col">SNR</th><th scope="col">Muse Spark 1.3</th><th scope="col">Author-code mean</th><th scope="col">Published (tabulated only)</th></tr></thead><tbody>' +
+      tableRows + '</tbody></table></div></details>';
+    return legend + svg + table +
+      '<p class="muted" style="margin-top:10px;font-size:11px;line-height:1.6">Splits differ across series; per-SNR values are not directly comparable as identical-protocol reruns. Published curves are shown only where tabulated numbers exist — never reconstructed from figures.</p>';
+  }
+
+  function owlMissingGrouped(ex) {
+    var rows = Array.isArray(ex.missing_specifications) ? ex.missing_specifications.slice() : [];
+    if (!rows.length) return '<div class="empty"><h3>No missing-specification ledger</h3><p class="muted">Unavailable \u2014 not fabricated. See MISSING_PARAMETERS.md.</p></div>';
+    var order = {};
+    ['dataset/split', 'preprocessing', 'architecture', 'optimization', 'regularization', 'checkpoint selection', 'evaluation'].forEach(function (c, i) { order[c] = i; });
+    rows.sort(function (a, b) {
+      var ka = order[String(a.category || '').toLowerCase()] ?? 99;
+      var kb = order[String(b.category || '').toLowerCase()] ?? 99;
+      return ka - kb;
+    });
+    var body = rows.map(function (r) {
+      var compare = 'Author: ' + text(r.author_implementation, 'Unavailable') + '\nMuse: ' + text(r.muse_implementation, 'Unavailable');
+      return '<tr><td><span class="tag">' + esc(text(r.category, '\u2014')) + '</span></td>' +
+        '<td><strong>' + esc(text(r.item, '\u2014')) + '</strong><div class="row-meta">' + esc(text(r.paper_status, '')) + '</div><div class="row-meta">' + esc(text(r.evidence, '')) + '</div></td>' +
+        '<td style="white-space:pre-line">' + esc(compare) + '</td>' +
+        '<td>' + esc(text(r.impact, '')) + '</td></tr>';
+    }).join('');
+    return '<p class="muted" style="font-size:11px;line-height:1.6;margin:0 0 12px">Selected audit findings from the frozen study artifacts. \u201cImpact\u201d is a hypothesis unless a matched experiment is stated. For complete parameter accounting see owl-reproductions.</p>' +
+      '<div style="overflow-x:auto"><table class="repro-table" aria-label="Documented methodology issues"><thead><tr>' +
+      '<th scope="col" style="width:16%">Category</th><th scope="col" style="width:26%">Paper claim or missing choice</th>' +
+      '<th scope="col">Author / Muse comparison</th><th scope="col" style="width:20%">Impact evidence</th></tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Impact distinguishes plausible technical impact, empirically tested effect, untested hypothesis, and observed no effect in tested configuration.</p>';
+  }
+
+  function owlFidelityTable(ex) {
+    var f = ex.method_fidelity || {};
+    function rowsFor(key, label) {
+      var items = Array.isArray(f[key]) ? f[key] : [];
+      return items.map(function (it) {
+        return '<tr><td><span class="tag">' + esc(label) + '</span></td><td>' + esc(it) + '</td></tr>';
+      }).join('');
+    }
+    var html = rowsFor('followed', 'Followed') +
+      rowsFor('deviated', 'Deviated') +
+      rowsFor('ambiguous', 'Ambiguous') +
+      rowsFor('omitted', 'Omitted') +
+      rowsFor('author_differs', 'Author differs') +
+      rowsFor('unknown', 'Unknown');
+    if (!html) return '<p class="muted">Fidelity ledger unavailable.</p>';
+    return '<div style="overflow-x:auto"><table class="repro-table" aria-label="Methodological fidelity"><thead><tr><th scope="col">Agreement class</th><th scope="col">Item</th></tr></thead><tbody>' + html + '</tbody></table></div>' +
+      '<p class="muted" style="margin-top:10px;font-size:11px;line-height:1.6">Implementation agreement is reported separately from numerical agreement. No universal fidelity percentage is derived.</p>';
+  }
+
+
+  function owlStudyDetailPage(ex) {
+    var paper = ex.paper || {};
+    var repoBase = 'https://github.com/MrAntonS/owl-reproductions';
+    var studyPath = 'studies/radioml2016-10a/' + String(paper.short || '') + '/';
+    function ext(url, label) {
+      if (!url) return 'Unavailable';
+      return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + ' \u2197</a>';
+    }
+    var authorRows = (Array.isArray(ex.author_runs_meta) ? ex.author_runs_meta : []).map(function (m) {
+      var seed = m.seed == null ? '\u2014' : String(m.seed);
+      var kind = text(m.kind, 'run').replace(/_/g, ' ');
+      return '<tr><td>' + esc(kind) + '</td><td class="mono">' + esc(seed) + '</td><td class="mono">' + esc(owlPct(m.oa)) + '</td></tr>';
+    }).join('');
+    var diff = Number(ex.difference_pp);
+    var tab = state.owlDetailTab || 'overview';
+    function dtab(name, label) {
+      var active = (tab === name);
+      return '<button type="button" role="tab" data-action="owl-detail-tab" data-dtab="' + name + '" aria-selected="' + (active ? 'true' : 'false') + '" class="tml-button' + (active ? ' active' : '') + '">' + esc(label) + '</button>';
+    }
+    var short = String(paper.short || ex.experiment_id).toUpperCase();
+    var metrics = '<div class="tml-splitgrid" style="margin:18px 0" role="group" aria-label="Headline metrics">' +
+      '<div class="card panel" style="margin:0"><div class="row-meta">Published OA</div><div class="mono" style="font-size:24px;font-weight:650;color:var(--ink)">' + esc(owlPct(ex.published_oa)) + '</div></div>' +
+      '<div class="card panel" style="margin:0"><div class="row-meta">Author-code OA</div><div class="mono" style="font-size:' + (((ex.author_runs_meta || []).length > 1) ? '16px' : '24px') + ';font-weight:650;color:var(--ink)">' + esc((ex.author_runs_meta || []).map(function (m) { return owlPct(m.oa); }).join(' / ') || owlPct(ex.author_mean_oa)) + '</div></div>' +
+      '<div class="card panel" style="margin:0"><div class="row-meta">Muse paper-only OA</div><div class="mono" style="font-size:24px;font-weight:650;color:var(--ink)">' + esc(owlPct(ex.muse_oa)) + '</div></div>' +
+      '<div class="card panel" style="margin:0"><div class="row-meta">Muse minus paper</div><div class="mono" style="font-size:24px;font-weight:650;color:' + (Math.abs(diff) < 1 ? 'var(--green)' : 'var(--red)') + '">' + esc(owlPp(diff)) + '</div></div></div>';
+    var overview = '<div class="tml-splitgrid">' +
+      '<section class="card panel"><div class="panel-head"><h2>Numerical comparison</h2><span class="id">overall accuracy · all SNRs pooled</span></div>' +
+      '<div style="overflow-x:auto"><table class="repro-table" aria-label="Numerical comparison"><thead><tr><th scope="col">Result</th><th scope="col">Overall accuracy</th><th scope="col">Detail</th></tr></thead><tbody>' +
+      '<tr><td>Published accuracy</td><td class="mono"><strong>' + esc(owlPct(ex.published_oa)) + '</strong></td><td><span class="row-meta">Paper-reported; splits differ</span></td></tr>' +
+      '<tr><td>Author-code accuracy</td><td class="mono"><strong>' + esc(owlPct(ex.author_mean_oa)) + '</strong></td><td><span class="row-meta">Seeds preserved below; mean explicit</span></td></tr>' +
+      '<tr><td>Independent Muse accuracy</td><td class="mono"><strong>' + esc(owlPct(ex.muse_oa)) + '</strong></td><td><span class="row-meta">n=' + esc(number(ex.muse_n_test)) + '</span></td></tr>' +
+      '<tr><td>Difference (Muse minus published)</td><td class="mono"><strong>' + esc(owlPp(diff)) + '</strong></td><td><span class="row-meta">percentage points; do not rank</span></td></tr>' +
+      '</tbody></table></div>' +
+      (authorRows ? '<div style="overflow-x:auto;margin-top:12px"><table class="repro-table" aria-label="Author-code runs"><thead><tr><th scope="col">Author run</th><th scope="col">Seed</th><th scope="col">Overall accuracy</th></tr></thead><tbody>' + authorRows + '</tbody></table></div>' : '') +
+      (ex.muse_macro_f1 != null ? '<p class="muted" style="margin-top:10px;font-size:11px">Muse macro-F1 ' + esc(Number(ex.muse_macro_f1).toFixed(4)) + (ex.muse_kappa != null ? ' \u00b7 kappa ' + esc(Number(ex.muse_kappa).toFixed(4)) : '') + '. Near-equal scores are not successful reproduction.</p>' : '') +
+      '<div class="panel-head" style="margin-top:18px"><h3>Accuracy by SNR</h3><span class="id">per-SNR overall accuracy</span></div>' + owlSnrSvg(ex) + '</section>' +
+      '<div><section class="card panel"><div class="panel-head"><h2>Reproduction assessment</h2></div>' +
+      '<p class="definition">Muse is ' + esc(Math.abs(diff).toFixed(2)) + ' percentage points ' + (diff < 0 ? 'below' : 'above') + ' the publication. Implementation differences documented below require source-level review; numerical proximity does not establish fidelity.</p>' +
+      '<div class="panel-head" style="margin-top:16px"><h3>What this result means</h3></div><ul style="margin:0;padding-left:18px;color:#a5acb1;line-height:1.7">' +
+      '<li><strong>Numerical difference:</strong> Muse ' + esc(owlPct(ex.muse_oa)) + ' vs published ' + esc(owlPct(ex.published_oa)) + ' (' + esc(owlPp(diff)) + ').</li>' +
+      '<li><strong>Implementation fidelity:</strong> paper / author / Muse differences remain; see Specification &amp; methods.</li>' +
+      '<li><strong>Scientific status:</strong> artifact-audited historical run, not a verified leaderboard submission.</li></ul></section>' +
+      '<section class="card panel" style="margin-top:16px"><div class="panel-head"><h2>Experiment limitations</h2></div>' +
+      ((Array.isArray(ex.limitations) && ex.limitations.length) ? '<ul style="margin:0;padding-left:18px;color:#a5acb1;line-height:1.7">' + ex.limitations.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '<p class="muted">Unavailable.</p>') + '</section></div></div>';
+    var methods = '<section class="card panel"><div class="panel-head"><h2>Methodological fidelity</h2><span class="id">agreement vs accuracy separated</span></div>' + owlFidelityTable(ex) + '</section>' +
+      '<section class="card panel" style="margin-top:16px"><div class="panel-head"><h2>Missing specifications</h2><span class="id">' + esc(number((ex.missing_specifications || []).length)) + ' items</span></div>' + owlMissingGrouped(ex) + '</section>';
+    var sources = '<div class="tml-splitgrid">' +
+      '<section class="card panel"><div class="panel-head"><h2>Source and evidence links</h2></div><div class="source-list">' +
+      '<div class="source-row"><div><div class="row-title">Original paper</div><div class="row-meta">' + esc(text(paper.doi || paper.arxiv_id, '')) + '</div></div>' + ext(paper.paper_url, 'Paper') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Author repository</div><div class="row-meta mono">' + esc(String(paper.author_commit || '').slice(0, 12)) + '</div></div>' + ext(paper.author_repo_url + '/tree/' + paper.author_commit, 'Code @ fixed commit') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Muse implementation</div><div class="row-meta">sanitized paths; hashes frozen</div></div>' + ext(repoBase + '/tree/main/' + studyPath + 'src/', 'src/') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Frozen configuration</div><div class="row-meta mono">' + esc(String(ex.muse_source_sha || '').slice(0, 12)) + '</div></div>' + ext(repoBase + '/blob/main/' + studyPath + 'FROZEN_CONFIG.json', 'FROZEN_CONFIG.json') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Results</div><div class="row-meta">compact metrics incl. per-SNR</div></div>' + ext(repoBase + '/blob/main/' + studyPath + 'RESULTS.json', 'RESULTS.json') + '</div>' +
+      '</div><p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">Dataset bytes, checkpoints, prediction arrays, PDFs and credentials are never published. Author code is linked, not mirrored.</p></section>' +
+      '<section class="card panel"><div class="panel-head"><h2>Before publishing</h2></div><ul style="margin:0;padding-left:18px;color:#a5acb1;line-height:1.7">' +
+      '<li>Attach version-pinned configuration and code commit.</li>' +
+      '<li>Link measured OA to exact saved run artifacts and seed details.</li>' +
+      '<li>Publish provenance and evaluation-integrity limitations.</li>' +
+      '<li>Do not present author-code and Muse runs as one identical protocol.</li></ul></section></div>';
+    var main = tab === 'methods' ? methods : tab === 'sources' ? sources : overview;
+    return '<main id="main"><section class="detail-hero"><div class="container narrow-center">' +
+      '<div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><a href="#/dataset/radioml-2016-10a">radioml-2016-10a</a><span>/</span><span>' + esc(ex.experiment_id) + '</span></div>' +
+      '<div style="margin-bottom:12px"><a class="btn btn-light" href="#/dataset/radioml-2016-10a" data-action="back-study">\u2190 Back to RadioML reproduction studies</a></div>' +
+      '<div class="detail-title"><div><div class="eyebrow">Independent paper-only reproduction / Muse Spark 1.3</div>' +
+      '<h1>' + esc(text(paper.title, ex.experiment_id)) + '</h1><p>' + esc(text(paper.authors, '') + (paper.year ? ' \u00b7 ' + paper.year : '') + ' \u00b7 RadioML2016.10a \u00b7 Muse Spark 1.3') + '</p></div>' +
+      '<div class="detail-actions"><span class="id">' + esc(short) + ' \u00b7 Artifact audited</span></div></div>' +
+      metrics +
+      '<div class="evidence" style="margin-bottom:14px"><strong>Historical experiments.</strong> Protocols vary; numerical proximity does not guarantee fidelity. Audit distinguishes omissions, contradictions and explicit deviations.</div>' +
+      '<div role="tablist" aria-label="Reproduction detail sections" style="display:flex;gap:8px;flex-wrap:wrap">' + dtab('overview', 'Overview') + dtab('methods', 'Specification & methods') + dtab('sources', 'Source & reproducibility') + '</div>' +
+      '</div></section>' +
+      '<section class="page page-detail"><div class="container narrow-center"><div class="detail-body"><div>' + main + '</div><aside>' +
+      '<section class="card panel"><h3>Key caveat</h3><p class="muted" style="line-height:1.7">' + esc(text((ex.limitations || [])[0], 'See Experiment limitations.')) + '</p>' +
+      '<div class="tag" style="margin-top:10px">No causal gap attribution</div><p class="muted" style="font-size:11px;margin-top:8px">Individual specification differences usually lack isolated controlled tests.</p></section>' +
+      '<section class="card panel"><h3>Source and evidence links</h3><div class="source-list">' +
+      '<div class="source-row"><div><div class="row-title">Original paper</div></div>' + ext(paper.paper_url, 'Paper') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Author code</div><div class="row-meta mono">' + esc(String(paper.author_commit || '').slice(0, 7)) + '</div></div>' + ext(paper.author_repo_url + '/tree/' + paper.author_commit, 'Code') + '</div>' +
+      '<div class="source-row"><div><div class="row-title">Muse code</div><div class="row-meta">sanitized</div></div>' + ext(repoBase + '/tree/main/' + studyPath + 'src/', 'src/') + '</div>' +
+      '</div><p style="margin-top:12px"><a class="mini-link" href="#/dataset/radioml-2016-10a">Dataset comparison \u2192</a></p></section>' +
+      '</aside></div></div></section></main>';
+  }
+
+
   function catalogApi(path) {
     var parsed = new URL(path, 'https://catalog.local');
     var route = parsed.pathname.replace(/\/+$/, '') || '/';
@@ -831,6 +1346,12 @@
     }
     if (reproductionMatch) {
       var recordId = decodeURIComponent(reproductionMatch[1]);
+      try {
+        if (typeof owlExperimentById === 'function') {
+          var owlFound = owlExperimentById(recordId);
+          if (owlFound) return Promise.resolve({ record_kind: 'owl_study', id: owlFound.experiment_id, owl: owlFound });
+        }
+      } catch (_) {}
       var found = null;
       for (var ri = 0; ri < HARNESS_RUN_RECORDS.length; ri++) {
         if (HARNESS_RUN_RECORDS[ri].id === recordId) found = HARNESS_RUN_RECORDS[ri];
@@ -1443,9 +1964,27 @@
     state.loading = true;
     state.error = '';
     state.reproductionDetail = null;
+    state.owlDetailTab = 'overview';
     render();
-    api('/reproductions/' + encodeURIComponent(id)).then(function (payload) {
-      state.reproductionDetail = payload;
+    try {
+      if (typeof owlExperimentById === 'function') {
+        var owlExp = owlExperimentById(id);
+        if (owlExp) {
+          state.reproductionDetail = { record_kind: 'owl_study', id: owlExp.experiment_id, owl: owlExp };
+          state.loading = false;
+          render();
+          return Promise.resolve();
+        }
+      }
+    } catch (_) {}
+    return api('/reproductions/' + encodeURIComponent(id)).then(function (payload) {
+      if (payload && payload.record_kind === 'owl_study' && payload.owl) {
+        state.reproductionDetail = payload;
+      } else if (payload && payload.owl) {
+        state.reproductionDetail = { record_kind: 'owl_study', id: payload.owl.experiment_id || id, owl: payload.owl };
+      } else {
+        state.reproductionDetail = payload;
+      }
     }).catch(function (err) {
       state.error = err.message || 'Reproduction report could not be loaded.';
     }).finally(function () {
@@ -2625,6 +3164,7 @@
       '<section class="page page-detail"><div class="container"><div class="detail-body"><div>' +
         taskAndDataSection(x) +
         '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>' +
+        owlStudySection((state.route && state.route.slug) || (x.dataset && x.dataset.slug) || '') +
       '</div><aside>' +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
       '</aside></div>' +
@@ -2778,6 +3318,32 @@
       }).join('') : '<div class="empty"><h3>No public evidence-linked relationship</h3><p class="muted">Metadata alone does not establish dataset use.</p></div>') +
       '</section>' +
       (paper.abstract ? '<section class="card panel"><h2>Abstract</h2><p class="muted" style="line-height:1.7">' + esc(paper.abstract) + '</p></section>' : '') +
+      (function () {
+        try {
+          if (typeof OWL_RADIOML_STUDY !== 'object' || !OWL_RADIOML_STUDY) return '';
+          var hasRadioml = (usages || []).some(function (u) {
+            var s = String(u.dataset_slug || u.dataset || '').toLowerCase();
+            return s === 'radioml-2016-10a' || s.indexOf('radioml') >= 0;
+          });
+          var rawId = String(raw.paper_id || raw.id || paper.id || '').toLowerCase();
+          var rawDoi = String(raw.doi || '').toLowerCase();
+          var studyMatch = (OWL_RADIOML_STUDY.experiments || []).filter(function (ex) {
+            var pd = String((ex.paper && (ex.paper.doi || '')) || '').toLowerCase();
+            var pa = String((ex.paper && (ex.paper.arxiv_id || '')) || '').toLowerCase();
+            return (pd && (rawDoi.indexOf(pd) >= 0 || pd.indexOf(rawDoi) >= 0)) || (pa && rawId.indexOf(pa) >= 0);
+          });
+          if (!hasRadioml && !studyMatch.length) {
+            var anyRadioml = String(backSlug || '').toLowerCase() === 'radioml-2016-10a';
+            if (!anyRadioml) return '';
+          }
+          var list = (OWL_RADIOML_STUDY.experiments || []).map(function (ex) {
+            return '<div class="source-row"><div><div class="row-title">' + esc(ex.paper.title) + '</div><div class="row-meta">Muse Spark 1.3 · ' + esc(owlPct(ex.muse_oa)) + ' vs published ' + esc(owlPct(ex.published_oa)) + ' (' + esc(owlPp(ex.difference_pp)) + ')</div></div><a href="#/reproduction/' + encodeURIComponent(ex.experiment_id) + '">Open record →</a></div>';
+          }).join('');
+          return '<section class="card panel"><div class="panel-head"><h2>Artifact-audited reproductions</h2><span class="id">6 papers · Muse Spark 1.3</span></div>' +
+            '<p class="definition">Independent reproductions on RadioML2016.10a. Historical artifact-audited experiments — not server-verified. Splits and budgets differ; do not rank.</p>' +
+            '<div class="source-list">' + list + '</div></section>';
+        } catch (_) { return ''; }
+      })() +
       '</div><aside><section class="card panel"><h3>Paper facts</h3><dl class="kv">' +
       '<dt>Paper ID</dt><dd class="mono">' + esc(paper.id) + '</dd>' +
       '<dt>Authors</dt><dd>' + esc(paper.authors) + '</dd>' +
@@ -2825,6 +3391,10 @@
     if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading immutable reproduction report…') + '</div></main>';
     if (state.error || !state.reproductionDetail) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
     var report = state.reproductionDetail;
+    if (report && (report.record_kind === 'owl_study' || report.owl)) {
+      var owlEx = report.owl || (typeof owlExperimentById === 'function' ? owlExperimentById(report.id) : null);
+      if (owlEx) return owlStudyDetailPage(owlEx);
+    }
     if (report && report.record_kind === 'harness_run') return harnessRunDetailPage(report);
     var claim = report.claim || {};
     var dataset = report.dataset || {};
@@ -3059,6 +3629,11 @@
     state.catalogPage = 1;
     state.route = route;
     state.navOpen = false;
+    if (route.name === 'dataset') {
+      if (!state.owlDatasetTab) state.owlDatasetTab = 'reproductions';
+      if (!state.owlMode) state.owlMode = 'results';
+    }
+    if (route.name === 'reproduction' && !state.owlDetailTab) state.owlDetailTab = 'overview';
     state.error = '';
     window.scrollTo(0, 0);
     if (
@@ -3198,6 +3773,24 @@
         });
       }
       target.remove();
+    } else if (action === 'owl-dataset-tab') {
+      state.owlDatasetTab = target.getAttribute('data-tab') || 'reproductions';
+      render();
+      var nt = app.querySelector('[data-action="owl-dataset-tab"][data-tab="' + state.owlDatasetTab + '"]');
+      if (nt) nt.focus();
+    } else if (action === 'owl-mode') {
+      state.owlMode = target.getAttribute('data-mode') || 'results';
+      render();
+      var mt = app.querySelector('[data-action="owl-mode"][data-mode="' + state.owlMode + '"]');
+      if (mt) mt.focus();
+    } else if (action === 'owl-detail-tab') {
+      state.owlDetailTab = target.getAttribute('data-dtab') || 'overview';
+      render();
+      var dt = app.querySelector('[data-action="owl-detail-tab"][data-dtab="' + state.owlDetailTab + '"]');
+      if (dt) dt.focus();
+    } else if (action === 'back-study') {
+      state.owlDatasetTab = 'reproductions';
+      state.owlMode = 'results';
     } else if (action === 'copy-snippet') {
       var box = target.closest('.copybox');
       var code = box ? box.querySelector('code') : null;
@@ -3218,6 +3811,13 @@
         fallbackCopy(textToCopy);
         copied();
       }
+    }
+  });
+
+  app.addEventListener('change', function (event) {
+    if (event.target && event.target.getAttribute && event.target.getAttribute('data-action') === 'owl-sort') {
+      state.owlSort = event.target.value || 'paper';
+      render();
     }
   });
 
@@ -3250,6 +3850,11 @@
   }
 
   app.addEventListener('input', function (event) {
+    if (event.target && event.target.getAttribute && event.target.getAttribute('data-action') === 'owl-sort') {
+      state.owlSort = event.target.value || 'paper';
+      render();
+      return;
+    }
     if (event.target.hasAttribute('data-finder-input')) {
       state.finder.query = event.target.value;
       updateFinderPanel(false);

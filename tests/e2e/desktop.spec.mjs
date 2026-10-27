@@ -789,3 +789,129 @@ test('injected release panel matches dark precision-instrument theme', async ({ 
 
 const datasetName = 'Metro LTE KPI Handover Dataset';
 const paperTitle = 'Reliable Handover Prediction from LTE KPI Sequences';
+
+test('radioml dataset shows artifact-audited six-paper comparison with correct numbers', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'dataset/radioml-2016-10a'));
+
+  await expect(page.getByRole('heading', { level: 1, name: 'RadioML 2016.10A' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reproduction studies' })).toBeVisible();
+  await expect(page.getByText('Artifact-audited reproduction study', { exact: false }).first()).toBeVisible();
+  // Study tabs and subnav are keyboard-operable
+  await expect(page.getByRole('tab', { name: /Reproduction studies/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: 'Accuracy comparison' })).toHaveAttribute('aria-selected', 'true');
+  // Six papers appear in the comparison table and cards (SVG titles are hidden)
+  for (const name of ['AMC-Net', 'Adaptive Wavelet', 'ICRNNA', 'MCDformer', 'CDSCNN', 'MCCFN']) {
+    await expect(page.locator('.repro-table tbody, .paper-card').getByText(name, { exact: false }).first()).toBeVisible();
+  }
+  // Sort control preserves all six through reorder
+  await page.getByLabel('Sort papers').selectOption('gap');
+  await expect(page.locator('.paper-card')).toHaveCount(6);
+  await page.getByLabel('Sort papers').selectOption('paper');
+  // Grouped gaps and provenance modes render from the same catalog
+  await page.getByRole('tab', { name: 'Grouped specification gaps' }).click();
+  await expect(page.getByText(/counts are categories represented/i)).toBeVisible();
+  await page.getByRole('tab', { name: 'Study provenance' }).click();
+  await expect(page.getByRole('heading', { name: 'What the evidence does not prove' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Accuracy comparison' }).click();
+  // Published values with units
+  await expect(page.getByText('62.51%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('62.44%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('63.24%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('63.35%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('62.63%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('63.41%', { exact: false }).first()).toBeVisible();
+  // Muse values
+  await expect(page.getByText('59.47%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('59.45%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('60.90%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('63.01%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('59.11%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('62.02%', { exact: false }).first()).toBeVisible();
+  // Difference column exists and does not rank
+  await expect(page.getByText('Difference (Muse minus published)', { exact: false })).toBeVisible();
+  await expect(page.getByText(/do not rank/i)).toBeVisible();
+  // Author-code multi-seed preserved
+  await expect(page.getByText('62.37%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('61.78%', { exact: false }).first()).toBeVisible();
+  // Existing dataset features preserved
+  await expect(page.getByRole('heading', { name: 'Get the data' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scores' })).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('clicking a paper opens the correct owl reproduction detail with breadcrumbs and sources', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'dataset/radioml-2016-10a'));
+
+  const link = page.getByRole('link', { name: /Multi-Channel Convolutional Distilled Transformer/ }).first();
+  await expect(link).toBeVisible();
+  await link.click();
+  await expect(page).toHaveURL(/#\/reproduction\/owl-radioml-mcdformer$/);
+  await expect(page.getByRole('heading', { level: 1, name: /Multi-Channel Convolutional/ })).toBeVisible();
+  // Breadcrumbs Dataset -> comparison -> experiment
+  await expect(page.locator('.breadcrumbs').getByRole('link', { name: 'Dataset' })).toBeVisible();
+  await expect(page.getByText('radioml-2016-10a', { exact: false }).first()).toBeVisible();
+  // Detail tabs are keyboard-operable; metrics always visible
+  await expect(page.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByText('63.35%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('63.01%', { exact: false }).first()).toBeVisible();
+  // Numerical comparison with difference
+  await expect(page.getByRole('heading', { name: 'Numerical comparison' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accuracy by SNR' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Experiment limitations' })).toBeVisible();
+  // Source links persist across tabs and point to public owl-reproductions
+  await expect(page.getByRole('link', { name: /Paper/ }).first()).toBeVisible();
+  const srcLink = page.getByRole('link', { name: 'src/' });
+  await expect(srcLink).toHaveAttribute('href', /github\.com\/MrAntonS\/owl-reproductions/);
+  // Grouped 4-column methodology table lives under Specification & methods
+  await page.getByRole('tab', { name: /Specification/ }).click();
+  await expect(page.getByRole('heading', { name: 'Methodological fidelity' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Missing specifications' })).toBeVisible();
+  await expect(page.getByText('Author / Muse comparison').first()).toBeVisible();
+  await page.getByRole('tab', { name: /Source/ }).click();
+  await expect(page.getByRole('heading', { name: 'Before publishing' })).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('owl reproduction detail shows unavailable as unavailable and calculates difference correctly', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'reproduction/owl-radioml-cdscnn'));
+
+  await expect(page.getByRole('heading', { level: 1, name: /Complex-Valued Depthwise/ })).toBeVisible();
+  // CDSCNN published 62.63, muse 59.11 diff -3.52 pp
+  await expect(page.getByText('62.63%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('59.11%', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText(/3\.52 pp/).first()).toBeVisible();
+  // Author 58.60% preserved
+  await expect(page.getByText('58.60%', { exact: false }).first()).toBeVisible();
+  // Per-SNR table fallback exists for accessibility
+  await expect(page.getByText('Per-SNR data table', { exact: false })).toBeVisible();
+  // Limitations disclose deviations
+  await expect(page.getByText(/ten-run mean/i).first()).toBeVisible();
+  await expect(page.getByText(/reconstructed/i).first()).toBeVisible();
+  assertNoClientErrors();
+});
+
+test('unavailable owl catalog states fail gracefully without exposing evaluator', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  // Empty dataset catalog fails gracefully with explicit empty state (existing contract)
+  await page.goto(fixtureUrl('empty', 'datasets'));
+  await expect(page.getByRole('heading', { name: 'No matching dataset records' })).toBeVisible();
+  // OWL study detail works from the embedded versioned snapshot even when the backend list is empty
+  await page.goto(fixtureUrl('empty', 'reproduction/owl-radioml-mcdformer'));
+  await expect(page.getByRole('heading', { level: 1, name: /Multi-Channel Convolutional/ })).toBeVisible();
+  await expect(page.getByText(/Artifact-audited/i).first()).toBeVisible();
+  // No hidden-label evaluator and no server-verified badge on artifact-audited pages
+  await expect(page.getByText(/hidden-label/i)).toHaveCount(0);
+  await expect(page.locator('.status').getByText(/^Server verified$/)).toHaveCount(0);
+  assertNoClientErrors();
+});
+
+test('existing reproduction routes and fixtures remain compatible', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'reproduction/experiment-1'));
+  await expect(page.getByRole('heading', { name: 'Claim and conditions' })).toBeVisible();
+  await expect(page.getByText('3 runs · recorded seeds: 42, 123, 2026')).toBeVisible();
+  assertNoClientErrors();
+});

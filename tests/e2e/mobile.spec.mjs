@@ -56,3 +56,28 @@ test('homepage finder does not overflow horizontally on mobile with a populated 
   expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
   assertNoClientErrors();
 });
+
+test('mobile radioml comparison and charts remain usable without overflow', async ({ page }) => {
+  const assertNoClientErrors = monitorClientErrors(page);
+  await page.goto(fixtureUrl('populated', 'dataset/radioml-2016-10a'));
+  await expectCoreLandmarks(page);
+  await expect(page.getByRole('heading', { name: 'Reproduction studies' })).toBeVisible();
+  await expect(page.locator('.paper-card a[href="#/reproduction/owl-radioml-mcdformer"]').first()).toBeVisible();
+
+  const geometry = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth
+  }));
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+
+  await page.locator('.paper-card a[href="#/reproduction/owl-radioml-mcdformer"]').first().click();
+  await expect(page).toHaveURL(/#\/reproduction\/owl-radioml-mcdformer$/);
+  await expect(page.getByRole('heading', { name: 'Accuracy by SNR' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Specification/ })).toBeVisible();
+  const detailGeometry = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth
+  }));
+  expect(detailGeometry.scrollWidth).toBeLessThanOrEqual(detailGeometry.viewportWidth + 1);
+  assertNoClientErrors();
+});

@@ -23,6 +23,7 @@ const host = '127.0.0.1';
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml'
 };
@@ -51,17 +52,45 @@ function populatedResponse(apiPath, url) {
   if (apiPath === '/datasets') {
     return { items: [unreleasedDataset, dataset], total: 2, next_cursor: null };
   }
-  if (apiPath === '/releases') return { items: [publicRelease], total: 1, errors: [] };
+  if (apiPath === '/releases') {
+    var relRequested = url ? url.searchParams.get('dataset') : null;
+    if (relRequested && relRequested !== publicRelease.dataset_slug && relRequested !== publicRelease.id && publicRelease.dataset_slug !== relRequested) {
+      // RadioML study dataset has no prepared release in fixtures; keep study UI independent of releases.
+      if (relRequested === 'radioml-2016-10a') return { items: [], total: 0, errors: [] };
+    }
+    return { items: [publicRelease], total: 1, errors: [] };
+  }
+  if (apiPath === '/datasets/radioml-2016-10a') {
+    return Object.assign({}, dataset, {
+      canonical_id: 'doi:10.5281/zenodo.18397069',
+      slug: 'radioml-2016-10a',
+      name: 'RadioML 2016.10A',
+      description: 'Simulated radio modulation classification: 220,000 examples (11 modulations x 20 SNRs -20..+18 dB, 1000 per cell, 128 I/Q samples each).',
+      task: 'modulation classification',
+      task_types: ['classification'],
+      task_definition: 'Predict modulation type from 128-sample I/Q sequences across SNR levels.',
+      releases: [],
+      papers: [],
+      paper_count: 0,
+      release_count: 0,
+      task_profile: null,
+      schema: { fields: [] }
+    });
+  }
   if (apiPath === `/datasets/${dataset.slug}`) return dataset;
   if (apiPath === `/datasets/${unreleasedDataset.slug}`) return unreleasedDataset;
   if (apiPath === `/datasets/${unreleasedDataset.slug}/files`) {
+    return { items: [], total: 0, next_cursor: null };
+  }
+  if (apiPath === '/datasets/radioml-2016-10a/files') {
     return { items: [], total: 0, next_cursor: null };
   }
   if (apiPath === `/datasets/${dataset.slug}/files`) {
     return { items: files, total: files.length, next_cursor: null };
   }
   if (apiPath === `/datasets/${dataset.slug}/baselines` ||
-      apiPath === `/datasets/${unreleasedDataset.slug}/baselines`) {
+      apiPath === `/datasets/${unreleasedDataset.slug}/baselines` ||
+      apiPath === '/datasets/radioml-2016-10a/baselines') {
     return { items: [], total: 0 };
   }
   if (apiPath === '/papers') return { items: [paper], total: 1 };
@@ -163,7 +192,7 @@ function serveApi(request, response, url, api) {
 function serveStatic(response, pathname) {
   const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
   const target = path.resolve(root, relative);
-  const allowed = new Set(['index.html', 'app.js', 'config.js']);
+  const allowed = new Set(['index.html', 'app.js', 'config.js', 'owl-study.json']);
   if (!target.startsWith(root + path.sep) || !allowed.has(relative)) {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     response.end('Not found');
