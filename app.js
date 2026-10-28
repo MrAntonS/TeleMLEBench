@@ -882,13 +882,14 @@
       var link = '#/reproduction/' + encodeURIComponent(ex.experiment_id);
       var diff = Number(ex.difference_pp);
       var diffLabel = owlPp(diff);
+      var diffColor = Number.isFinite(diff) ? (Math.abs(diff) < 1 ? 'var(--green)' : 'var(--red)') : '';
       return '<tr>' +
         '<td><strong><a href="' + esc(link) + '">' + esc(text(paper.title, ex.experiment_id)) + '</a></strong>' +
         '<div class="row-meta">' + esc(text(paper.authors, '')) + (paper.year ? ' · ' + esc(paper.year) : '') + '</div></td>' +
         '<td class="mono">' + esc(owlPct(ex.published_oa)) + '</td>' +
         '<td>' + owlAuthorCell(ex) + '</td>' +
         '<td>' + owlMuseCell(ex) + '</td>' +
-        '<td class="mono">' + esc(diffLabel) + '</td></tr>';
+        '<td class="mono"' + (diffColor ? ' style="color:' + diffColor + '"' : '') + '><strong>' + esc(diffLabel) + '</strong></td></tr>';
     }).join('');
     return '<div style="overflow-x:auto"><table class="repro-table" aria-label="Artifact-audited six-paper comparison, overall accuracy"><thead><tr>' +
       '<th scope="col">Paper</th><th scope="col">Published overall accuracy</th>' +
@@ -897,6 +898,7 @@
       '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
       '<p class="muted" style="margin-top:12px;font-size:11px;line-height:1.6">' +
       'Overall accuracy over all SNRs (−20..+18 dB), pooled. Difference in percentage points. ' +
+      'Differences within 1 pp are green, larger gaps red — proximity only, not a verdict on fidelity. ' +
       'Seeds, splits, training budgets, and evaluation procedures differ across columns; ' +
       'do not rank papers by these numbers. CDSCNN published is a ten-run mean; Muse is a two-run mean (58.22%, 60.00%). ' +
       'CDSCNN author 58.60% uses the released model plus a reconstructed training pipeline (no complete driver in the release). ' +
@@ -1300,7 +1302,7 @@
       '<div class="evidence" style="margin-bottom:14px"><strong>Historical experiments.</strong> Protocols vary; numerical proximity does not guarantee fidelity. Audit distinguishes omissions, contradictions and explicit deviations.</div>' +
       '<div role="tablist" aria-label="Reproduction detail sections" style="display:flex;gap:8px;flex-wrap:wrap">' + dtab('overview', 'Overview') + dtab('methods', 'Specification & methods') + dtab('sources', 'Source & reproducibility') + '</div>' +
       '</div></section>' +
-      '<section class="page page-detail"><div class="container narrow-center"><div class="detail-body"><div>' + main + '</div><aside>' +
+      '<section class="page page-detail ow-wide-study"><div class="container"><div class="detail-body detail-body-study"><div>' + main + '</div><aside>' +
       '<section class="card panel"><h3>Key caveat</h3><p class="muted" style="line-height:1.7">' + esc(text((ex.limitations || [])[0], 'See Experiment limitations.')) + '</p>' +
       '<div class="tag" style="margin-top:10px">No causal gap attribution</div><p class="muted" style="font-size:11px;margin-top:8px">Individual specification differences usually lack isolated controlled tests.</p></section>' +
       '<section class="card panel"><h3>Source and evidence links</h3><div class="source-list">' +
