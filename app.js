@@ -940,7 +940,7 @@
       var short = String((ex.paper && ex.paper.short) || ex.experiment_id).toUpperCase();
       bars += '<text x="' + (cx + 7) + '" y="' + (baseline + 18) + '" text-anchor="middle" font-size="9" fill="#8b9298" font-family="IBM Plex Mono,monospace">' + esc(short) + '</text>';
     });
-    return '<div style="overflow-x:auto"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Grouped bar chart of overall accuracy for all six papers" style="min-width:480px;width:100%;height:auto;display:block">' +
+    return '<div style="overflow-x:auto"><svg id="accuracy-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Grouped bar chart of overall accuracy for all six papers" style="width:100%;height:auto;display:block">' +
       grid + bars + '</svg></div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font:500 9px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:#8b9298">' +
       '<span><span style="display:inline-block;width:14px;height:8px;background:#8b9298;vertical-align:middle;margin-right:6px"></span>Published</span>' +
@@ -1164,7 +1164,7 @@
       (authorPath ? '<span><span style="display:inline-block;width:18px;height:0;border-top:2px dashed #8b9298;vertical-align:middle;margin-right:6px"></span>Author-code mean</span>' : '') +
       (pubPath ? '<span><span style="display:inline-block;width:18px;height:0;border-top:2px dotted #e7c47a;vertical-align:middle;margin-right:6px"></span>Published (tabulated only)</span>' : '') +
       '</div>';
-    var svg = '<div style="overflow-x:auto"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Accuracy by SNR for ' + esc(ex.experiment_id) + '" style="min-width:520px;width:100%;height:auto;display:block">' +
+    var svg = '<div style="overflow-x:auto"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Accuracy by SNR for ' + esc(ex.experiment_id) + '" style="width:100%;height:auto;display:block">' +
       grid +
       (authorPath ? '<path d="' + authorPath + '" fill="none" stroke="#8b9298" stroke-width="1.6" stroke-dasharray="5 4"/>' : '') +
       (pubPath ? '<path d="' + pubPath + '" fill="none" stroke="#e7c47a" stroke-width="1.6" stroke-dasharray="2 3"/>' : '') +
@@ -3166,12 +3166,10 @@
           '</div>' +
           '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
         '<section class="page page-detail ow-wide-study"><div class="container">' +
+          '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
           taskAndDataSection(x) +
-          '<div class="detail-body detail-body-study"><div>' +
-            owlStudySection(owlSlug) +
-          '</div><aside>' +
-            '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
-          '</aside></div>' +
+          owlStudySection(owlSlug) +
+          '<div id="owl-evaluator-slot"></div>' +
           '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
         '</div></section></main>';
     }
@@ -4429,6 +4427,19 @@
         return;
       }
       payload.items.forEach(function (release) { stack.appendChild(releaseUnit(release)); });
+      var slot = document.getElementById('owl-evaluator-slot');
+      if (slot) {
+        var evaluators = panel.querySelectorAll('.tml-evaluator');
+        if (evaluators.length) {
+          var sec = element('section', 'card panel');
+          var secHead = element('div', 'panel-head');
+          secHead.appendChild(element('h2', '', 'Verify predictions'));
+          secHead.appendChild(element('span', 'id', 'Hidden-label scoring'));
+          sec.appendChild(secHead);
+          Array.from(evaluators).forEach(function (node) { sec.appendChild(node); });
+          slot.appendChild(sec);
+        }
+      }
     } catch (error) {
       if (requestId !== activeLoad || !document.contains(panel)) return;
       stack.textContent = '';

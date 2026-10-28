@@ -836,8 +836,16 @@ test('radioml dataset shows artifact-audited six-paper comparison with correct n
   await expect(page.getByText('61.78%', { exact: false }).first()).toBeVisible();
   // Deprecated Scores leaderboard is hidden where the audit lives
   await expect(page.getByRole('heading', { name: 'Scores' })).toHaveCount(0);
-  // Existing dataset features preserved
+  // No right rail on the study page: downloads sit under the hero,
+  // the evaluator sits under the study
+  await expect(page.locator('aside')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Get the data' })).toBeVisible();
+  await expect(page.locator('.tml-release-download-panel')).toBeVisible();
+  await expect(page.locator('#owl-evaluator-slot .tml-evaluator')).toBeVisible();
+  await expect(page.locator('#owl-evaluator-slot').getByRole('heading', { name: 'Verify predictions', exact: true })).toBeVisible();
+  // Grouped bar chart scales instead of scrolling
+  const chartStyle = await page.locator('#accuracy-chart').getAttribute('style');
+  expect(chartStyle).not.toContain('min-width');
   assertNoClientErrors();
 });
 
