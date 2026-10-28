@@ -3165,9 +3165,9 @@
           '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(typeof DATASET_DESCRIPTIONS === 'object' && DATASET_DESCRIPTIONS[(d.name || '').toLowerCase()] || d.description) + '</p>' +
           '</div>' +
           '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
-        '<section class="page page-detail"><div class="container">' +
+        '<section class="page page-detail ow-wide-study"><div class="container">' +
           taskAndDataSection(x) +
-          '<div class="detail-body"><div>' +
+          '<div class="detail-body detail-body-study"><div>' +
             owlStudySection(owlSlug) +
           '</div><aside>' +
             '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
