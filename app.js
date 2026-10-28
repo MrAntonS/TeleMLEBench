@@ -3159,8 +3159,22 @@
     var owlSlug = (state.route && state.route.slug) || (x.dataset && x.dataset.slug) || '';
     var hasOwlStudy = false;
     try { hasOwlStudy = !!owlStudyForSlug(owlSlug); } catch (_) { hasOwlStudy = false; }
-    var scoresPanel = hasOwlStudy ? '' :
-      '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>';
+    if (hasOwlStudy) {
+      return '<main id="main">' +
+        '<section class="detail-hero"><div class="container narrow-center"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
+          '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(typeof DATASET_DESCRIPTIONS === 'object' && DATASET_DESCRIPTIONS[(d.name || '').toLowerCase()] || d.description) + '</p>' +
+          '</div>' +
+          '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
+        '<section class="page page-detail"><div class="container">' +
+          taskAndDataSection(x) +
+          '<div class="detail-body"><div>' +
+            owlStudySection(owlSlug) +
+          '</div><aside>' +
+            '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
+          '</aside></div>' +
+          '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
+        '</div></section></main>';
+    }
     return '<main id="main">' +
       '<section class="detail-hero"><div class="container narrow-center"><div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(d.slug) + '</span></div>' +
         '<div class="detail-title"><div><div class="eyebrow">' + esc(taskLabel || 'Dataset record') + '</div><h1>' + esc(d.name) + '</h1><p>' + esc(typeof DATASET_DESCRIPTIONS === 'object' && DATASET_DESCRIPTIONS[(d.name || '').toLowerCase()] || d.description) + '</p>' +
@@ -3168,11 +3182,10 @@
         '<div class="detail-actions">' + externalButton(d.url,'Primary source') + '</div></div>' + heroFacts(d, x) + '</div></section>' +
       '<section class="page page-detail"><div class="container"><div class="detail-body"><div>' +
         taskAndDataSection(x) +
-        scoresPanel +
+        '<section class="card panel"><div class="panel-head"><h2>Scores</h2>' + scoresBadge + '<button type="button" class="btn btn-light" data-action="toggle-scores" aria-expanded="true">Collapse</button></div>' + scoresLeaderboard(x) + '</section>' +
       '</div><aside>' +
         '<section class="card panel"><div class="panel-head"><h2>Get the data</h2>' + releaseBadge + '</div>' + taskReleaseRows(x) + '</section>' +
       '</aside></div>' +
-      owlStudySection(owlSlug) +
       '<details class="ow-more-filters"><summary>Record details</summary><dl class="kv">' + facts + '</dl></details>' +
       '</div></section></main>';
   }
