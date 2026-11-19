@@ -1,1 +1,1 @@
-{"metric": "floor hit rate", "value": 89.82898289828984, "unit": "%", "split": "validation", "notes": "Implemented SCNN with simple NN for each stage. Used combined training/validation for AP variation filtering."}
+{"metric": "floor hit rate", "value": 90.72907290729073, "unit": "%", "split": "validation", "notes": "Implemented sequential building-then-floor classification. Used MLP as approximation for CNN since AP coordinates for 'RSSI pictures' were not provided. Filtered constant APs. Fixed header loading issue."}

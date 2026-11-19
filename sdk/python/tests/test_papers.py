@@ -11,9 +11,9 @@ def test_paper_metadata_keeps_status_value_source(fake):
     md = p.metadata
     assert len(md) == 10
     assert md["architecture"].source == "paper" and md["architecture"].status == "partial"
-    # Assumed values keep their "assumed" source and are not promoted to the paper's value.
+    # Values the OWL spec took from the authors' code are marked "code", not assumed.
     bs = md["batch_size"]
-    assert (bs.source, bs.value, bs.assumed_value, bs.assumed_where) == ("assumed", None, "20", "reproduce.py line 31")
+    assert (bs.source, bs.value, bs.assumed_value) == ("code", "20 (floor-stage CNN)", None)
     assert md["random_seed"].source == "code"
     # Missing stays None.
     assert md["split_seed"].value is None and md["split_seed"].source is None
@@ -25,9 +25,15 @@ def test_paper_claim_and_baseline(fake):
     assert (c.value, c.unit, c.metric) == (95.52, "%", "floor hit rate")
     assert c.location == "Table I, PDF page 5" and c.split.startswith("UJIIndoorLoc validation")
     b = p.baseline
-    assert b.score == 89.829 and b.gap == 5.69
+    assert b.score == 90.7291 and b.gap == 4.79
     assert b.validation_rule == "i" and b.validation.startswith("Validated re-run")
-    assert (b.agent, b.model) == ("Deep Agents 0.7.3", "Gemma 4 31B")
+    assert (b.agent, b.model) == ("Aider 0.86.2", "Gemma 4 31B")
+
+
+def test_assumed_values_are_not_promoted_to_paper_values(fake):
+    md = owl.paper("P96").metadata
+    bs = md["batch_size"]
+    assert (bs.source, bs.value, bs.assumed_value, bs.assumed_where) == ("assumed", None, "1024", "reproduce.py line 232")
 
 
 @pytest.mark.parametrize("query", ["p62", "2302.10810", "2302.10810v1", "arXiv:2302.10810",
@@ -68,7 +74,7 @@ def test_artifact_download(fake, tmp_path):
 def test_dataset_papers_merge_catalog_and_owl(fake):
     papers = owl.dataset("ujiindoorloc").papers()
     by_id = {p.id: p for p in papers}
-    assert by_id["P62"].claimed.value == 95.52 and by_id["P62"].baseline.score == 89.829
+    assert by_id["P62"].claimed.value == 95.52 and by_id["P62"].baseline.score == 90.7291
     assert by_id["P61"].baseline is not None
     # Reproduced papers come first; catalog papers without OWL data keep None.
     assert papers[0].baseline is not None

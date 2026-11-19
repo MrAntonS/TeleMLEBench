@@ -33,8 +33,13 @@ const artifactDir = path.join(outDir, 'artifacts');
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const exists = (file) => fs.existsSync(file);
 const fail = (message) => { throw new Error(message); };
-// Logs and scripts must not leak local filesystem paths.
-const scrub = (text) => text.replaceAll(os.homedir(), '~');
+// Logs and scripts must not leak local filesystem paths, the local user name
+// or the host name (OpenHands logs record both in each event's metadata).
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const scrub = (text) => text.replaceAll(os.homedir(), '~')
+  .replace(new RegExp('\\b' + escapeRe(os.userInfo().username) + '\\b', 'g'), 'user')
+  .replace(new RegExp('\\b' + escapeRe(os.hostname()) + '\\b', 'g'), 'host')
+  .replace(new RegExp('\\b' + escapeRe(os.hostname().split('.')[0]) + '\\b', 'g'), 'host');
 
 const CRITERIA = [
   ['architecture', 'Architecture'],
@@ -75,57 +80,70 @@ const CODE_VALUES = {
     random_seed: {
       value: '1000 (RandStream mt19937ar, seed + 12·(s−1) per repetition)',
       evidence: 'Main_B0_NA.m lines 7–17 @ fe6c49ce: seed = 1000; jump = 12; RandStream(\'mt19937ar\',\'Seed\',seed+jump*(s-1))'
+    },
+    optimizer_lr: {
+      value: 'Adam, learning rate 1e-4 (floor-stage CNN)',
+      evidence: 'CNN_Prediction_HX_1130.m lines 324–327 @ fe6c49ce: trainingOptions(\'adam\', \'MaxEpochs\',50, \'MiniBatchSize\',miniBatchSize, \'InitialLearnRate\',1e-4)'
+    },
+    batch_size: {
+      value: '20 (floor-stage CNN)',
+      evidence: 'CNN_Prediction_HX_1130.m lines 322–326 @ fe6c49ce: miniBatchSize = 20; \'MiniBatchSize\',miniBatchSize'
+    },
+    epochs: {
+      value: '50 (floor-stage CNN)',
+      evidence: 'CNN_Prediction_HX_1130.m lines 324–325 @ fe6c49ce: trainingOptions(\'adam\', \'MaxEpochs\',50'
     }
   }
 };
 
-// The OWL baseline shown on each paper page: the Deep Agents + Gemma 4 31B
-// run given the paper plus the OWL spec, when FINAL_CELLS marks it valid.
-// `assumed` lists details the paper does not give and the agent had to choose;
-// `check` is a substring that must appear on that line of reproduce.py.
+// The OWL baseline shown on each paper page: the closest validated run given
+// the paper plus the OWL spec (paper Table 5). `run` names that run in
+// FINAL_CELLS.json; the build fails unless it is marked ok under condition owl.
+// `assumed` lists details that neither the paper nor the authors' code (via the
+// OWL spec) gives and that the agent set itself; `check` is a substring that
+// must appear on that line of the run's reproduce.py.
 const REPRODUCTIONS = {
   P61: {
+    run: 'P61-20261118T011646Z/openhands-gemma-4-31b-owl',
     method: 'WiFi FAB-MAP',
     claimSplit: 'UJIIndoorLoc validation set (1,111 examples) used as test; database from the training set',
     owlSplit: 'validation (1,111 examples), same set as the paper',
-    assumed: {
-      random_seed: { value: '42', line: 64, check: 'np.random.seed(42)' }
-    },
-    note: 'Same evaluation set as the paper. The script is a simplified FAB-MAP with a naive-Bayes observation model and no Chow-Liu tree, which the paper uses. The agent hit the 45-minute limit; its final script re-ran offline to the same score.'
+    assumed: {},
+    note: 'Same evaluation set and configuration as the paper’s best row (5 dBm bins from −110 to −10 dBm, PzGe = 0.3135, PzGne = 0.0004). The script matches each scan against all 19,937 training scans with an independent per-feature observation model: it builds no Chow-Liu tree and skips the paper’s DBScan clustering of the database. Matching is deterministic, so no seed is needed, and the offline re-run gave the same score.'
   },
   P62: {
+    run: 'P62-20261118T011649Z/aider-gemma-4-31b-owl',
     method: 'SCNN (sequential classification neural network)',
     claimSplit: 'UJIIndoorLoc validation set (1,111 observations)',
     owlSplit: 'validation (1,111 observations), same set as the paper',
-    assumed: {
-      optimizer_lr: { value: 'Adam, learning rate 1e-4', line: 31, check: 'lr=1e-4' },
-      batch_size: { value: '20', line: 31, check: 'batch_size=20' },
-      epochs: { value: '50', line: 31, check: 'epochs=50' }
-    },
-    note: 'Same 1,111-observation validation set as the paper. Optimizer, learning rate, batch size and epochs are not in the paper and were assumed by the agent. The paper gives no layer sizes, so each stage is a small MLP. The script also filters access points using training and validation data together, which the paper does not describe.'
+    assumed: {},
+    note: 'Same 1,111-observation validation set as the paper. Optimizer (Adam), learning rate (1e-4), batch size (20), epochs (50) and seed (1000) are not in the paper; the OWL spec gave them from the authors’ code, where they configure the floor-stage CNN, and the agent used them for every stage. The paper gives no layer sizes and the spec gives no AP coordinates for RSSI images, so each stage is an MLP (64-32 hidden units) instead of a CNN. The script drops only zero-variance APs, not the paper’s unstable-location APs, and scores floor hit rate after a predicted-building stage.'
   },
   P68: {
+    run: 'P68-20261117T192020Z/aider-gemma-4-26b-a4b-owl',
     method: 'XAI feature ensemble (Leveled) + CatBoost',
     claimSplit: '70/30 train/test split of VeReMi, random under-sampling for balance',
     owlSplit: '70/30 train/test split, random under-sampling',
     assumed: {
-      split_seed: { value: '42 (train_test_split random_state)', line: 119, check: 'random_state=42' }
+      optimizer_lr: { value: 'CatBoost learning rate 0.1', line: 107, check: 'learning_rate=0.1' },
+      epochs: { value: 'CatBoost 100 iterations', line: 106, check: 'iterations=100' }
     },
-    note: 'OWL scores higher than the claim. The split seed is assumed. The authors’ code uses a random message-level split and selects CatBoost’s best iteration on the test set; agents that follow that split reach 100%, so the gap reflects the paper’s protocol rather than leakage added by OWL.'
+    note: 'The sandbox provides one VeReMi simulation run (two receiver logs), not the 225 scenarios the paper uses. The script trains CatBoost on the Leveled top-4 features (pos_x, pos_y, spd_x, spd_y) after random under-sampling, standard scaling and a 70/30 split. CatBoost iterations and learning rate are not given by the paper or the authors’ code and were assumed. It uses seed 42 for the split, where the authors’ code (via the OWL spec) uses 100. Labels are joined to messages by nearest timestamp, and the scaler is fit before the split.'
   },
   P96: {
+    run: 'P96-20261119T042753Z/aider-qwen3.8-27b-owl',
     method: 'Dense ResNet-68 C (complex convolutions)',
     claimMetric: 'peak classification accuracy (paper: 14 dB SNR)',
     claimSplit: '50/50 random train/test split, repeated five times',
     owlSplit: '50/50 random split of the 187k labelled pool, scored at 12 dB SNR',
     assumed: {
-      optimizer_lr: { value: 'Adam, learning rate 1e-3', line: 115, check: 'lr=1e-3' },
-      batch_size: { value: '1024', line: 110, check: 'batch_size=1024' },
-      epochs: { value: '5', line: 119, check: 'range(5)' },
-      random_seed: { value: '2020', line: 89, check: 'seed = 2020' },
-      split_seed: { value: '2020 (train_test_split random_state)', line: 101, check: 'random_state=seed' }
+      optimizer_lr: { value: 'Adam, learning rate 1e-3', line: 240, check: 'lr=0.001' },
+      batch_size: { value: '1024', line: 232, check: 'batch_size=1024' },
+      epochs: { value: '20', line: 243, check: 'num_epochs = 20' },
+      random_seed: { value: '42', line: 18, check: 'set_seed(42)' },
+      split_seed: { value: '42 (global NumPy seed, np.random.permutation)', line: 213, check: 'np.random.permutation(len(X))' }
     },
-    note: 'Not the same evaluation point: the public release lacks 33 (modulation, SNR) groups, including AM-DSB and GFSK at 14 dB, so OWL scores at 12 dB, where a faithful run is expected about 1 point below the 14 dB peak. The agent trained only 5 epochs (assumed).'
+    note: 'Not the same evaluation point: the public release lacks 33 (modulation, SNR) groups, including AM-DSB and GFSK at 14 dB, so OWL scores at 12 dB, where a faithful run is expected about 1 point below the 14 dB peak. The model is a complex-convolution ResNet with basic blocks [3, 4, 6, 3] (the script calls it ResNet-50), not a Dense ResNet-68, and it is trained once rather than five times. Optimizer, learning rate, batch size, epochs and seeds are assumed. The script checks test accuracy after each epoch from epoch 11 for early stopping, but the stop never triggered, so all 20 epochs ran.'
   }
 };
 
@@ -247,9 +265,12 @@ for (const id of paperDirs) {
 
   let reproduction = null;
   if (repro) {
-    const cell = cells.find((x) => x.paper === id && x.harness === 'deepagents' &&
-      x.model === 'gemma-4-31b' && x.condition === 'owl');
-    if (!cell || cell.kind !== 'ok') fail(`${id}: Deep Agents + Gemma 4 31B OWL cell is not valid in FINAL_CELLS`);
+    const cell = cells.find((x) => x.paper === id && x.run === repro.run);
+    if (!cell) fail(`${id}: run ${repro.run} is not in FINAL_CELLS`);
+    if (cell.kind !== 'ok' || cell.condition !== 'owl') {
+      fail(`${id}: run ${repro.run} is ${cell.kind}/${cell.condition} in FINAL_CELLS, expected ok/owl`);
+    }
+    if (!HARNESS_LABEL[cell.harness] || !MODEL_LABEL[cell.model]) fail(`${id}: no label for ${cell.harness} / ${cell.model}`);
     const runDir = path.join(bench, 'runs', cell.run);
     const run = readJson(path.join(runDir, 'run.json'));
     const script = fs.readFileSync(path.join(runDir, 'reproduce.py'), 'utf8');
@@ -286,7 +307,7 @@ for (const id of paperDirs) {
       '# "assumed" = the paper does not give this value; the reproduction agent chose it.',
       `paper: ${id}`,
       `agent: {harness: "${HARNESS_LABEL[cell.harness]}", model: "${run.model}"}`,
-      'inputs: [PAPER.md, OWL_SPEC.json, TASK.md]   # no author code',
+      'inputs: [PAPER.md, OWL_SPEC.json, TASK.md]   # no author code; OWL_SPEC.json carries values extracted from it',
       'assumed:'
     ];
     for (const [key, a] of Object.entries(repro.assumed)) {
@@ -355,7 +376,7 @@ for (const id of paperDirs) {
 const out = {
   generated_at: new Date().toISOString(),
   source: 'OWL research workbench: paper-only disclosure tables, verified claim targets, Table 4 reproduction cells',
-  baseline_policy: 'OWL baseline = Deep Agents + Gemma 4 31B given the paper and the OWL spec, when that run is valid in FINAL_CELLS.json',
+  baseline_policy: 'OWL baseline = the closest validated run given the paper and the OWL spec (Table 5), from FINAL_CELLS.json',
   papers
 };
 fs.writeFileSync(path.join(outDir, 'papers.json'), JSON.stringify(out, null, 1) + '\n');

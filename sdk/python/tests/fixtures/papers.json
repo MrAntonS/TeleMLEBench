@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-19T20:30:20.901Z",
+ "generated_at": "2026-11-19T23:21:06.455Z",
  "source": "OWL research workbench: paper-only disclosure tables, verified claim targets, Table 4 reproduction cells",
- "baseline_policy": "OWL baseline = Deep Agents + Gemma 4 31B given the paper and the OWL spec, when that run is valid in FINAL_CELLS.json",
+ "baseline_policy": "OWL baseline = the closest validated run given the paper and the OWL spec (Table 5), from FINAL_CELLS.json",
  "papers": {
   "P31": {
    "id": "P31",
@@ -243,9 +243,7 @@
      "evidence": [
       "p. 5, Section 3 training phase"
      ],
-     "source": "assumed",
-     "assumed_value": "42",
-     "assumed_where": "reproduce.py line 64"
+     "source": null
     },
     {
      "key": "dataset_version",
@@ -325,53 +323,59 @@
     "url": "https://arxiv.org/pdf/1611.02054v2#page=8"
    },
    "reproduction": {
-    "run": "P61-20261118T011646Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
+    "run": "P61-20261118T011646Z/openhands-gemma-4-31b-owl",
+    "harness": "OpenHands 1.16",
     "model": "Gemma 4 31B",
     "model_id": "google/gemma-4-31b-it",
     "condition": "Paper + OWL spec, no author code",
     "metric": "building and floor accuracy (score)",
     "unit": "%",
-    "score": 35.9136,
-    "agent_reported": 35.9136,
-    "rerun": 35.9136,
+    "score": 91.2691,
+    "agent_reported": 91.2691,
+    "rerun": 91.2691,
     "split": "validation (1,111 examples), same set as the paper",
-    "gap": 56.09,
+    "gap": 0.73,
     "validation": {
      "rule": "i",
      "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 60.71,
+    "fidelity": 53.57,
     "predictions_kept": false,
-    "agent_exit": -15,
-    "finished_at": "2026-11-18T02:04:02.646629+00:00",
+    "agent_exit": 0,
+    "finished_at": "2026-11-18T01:32:59.817201+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P61/reproduce.py",
-      "bytes": 5156
+      "bytes": 5304
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P61/config.yaml",
-      "bytes": 534
+      "bytes": 528
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P61/RESULT.json",
-      "bytes": 261
+      "bytes": 245
+     },
+     {
+      "name": "run.log",
+      "label": "Agent run log",
+      "path": "data/owl/artifacts/P61/run.log",
+      "bytes": 209814
      },
      {
       "name": "rerun.log",
       "label": "Offline re-run output",
       "path": "data/owl/artifacts/P61/rerun.log",
-      "bytes": 131
+      "bytes": 120
      }
     ],
-    "note": "Same evaluation set as the paper. The script is a simplified FAB-MAP with a naive-Bayes observation model and no Chow-Liu tree, which the paper uses. The agent hit the 45-minute limit; its final script re-ran offline to the same score."
+    "note": "Same evaluation set and configuration as the paper’s best row (5 dBm bins from −110 to −10 dBm, PzGe = 0.3135, PzGne = 0.0004). The script matches each scan against all 19,937 training scans with an independent per-feature observation model: it builds no Chow-Liu tree and skips the paper’s DBScan clustering of the database. Matching is deterministic, so no seed is needed, and the offline re-run gave the same score."
    }
   },
   "P62": {
@@ -419,38 +423,38 @@
     {
      "key": "optimizer_lr",
      "label": "Optimizer / LR",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No optimizer or learning rate stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "Adam, learning rate 1e-4",
-     "assumed_where": "reproduce.py line 31"
+     "value": "Adam, learning rate 1e-4 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No optimizer or learning rate stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 324–327 @ fe6c49ce: trainingOptions('adam', 'MaxEpochs',50, 'MiniBatchSize',miniBatchSize, 'InitialLearnRate',1e-4)"
+     ],
+     "source": "code"
     },
     {
      "key": "batch_size",
      "label": "Batch size",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No batch size stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "20",
-     "assumed_where": "reproduce.py line 31"
+     "value": "20 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No batch size stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 322–326 @ fe6c49ce: miniBatchSize = 20; 'MiniBatchSize',miniBatchSize"
+     ],
+     "source": "code"
     },
     {
      "key": "epochs",
      "label": "Epochs",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No epochs or iterations stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "50",
-     "assumed_where": "reproduce.py line 31"
+     "value": "50 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No epochs or iterations stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 324–325 @ fe6c49ce: trainingOptions('adam', 'MaxEpochs',50"
+     ],
+     "source": "code"
     },
     {
      "key": "random_seed",
@@ -537,59 +541,53 @@
     "url": "https://arxiv.org/pdf/2302.10810v1#page=5"
    },
    "reproduction": {
-    "run": "P62-20261118T011649Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
+    "run": "P62-20261118T011649Z/aider-gemma-4-31b-owl",
+    "harness": "Aider 0.86.2",
     "model": "Gemma 4 31B",
     "model_id": "google/gemma-4-31b-it",
     "condition": "Paper + OWL spec, no author code",
     "metric": "floor hit rate",
     "unit": "%",
-    "score": 89.829,
-    "agent_reported": 89.829,
-    "rerun": 89.829,
+    "score": 90.7291,
+    "agent_reported": 90.7291,
+    "rerun": 90.7291,
     "split": "validation (1,111 observations), same set as the paper",
-    "gap": 5.69,
+    "gap": 4.79,
     "validation": {
      "rule": "i",
      "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 73.3,
+    "fidelity": 46.7,
     "predictions_kept": false,
     "agent_exit": 0,
-    "finished_at": "2026-11-18T01:47:42.663987+00:00",
+    "finished_at": "2026-11-18T01:24:10.081065+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P62/reproduce.py",
-      "bytes": 6203
+      "bytes": 4908
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P62/config.yaml",
-      "bytes": 888
+      "bytes": 1290
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P62/RESULT.json",
-      "bytes": 214
+      "bytes": 308
      },
      {
       "name": "run.log",
       "label": "Agent run log",
       "path": "data/owl/artifacts/P62/run.log",
-      "bytes": 1740
-     },
-     {
-      "name": "rerun.log",
-      "label": "Offline re-run output",
-      "path": "data/owl/artifacts/P62/rerun.log",
-      "bytes": 23
+      "bytes": 40568
      }
     ],
-    "note": "Same 1,111-observation validation set as the paper. Optimizer, learning rate, batch size and epochs are not in the paper and were assumed by the agent. The paper gives no layer sizes, so each stage is a small MLP. The script also filters access points using training and validation data together, which the paper does not describe."
+    "note": "Same 1,111-observation validation set as the paper. Optimizer (Adam), learning rate (1e-4), batch size (20), epochs (50) and seed (1000) are not in the paper; the OWL spec gave them from the authors’ code, where they configure the floor-stage CNN, and the agent used them for every stage. The paper gives no layer sizes and the spec gives no AP coordinates for RSSI images, so each stage is an MLP (64-32 hidden units) instead of a CNN. The script drops only zero-variance APs, not the paper’s unstable-location APs, and scores floor hit rate after a predicted-building stage."
    }
   },
   "P59": {
@@ -741,6 +739,240 @@
    ],
    "claim": null,
    "reproduction": null
+  },
+  "P96": {
+   "id": "P96",
+   "title": "High-Capacity Complex Convolutional Neural Networks For I/Q Modulation Classification",
+   "authors": [
+    "Jakob Krzyston",
+    "Rajib Bhattacharjea",
+    "Andrew Stark"
+   ],
+   "year": 2020,
+   "venue": "arXiv preprint",
+   "arxiv_id": "2010.10717",
+   "doi": null,
+   "url": "https://arxiv.org/abs/2010.10717v1",
+   "pdf_url": "https://arxiv.org/pdf/2010.10717v1",
+   "method": "Dense ResNet-68 C (complex convolutions)",
+   "experiment": "PE01-DRN68C-RML2016.10a",
+   "experiment_description": "Dense ResNet-68 C complex-valued convolutional modulation classification on RadioML 2016.10a, 11 classes, 50/50 train-test reshuffled x5, peak 92.4 percent at 14 dB and 61.5 percent overall",
+   "dataset": {
+    "family": "RadioML",
+    "slug": "radioml-2016-10a",
+    "name": "RadioML 2016.10A"
+   },
+   "code_url": "https://github.com/JakobKrzyston/Complex_Convolutions",
+   "fully_reported": {
+    "k": 1,
+    "n": 10
+   },
+   "details": [
+    {
+     "key": "architecture",
+     "label": "Architecture",
+     "status": "partial",
+     "extraction_status": "AMBIGUOUS",
+     "value": "ResNet-18 34 DenseNet-57 73 Dense ResNet-35 68 plus C variants, residual F(x)+x, dense concatenation, kernels 7 5 3, widths missing",
+     "explanation": "Block counts and skip logic given but per-layer widths channels strides padding pooling normalization unspecified",
+     "evidence": [
+      "p. 2, Section 3.1 ResNet paragraph",
+      "p. 2, Section 3.2 DenseNet paragraph",
+      "p. 3, Section 3.3 Dense ResNets paragraph",
+      "p. 3, Section 3.3 Dense ResNet sizes paragraph",
+      "p. 2, Fig. 1 residual connection",
+      "p. 2, Fig. 2 DenseNet architecture"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "optimizer_lr",
+     "label": "Optimizer / LR",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No optimizer name learning rate schedule momentum weight decay stated in searched experimental sections",
+     "evidence": [
+      "p. 3, Section 4 Experimental Design full section search"
+     ],
+     "source": "assumed",
+     "assumed_value": "Adam, learning rate 1e-3",
+     "assumed_where": "reproduce.py line 240"
+    },
+    {
+     "key": "batch_size",
+     "label": "Batch size",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No batch size stated in searched experimental sections",
+     "evidence": [
+      "p. 3, Section 4 Experimental Design full section search"
+     ],
+     "source": "assumed",
+     "assumed_value": "1024",
+     "assumed_where": "reproduce.py line 232"
+    },
+    {
+     "key": "epochs",
+     "label": "Epochs",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No epoch count iterations or training budget stated in searched sections",
+     "evidence": [
+      "p. 3, Section 4 Experimental Design full section search"
+     ],
+     "source": "assumed",
+     "assumed_value": "20",
+     "assumed_where": "reproduce.py line 243"
+    },
+    {
+     "key": "random_seed",
+     "label": "Training seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No training RNG seed stated, only reshuffling repeated five times without seed",
+     "evidence": [
+      "p. 3, Section 4 split and hardware paragraph"
+     ],
+     "source": "assumed",
+     "assumed_value": "42",
+     "assumed_where": "reproduce.py line 18"
+    },
+    {
+     "key": "dataset_version",
+     "label": "Data version",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "RadioML 2016.10a 11 modulations 8 digital 3 analog SNR -20 to 18 dB 2 dB steps 1000 per scheme per SNR 2x128",
+     "explanation": "Dataset release subset modulations SNR grid counts and sample shape explicitly stated",
+     "evidence": [
+      "p. 3, Section 4 dataset paragraph"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "preprocessing_augmentation",
+     "label": "Preprocessing",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No normalization scaling or augmentation operational detail stated beyond shuffling",
+     "evidence": [
+      "p. 3, Section 4 split and hardware paragraph",
+      "p. 3, Section 4 Experimental Design full section search"
+     ],
+     "source": null
+    },
+    {
+     "key": "train_val_test_split",
+     "label": "Split",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "shuffled across formats and SNR then 50/50 train-test repeated five times, no validation split stated",
+     "explanation": "Train-test fraction and repeat count given but stratification per SNR per class and validation absent",
+     "evidence": [
+      "p. 3, Section 4 split and hardware paragraph"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "split_seed",
+     "label": "Split seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No split seed or RNG for shuffling stated",
+     "evidence": [
+      "p. 3, Section 4 split and hardware paragraph"
+     ],
+     "source": "assumed",
+     "assumed_value": "42 (global NumPy seed, np.random.permutation)",
+     "assumed_where": "reproduce.py line 213"
+    },
+    {
+     "key": "evaluation_protocol",
+     "label": "Evaluation protocol",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "accuracy overall and vs SNR with std over five trials plus t-test and normalized inference speed",
+     "explanation": "Metrics repeats and speed definition given but decision threshold checkpoint rule and per-SNR numbers only in figures",
+     "evidence": [
+      "p. 3, Section 4 split and hardware paragraph",
+      "p. 3, Section 5 Dense ResNet-68 C performance paragraph",
+      "p. 4, Section 5 Figure 6 paragraph"
+     ],
+     "source": "paper"
+    }
+   ],
+   "claim": {
+    "value": 92.4,
+    "unit": "%",
+    "metric": "peak classification accuracy (paper: 14 dB SNR)",
+    "dataset": "RadioML 2016.10a (telemlebench v1 lossless npz conversion, labelled train+validation pool)",
+    "description": "Classification accuracy of the proposed Dense ResNet-68 C (Dense ResNet with complex convolutions) on RadioML 2016.10a at SNR = 12 dB, using the paper's 50/50 random train/test split (shuffled across modulations and SNRs) applied to the provided labelled pool (train/ + validation/ pooled; 187,000 samples); compute accuracy on the test-half samples whose SNR is 12 dB. (The paper reports its peak at 14 dB; 12 dB is used here because it is the highest SNR at which all 11 modulations are present in the provided data.)",
+    "split": "50/50 random train/test split, repeated five times",
+    "locator": "Section 5 Results text (Fig. 3), PDF page 3",
+    "page": 3,
+    "url": "https://arxiv.org/pdf/2010.10717v1#page=3"
+   },
+   "reproduction": {
+    "run": "P96-20261119T042753Z/aider-qwen3.8-27b-owl",
+    "harness": "Aider 0.86.2",
+    "model": "Qwen3.8-27B",
+    "model_id": "qwen/qwen3.8-27b",
+    "condition": "Paper + OWL spec, no author code",
+    "metric": "classification accuracy at 12 dB SNR",
+    "unit": "%",
+    "score": 82.6001,
+    "agent_reported": 82.6001,
+    "rerun": 82.6001,
+    "split": "50/50 random split of the 187k labelled pool, scored at 12 dB SNR",
+    "gap": 9.8,
+    "validation": {
+     "rule": "i",
+     "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
+    },
+    "fidelity": 62.5,
+    "predictions_kept": false,
+    "agent_exit": 0,
+    "finished_at": "2026-11-19T05:17:54.425141+00:00",
+    "files": [
+     {
+      "name": "reproduce.py",
+      "label": "Agent’s final script",
+      "path": "data/owl/artifacts/P96/reproduce.py",
+      "bytes": 11879
+     },
+     {
+      "name": "config.yaml",
+      "label": "Assumed values and their source lines",
+      "path": "data/owl/artifacts/P96/config.yaml",
+      "bytes": 860
+     },
+     {
+      "name": "RESULT.json",
+      "label": "Result written by reproduce.py",
+      "path": "data/owl/artifacts/P96/RESULT.json",
+      "bytes": 287
+     },
+     {
+      "name": "run.log",
+      "label": "Agent run log",
+      "path": "data/owl/artifacts/P96/run.log",
+      "bytes": 76521
+     },
+     {
+      "name": "rerun.log",
+      "label": "Offline re-run output",
+      "path": "data/owl/artifacts/P96/rerun.log",
+      "bytes": 993
+     }
+    ],
+    "note": "Not the same evaluation point: the public release lacks 33 (modulation, SNR) groups, including AM-DSB and GFSK at 14 dB, so OWL scores at 12 dB, where a faithful run is expected about 1 point below the 14 dB peak. The model is a complex-convolution ResNet with basic blocks [3, 4, 6, 3] (the script calls it ResNet-50), not a Dense ResNet-68, and it is trained once rather than five times. Optimizer, learning rate, batch size, epochs and seeds are assumed. The script checks test accuracy after each epoch from epoch 11 for early stopping, but the stop never triggered, so all 20 epochs ran."
+   }
   }
  }
 }

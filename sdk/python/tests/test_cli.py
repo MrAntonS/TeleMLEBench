@@ -18,7 +18,7 @@ def test_cli_get(fake, capsys):
 def test_cli_paper(fake, capsys, tmp_path):
     assert main(["paper", "P62"]) == 0
     out = capsys.readouterr().out
-    assert "95.52" in out and "89.829" in out and "assumed" in out
+    assert "95.52" in out and "90.7291" in out and "Aider 0.86.2" in out
     assert main(["paper", "P62", "--download", str(tmp_path)]) == 0
     assert (tmp_path / "reproduce.py").exists()
 

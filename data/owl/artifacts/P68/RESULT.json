@@ -1,1 +1,7 @@
-{"metric": "accuracy", "value": 100.0, "unit": "%", "split": "70/30 train/test split", "notes": "Used top k=4 features from XAI ensemble. Random under-sampling for balance. DAlex replaced by feature_importances_ proxy."}
+{
+  "metric": "accuracy",
+  "value": 83.11,
+  "unit": "%",
+  "split": "70/30 train/test split",
+  "notes": "Used top-4 features (pos_x, pos_y, spd_x, spd_y) as identified by the Leveled feature ensemble method in the paper."
+}
