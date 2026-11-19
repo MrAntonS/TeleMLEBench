@@ -1,0 +1,86 @@
+[
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.1109/access.2022.3226816",
+   "tmlb_papers": {
+    "id": "paper_f3ea9564d892e87831134da2",
+    "doi": "10.1109/access.2022.3226816",
+    "year": 2022,
+    "title": "Fi-Vi: Large-Area Indoor Localization Scheme Combining ML/DL-Based Wireless Fingerprinting and Visual Positioning",
+    "venue": "IEEE Access",
+    "arxiv_id": null
+   }
+  }
+ },
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.1109/iccst50977.2020.00075",
+   "tmlb_papers": {
+    "id": "paper_a0d5a851172fbd527abca1cf",
+    "doi": "10.1109/iccst50977.2020.00075",
+    "year": 2020,
+    "title": "WiFi fingerprint positioning method based on fusion of autoencoder and stacking mode",
+    "venue": "International Carnahan Conference on Security Technology",
+    "arxiv_id": null
+   }
+  }
+ },
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.1109/itnac55475.2022.9998385",
+   "tmlb_papers": {
+    "id": "paper_c3359c36dc9b3f3f3b4e1b0d",
+    "doi": "10.1109/itnac55475.2022.9998385",
+    "year": 2022,
+    "title": "Optimum NN Algorithms Parameters on the UJIIndoorLoc for Wi-Fi Fingerprinting Indoor Positioning Systems",
+    "venue": "International Telecommunication Networks and Applications Conference",
+    "arxiv_id": null
+   }
+  }
+ },
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.1109/icraie59459.2023.10468356",
+   "tmlb_papers": {
+    "id": "paper_f4df6a8d38ff42008f1d9c77",
+    "doi": "10.1109/icraie59459.2023.10468356",
+    "year": 2023,
+    "title": "Scalable Indoor Wi-Fi Positioning Algorithm Using Cluster-Based Local Estimators",
+    "venue": "International Conference on Recent Advances and Innovations in Engineering",
+    "arxiv_id": null
+   }
+  }
+ },
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.1109/iccke50421.2020.9303624",
+   "tmlb_papers": {
+    "id": "paper_4a533fb3fde48500363a9c30",
+    "doi": "10.1109/iccke50421.2020.9303624",
+    "year": 2020,
+    "title": "WiFi Fingerprinting based Floor Detection with Hierarchical Extreme Learning Machine",
+    "venue": "International Conference on Computer and Knowledge Engineering",
+    "arxiv_id": null
+   }
+  }
+ },
+ {
+  "version_id": "dsv_10089411a0c5dbed537ad731",
+  "tmlb_paper_versions": {
+   "source_url": "https://doi.org/10.3390/machines13010037",
+   "tmlb_papers": {
+    "id": "paper_fff824895beaf4e752bce046",
+    "doi": "10.3390/machines13010037",
+    "year": 2025,
+    "title": "Digital Twin Framework Using Real-Time Asset Tracking for Smart Flexible Manufacturing System",
+    "venue": "Machines",
+    "arxiv_id": null
+   }
+  }
+ }
+]

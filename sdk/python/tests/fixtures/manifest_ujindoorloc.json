@@ -1,0 +1,109 @@
+{
+ "id": "ujindoorloc-floor-v1",
+ "dataset_id": "10.24432/c5ms59",
+ "dataset_version_id": "dsv_10089411a0c5dbed537ad731",
+ "catalog_dataset_version_id": "dsv_10089411a0c5dbed537ad731",
+ "dataset_aliases": [
+  "ujindoorloc",
+  "ujiindoorloc",
+  "10-24432__c5ms59"
+ ],
+ "task_id": "ujindoorloc-floor-classification-v1",
+ "release_version": "telemlebench-v1",
+ "status": "published",
+ "distribution": "mirrored",
+ "provider_url": "https://archive.ics.uci.edu/dataset/310/ujindoorloc",
+ "license": {
+  "name": "CC BY 4.0",
+  "spdx": "CC-BY-4.0",
+  "url": "https://creativecommons.org/licenses/by/4.0/",
+  "redistribution": "allowed",
+  "terms": null,
+  "source_url": "https://archive.ics.uci.edu/dataset/310/ujindoorloc",
+  "checked_on": "catalog",
+  "attribution": "UJIIndoorLoc, UCI Machine Learning Repository (https://doi.org/10.24432/C5MS59), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+ },
+ "algorithm_version": "telemlebench-disk-split/2",
+ "target_fields": [
+  "FLOOR"
+ ],
+ "feature_count": 520,
+ "split": {
+  "view": "telemlebench-v1",
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "group",
+  "counts": {
+   "train": 14741,
+   "validation": 3160,
+   "test": 3147
+  }
+ },
+ "files": [
+  {
+   "role": "split_assignment",
+   "logical_path": "assignments.csv",
+   "media_type": "text/csv",
+   "byte_size": 2210558,
+   "sha256": "d51d1711e920b88106feb103f6acaf0b9685f511e926f2adf44c2fca6e2c3c8d",
+   "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/split_assignment"
+  },
+  {
+   "role": "train",
+   "logical_path": "data/train.csv",
+   "media_type": "text/csv",
+   "byte_size": 31652621,
+   "sha256": "59e6855557b28708c061c51fc4c9fd7b6f2dbe2041ad61e4d76a0a8527c9cdc0",
+   "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/train"
+  },
+  {
+   "role": "validation",
+   "logical_path": "data/validation.csv",
+   "media_type": "text/csv",
+   "byte_size": 6788335,
+   "sha256": "02e51db9ae7428fd12d57cd3f71cb665c05e8e275bc45433150f7f79871655bf",
+   "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/validation"
+  },
+  {
+   "role": "test_features",
+   "logical_path": "data/test-features.csv",
+   "media_type": "text/csv",
+   "byte_size": 6753737,
+   "sha256": "ce88955112440222969233964ceb50f0591fa758e62d1438f0c430f66dcbf2c0",
+   "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/test_features"
+  },
+  {
+   "role": "task",
+   "logical_path": "task.json",
+   "media_type": "application/json",
+   "byte_size": 9701,
+   "sha256": "c31f4668d0fec3de20f589517ae4d17ac91c979ce18d31ce06c79fb2b48d9d44",
+   "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/task"
+  }
+ ],
+ "source": null,
+ "manifest_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/manifest",
+ "task_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/task",
+ "evaluation": {
+  "available": true,
+  "metric": "accuracy",
+  "expected_rows": 3147,
+  "prediction_columns": [
+   "sample_id",
+   "prediction"
+  ],
+  "accepted_media_types": [
+   "text/csv",
+   "application/csv",
+   "application/gzip",
+   "application/x-gzip"
+  ],
+  "maximum_upload_bytes": 16777216,
+  "alignment": "sample_id_in_test_order",
+  "score_publication": "private_result_only"
+ }
+}

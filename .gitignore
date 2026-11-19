@@ -5,3 +5,11 @@ test-results/
 
 .vercel
 .env*
+
+# Python SDK build output
+sdk/python/dist/
+sdk/python/build/
+sdk/python/src/*.egg-info/
+__pycache__/
+.pytest_cache/
+scrubbed-manifests/

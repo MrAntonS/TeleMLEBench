@@ -1,5 +1,6 @@
 import { defineEventHandler, getQuery } from "nitro/h3";
 
+import { releaseAssets } from "../../../lib/release-assets";
 import { setPublicApiHeaders } from "../../../lib/http";
 import {
   fetchPublicRelease,
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event) => {
     .filter(Boolean);
   const descriptors = listReleaseDescriptors().filter((descriptor) => matches(descriptor, filters));
   const settled = await Promise.allSettled(
-    descriptors.map((descriptor) => fetchPublicRelease(descriptor)),
+    descriptors.map((descriptor) => fetchPublicRelease(descriptor, fetch, releaseAssets)),
   );
   const items: PublicRelease[] = [];
   const errors: Array<{ release_id: string; code: "manifest_unavailable" }> = [];

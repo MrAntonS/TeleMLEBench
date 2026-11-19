@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "owl-wireless"
+version = "0.1.0"
+description = "Python client for OWL (Open Wireless Learning): telecom ML datasets, verified releases, paper reproductions and hidden-label scoring."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [{name = "OWL maintainers"}]
+keywords = ["wireless", "telecom", "machine learning", "datasets", "reproducibility", "benchmark"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = ["requests>=2.25", "pandas>=1.3", "numpy>=1.20"]
+
+[project.optional-dependencies]
+arrow = ["pyarrow>=8"]
+test = ["pytest>=7", "scikit-learn>=1.0"]
+
+[project.urls]
+Homepage = "https://owl.publicvm.com"
+Source = "https://github.com/MrAntonS/TeleMLEBench/tree/main/sdk/python"
+Issues = "https://github.com/MrAntonS/TeleMLEBench/issues"
+
+[project.scripts]
+owl = "owl_wireless.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+owl_wireless = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

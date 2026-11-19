@@ -1,0 +1,101 @@
+{
+ "algorithm_version": "telemlebench-topology-workbook-split/2",
+ "artifacts": [
+  {
+   "media_type": "text/csv",
+   "path": "assignments.csv",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "f1f428a6d486c3c85c65387fbc8a14dbae6d18c8e1925379a8191d6984a32a8b",
+   "size_bytes": 46258222
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/train.zip",
+   "public": true,
+   "role": "train",
+   "sha256": "fc20139ba9349100baa8f026a3c7c3603509e6e7b1cd38ff8b9da0c7f493afea",
+   "size_bytes": 2027279941
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/val.zip",
+   "public": true,
+   "role": "val",
+   "sha256": "8e8153768f7da8a9daf6de16529769d03567254e2f078299c4cd43b88f1fa0de",
+   "size_bytes": 434041052
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/test.zip",
+   "public": true,
+   "role": "test",
+   "sha256": "115d183e1e6fac0160fc99f556f2c730c15f286624bab548ae2da29ec5d34eb5",
+   "size_bytes": 434789113
+  }
+ ],
+ "assignment_sha256": "f1f428a6d486c3c85c65387fbc8a14dbae6d18c8e1925379a8191d6984a32a8b",
+ "counts": {
+  "test": 40651,
+  "train": 189703,
+  "val": 40651
+ },
+ "dataset_id": "10.5281/zenodo.12593794",
+ "dataset_version_doi": "10.5281/zenodo.13921775",
+ "dataset_version_id": "dsv_2b4b6c2f2f46033eaebd4f5e",
+ "families": {
+  "real": 105,
+  "synthetic_large": 270000,
+  "synthetic_small": 900
+ },
+ "quarantined_provider_archives": [
+  {
+   "path": "small_snythetic.zip",
+   "reason": "serialized Python objects are not loaded by an ordinary worker"
+  },
+  {
+   "path": "large_synthetic.zip",
+   "reason": "serialized Python objects are not loaded by an ordinary worker"
+  }
+ ],
+ "sample_count": 271005,
+ "source_artifacts": [
+  {
+   "path": "real_topologies.zip",
+   "sha256": "f2ad31ecc53378dd8992beedfe93141454bc1915257bd78e4e0dca3484ed45c8",
+   "size_bytes": 896114
+  },
+  {
+   "path": "synthetic_csv_data.zip",
+   "sha256": "fb131500ffb3f9f9b856b97fa520f1e5e01aee9d75e8aa7bccec3e85de4d8b62",
+   "size_bytes": 2714298961
+  },
+  {
+   "path": "small_snythetic.zip",
+   "sha256": "80ecae46a1db8d223df9fc601fdb72ede959d072e9cdca265defa9133ba7fe78",
+   "size_bytes": 1673379
+  },
+  {
+   "path": "large_synthetic.zip",
+   "sha256": "b4c1f4167e75b90300c45cd5504be5b0e55f1c93aa39cd8e857c33f154a5bce7",
+   "size_bytes": 577427125
+  }
+ ],
+ "split": {
+  "dependencies_absent": true,
+  "fields": [
+   "topology_family"
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "stratified_stable_topology",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [],
+ "task_id": "topologybench-clustering-v1",
+ "task_type": "unsupervised_clustering"
+}
