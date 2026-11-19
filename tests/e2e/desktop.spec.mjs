@@ -267,8 +267,8 @@ test('catalog leads to a complete dataset evidence page', async ({ page }) => {
     'href',
     '#/reproduction/experiment-1'
   );
-  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle, exact: true }).nth(1)).toHaveAttribute('href', '#/paper/paper-1');
-  await expect(page.locator('.lb-table').getByRole('link', { name: 'Read evidence →' })).toHaveAttribute('href', '#/paper/paper-1');
+  await expect(page.locator('.lb-table').getByRole('link', { name: paperTitle, exact: true }).nth(1)).toHaveAttribute('href', '#/papers/paper-1');
+  await expect(page.locator('.lb-table').getByRole('link', { name: 'Read evidence →' })).toHaveAttribute('href', '#/papers/paper-1');
   await expect(page.getByText('2 scores verified · 0 claims · 1 linked papers', { exact: true })).toBeVisible();
   await expect(page.locator('.ow-more-filters summary')).toContainText('Record details');
   await page.locator('.ow-more-filters summary').click();
