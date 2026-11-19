@@ -48,6 +48,12 @@
     '.tml-score-value{color:var(--green);font:500 24px var(--mono)}',
     '.tml-score-detail{align-self:center;color:var(--green);font-size:12px;line-height:1.5}',
     '.tml-score-hashes{grid-column:1/-1;color:var(--subtle);font:8px/1.6 var(--mono);overflow-wrap:anywhere}',
+    '.tml-release-license{margin-top:12px}',
+    '.tml-release-terms{color:var(--ink)}',
+    '.tml-release-provider{display:grid;gap:12px;margin-bottom:12px}',
+    '.tml-release-provider .btn{justify-self:start}',
+    '.tml-release-sources{margin:0;padding-left:18px;font:11px/1.6 var(--mono);color:var(--muted);overflow-wrap:anywhere}',
+    '.tml-release-command{margin:0;padding:10px;overflow-x:auto;font:11px/1.5 var(--mono);background:#14191b;border:1px solid rgba(144,144,150,.28)}',
     '.tml-release-empty{padding:17px;border:1px dashed rgba(144,144,150,.42);border-radius:2px;color:#969da2;font-size:13px}',
     '@media(max-width:760px){.tml-release-files{grid-template-columns:1fr}.tml-evaluator-grid{grid-template-columns:1fr}.tml-evaluator-submit{width:100%}.tml-release-flow span{padding-left:25px;font-size:8px}}'
   ].join('');
@@ -319,6 +325,79 @@
     return wrap;
   }
 
+  // License, attribution and any extra terms (e.g. NonCommercial / ShareAlike) for a release.
+  function licenseBlock(release) {
+    var license = release.license || {};
+    var box = element('div', 'tml-release-license');
+    var line = element('p', 'tml-evaluator-copy');
+    line.appendChild(document.createTextNode('License: '));
+    if (license.url) {
+      var link = element('a', '', license.name || license.spdx || 'see provider');
+      link.href = license.url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      line.appendChild(link);
+    } else {
+      line.appendChild(document.createTextNode(license.name || 'not recorded'));
+    }
+    if (license.source_url) {
+      line.appendChild(document.createTextNode(' · '));
+      var src = element('a', '', 'checked at source ↗');
+      src.href = license.source_url;
+      src.target = '_blank';
+      src.rel = 'noopener';
+      line.appendChild(src);
+    }
+    box.appendChild(line);
+    if (license.terms) box.appendChild(element('p', 'tml-evaluator-copy tml-release-terms', license.terms));
+    if (license.attribution) box.appendChild(element('p', 'tml-evaluator-copy', 'Attribution: ' + license.attribution));
+    return box;
+  }
+
+  // Datasets OWL may not redistribute: link to the provider and publish only the split definition.
+  function providerOnlyBlock(release) {
+    var box = element('div', 'tml-release-provider');
+    box.appendChild(element('p', 'tml-evaluator-copy',
+      'OWL does not redistribute this dataset. Download the original files from the provider, then build the same ' +
+      'train / validation / test split locally from the split definition below. Hidden-label scoring still works.'));
+    var provider = element('a', 'btn btn-light', 'Download from the provider ↗');
+    provider.href = release.provider_url;
+    provider.target = '_blank';
+    provider.rel = 'noopener';
+    box.appendChild(provider);
+    var files = element('div', 'tml-release-files');
+    [['split_assignment', 'Sample IDs per split'], ['task', 'Task file'], ['build_script', 'Build script']].forEach(function (pair) {
+      var file = release.files.find(function (candidate) { return candidate.role === pair[0]; });
+      if (!file) return;
+      var card = element('div', 'tml-release-file');
+      card.appendChild(element('strong', '', pair[1]));
+      var detail = element('code', '', bytes(file.byte_size) + ' · sha256 ' + String(file.sha256 || '').slice(0, 12) + '…');
+      detail.title = String(file.sha256 || '');
+      card.appendChild(detail);
+      var link = element('a', '', 'Download ' + file.logical_path);
+      link.href = apiUrl(file.download_endpoint);
+      card.appendChild(link);
+      files.appendChild(card);
+    });
+    box.appendChild(files);
+    var sourceFiles = release.source && Array.isArray(release.source.files) ? release.source.files : [];
+    if (sourceFiles.length) {
+      box.appendChild(element('p', 'tml-release-meta', 'Provider files (SHA-256 checked by the build script)'));
+      var list = element('ul', 'tml-release-sources');
+      sourceFiles.forEach(function (f) {
+        var item = element('li', 'mono', f.name + ' · ' + bytes(f.byte_size) + ' · ' + String(f.sha256).slice(0, 16) + '…');
+        item.title = f.sha256;
+        list.appendChild(item);
+      });
+      box.appendChild(list);
+    }
+    box.appendChild(element('pre', 'tml-release-command',
+      'python build_split.py --task task.json --assignments ' +
+      ((release.files.find(function (f) { return f.role === 'split_assignment'; }) || {}).logical_path || 'assignments.csv') +
+      ' --source <provider files> --out ./split\n# or: owl_wireless.dataset("' + release.id + '").load(source_dir="<provider files>")'));
+    return box;
+  }
+
   function releaseUnit(release) {
     var unit = element('article', 'tml-release-unit');
     var head = element('div', 'tml-release-unit-head');
@@ -329,21 +408,29 @@
       release.split.counts.validation.toLocaleString() + ' validation · ' +
       release.split.counts.test.toLocaleString() + ' test · seed ' + release.split.seed));
     head.appendChild(title);
-    head.appendChild(element('span', 'tml-status published', 'Published'));
+    var providerOnly = release.distribution === 'provider_only';
+    head.appendChild(element('span', 'tml-status published', providerOnly ? 'Split definition' : 'Published'));
     unit.appendChild(head);
     var flow = element('div', 'tml-release-flow');
-    ['Download split', 'Predict locally', 'Verify privately'].forEach(function (label, index) {
+    (providerOnly
+      ? ['Download from the provider', 'Build split locally', 'Verify privately']
+      : ['Download split', 'Predict locally', 'Verify privately']).forEach(function (label, index) {
       var step = element('span', '', label);
       step.insertBefore(element('i', '', index + 1), step.firstChild);
       flow.appendChild(step);
     });
     unit.appendChild(flow);
-    var files = element('div', 'tml-release-files');
-    ['train', 'validation', 'test_features'].forEach(function (role) {
-      var file = release.files.find(function (candidate) { return candidate.role === role; });
-      if (file) files.appendChild(downloadCard(release, file));
-    });
-    unit.appendChild(files);
+    if (providerOnly) {
+      unit.appendChild(providerOnlyBlock(release));
+    } else {
+      var files = element('div', 'tml-release-files');
+      ['train', 'validation', 'test_features'].forEach(function (role) {
+        var file = release.files.find(function (candidate) { return candidate.role === role; });
+        if (file) files.appendChild(downloadCard(release, file));
+      });
+      unit.appendChild(files);
+    }
+    unit.appendChild(licenseBlock(release));
     var tools = element('div', 'tml-release-tools');
     tools.appendChild(element('span', 'tml-release-meta', release.release_version + ' · ' + release.split.strategy + ' split'));
     var manifest = element('a', '', 'Manifest + full checksums ↗');

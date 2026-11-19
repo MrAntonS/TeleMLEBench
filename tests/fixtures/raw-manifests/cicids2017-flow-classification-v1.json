@@ -1,0 +1,253 @@
+{
+ "algorithm_version": "telemlebench-disk-split/2",
+ "artifacts": [
+  {
+   "media_type": "text/csv",
+   "path": "assignments.csv",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "cd63b3b8273e7e5001f002c6d1c2b2486ec31261d80ce438d06f3e56f6d15e3a",
+   "size_bytes": 338936338
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/train.csv",
+   "public": true,
+   "role": "train",
+   "sha256": "ddec39e8ae55c05b0c68bfbe9ae6739c5bb841425cb907ba294263524d2363f7",
+   "size_bytes": 810580833
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/validation.csv",
+   "public": true,
+   "role": "validation",
+   "sha256": "9cd7d4703270857d1ae137f3fb27284449f9aff41f494e8bde94351df596b6e6",
+   "size_bytes": 166258968
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/test-features.csv",
+   "public": true,
+   "role": "test_features",
+   "sha256": "a3e431d8b86967e956f06a8622120aed6e517d59cb1910281dddf592bc9029ce",
+   "size_bytes": 90473065
+  }
+ ],
+ "assignment_sha256": "cd63b3b8273e7e5001f002c6d1c2b2486ec31261d80ce438d06f3e56f6d15e3a",
+ "counts": {
+  "test": 225745,
+  "train": 2127498,
+  "val": 477500
+ },
+ "dataset_id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-ids-2017-html-ce90b96ad6f7",
+ "dataset_version_id": "dsv_23647609e257911ae43693c0",
+ "feature_count": 78,
+ "feature_fields": [
+  "ACK Flag Count",
+  "Active Max",
+  "Active Mean",
+  "Active Min",
+  "Active Std",
+  "Average Packet Size",
+  "Avg Bwd Segment Size",
+  "Avg Fwd Segment Size",
+  "Bwd Avg Bulk Rate",
+  "Bwd Avg Bytes/Bulk",
+  "Bwd Avg Packets/Bulk",
+  "Bwd Header Length",
+  "Bwd IAT Max",
+  "Bwd IAT Mean",
+  "Bwd IAT Min",
+  "Bwd IAT Std",
+  "Bwd IAT Total",
+  "Bwd PSH Flags",
+  "Bwd Packet Length Max",
+  "Bwd Packet Length Mean",
+  "Bwd Packet Length Min",
+  "Bwd Packet Length Std",
+  "Bwd Packets/s",
+  "Bwd URG Flags",
+  "CWE Flag Count",
+  "Destination Port",
+  "Down/Up Ratio",
+  "ECE Flag Count",
+  "FIN Flag Count",
+  "Flow Bytes/s",
+  "Flow Duration",
+  "Flow IAT Max",
+  "Flow IAT Mean",
+  "Flow IAT Min",
+  "Flow IAT Std",
+  "Flow Packets/s",
+  "Fwd Avg Bulk Rate",
+  "Fwd Avg Bytes/Bulk",
+  "Fwd Avg Packets/Bulk",
+  "Fwd Header Length",
+  "Fwd Header Length__2",
+  "Fwd IAT Max",
+  "Fwd IAT Mean",
+  "Fwd IAT Min",
+  "Fwd IAT Std",
+  "Fwd IAT Total",
+  "Fwd PSH Flags",
+  "Fwd Packet Length Max",
+  "Fwd Packet Length Mean",
+  "Fwd Packet Length Min",
+  "Fwd Packet Length Std",
+  "Fwd Packets/s",
+  "Fwd URG Flags",
+  "Idle Max",
+  "Idle Mean",
+  "Idle Min",
+  "Idle Std",
+  "Init_Win_bytes_backward",
+  "Init_Win_bytes_forward",
+  "Max Packet Length",
+  "Min Packet Length",
+  "PSH Flag Count",
+  "Packet Length Mean",
+  "Packet Length Std",
+  "Packet Length Variance",
+  "RST Flag Count",
+  "SYN Flag Count",
+  "Subflow Bwd Bytes",
+  "Subflow Bwd Packets",
+  "Subflow Fwd Bytes",
+  "Subflow Fwd Packets",
+  "Total Backward Packets",
+  "Total Fwd Packets",
+  "Total Length of Bwd Packets",
+  "Total Length of Fwd Packets",
+  "URG Flag Count",
+  "act_data_pkt_fwd",
+  "min_seg_size_forward"
+ ],
+ "plan_sha256": "59d1e30d74b84542223c2287824b69ec1a140ef0bf1715cc7697dd3f171c53f1",
+ "sample_count": 2830743,
+ "sample_id_fields": [
+  "__source_file",
+  "__source_row"
+ ],
+ "schema_version": "telemlebench-split-plan/1",
+ "source_artifacts": [
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Monday-WorkingHours.pcap_ISCX.csv",
+   "sha256": "852c4beb34eda186f32561fa79df7a0747e92e1a6535b01270820dd9ffe17f34",
+   "size_bytes": 176927918
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Tuesday-WorkingHours.pcap_ISCX.csv",
+   "sha256": "52b8692ae8c7d2ed04671fe2b98335693c0a92c7ab157d8c8b534d6523080851",
+   "size_bytes": 135078995
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Wednesday-workingHours.pcap_ISCX.csv",
+   "sha256": "893c27dc968bf7a8adef1689f90be55ca4a4dc3088fb63d6ff247ac56856df2a",
+   "size_bytes": 225166395
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+   "sha256": "d67066211fb1689c78406f1506f4c44704ecb92088353d5c96d96d6474eb819d",
+   "size_bytes": 52023263
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+   "sha256": "6bcda3857c2504676034e3ea57762d38393cc734cb377a726bd5cb153961b1b5",
+   "size_bytes": 83102436
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Friday-WorkingHours-Morning.pcap_ISCX.csv",
+   "sha256": "53a41c24d570ea83b7ac55b2e94df94e7a8216aeb80a2af0246b6bc8bb543000",
+   "size_bytes": 58316725
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+   "sha256": "ca1824c51bfbb7b3c72290a11be04366ba8815878c6a1cc5c44cb1cee269e99b",
+   "size_bytes": 76906168
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/cicids2017/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+   "sha256": "6ff1580f5f81c0ae28a26f7631721018577f5f7c5e0feac28b795fcfe7b411ee",
+   "size_bytes": 77123859
+  }
+ ],
+ "source_format": "csv_directory",
+ "source_members": [
+  {
+   "fields": {
+    "__capture_period": "01-monday"
+   },
+   "name": "Monday-WorkingHours.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "02-tuesday"
+   },
+   "name": "Tuesday-WorkingHours.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "03-wednesday"
+   },
+   "name": "Wednesday-workingHours.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "04-thursday-morning"
+   },
+   "name": "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "05-thursday-afternoon"
+   },
+   "name": "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "06-friday-morning"
+   },
+   "name": "Friday-WorkingHours-Morning.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "07-friday-afternoon-portscan"
+   },
+   "name": "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__capture_period": "08-friday-afternoon-ddos"
+   },
+   "name": "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+   "upstream_split": null
+  }
+ ],
+ "split": {
+  "dependencies_absent": false,
+  "fields": [
+   "__capture_period"
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "temporal",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [
+  "Label"
+ ],
+ "task_id": "cicids2017-flow-classification-v1",
+ "upstream_splits": {}
+}

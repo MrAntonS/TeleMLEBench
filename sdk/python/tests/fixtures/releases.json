@@ -1,0 +1,995 @@
+{
+ "items": [
+  {
+   "id": "cicids2017-flow-classification-v1",
+   "dataset_id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-ids-2017-html-ce90b96ad6f7",
+   "dataset_version_id": "dsv_23647609e257911ae43693c0",
+   "catalog_dataset_version_id": "dsv_23647609e257911ae43693c0",
+   "dataset_aliases": [
+    "cicids2017",
+    "cicids-2017",
+    "curated-url-https-www-unb-ca-cic-datasets-ids-2017-html-ce90b96ad6f7"
+   ],
+   "task_id": "cicids2017-flow-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "provider_only",
+   "provider_url": "https://www.unb.ca/cic/datasets/ids-2017.html",
+   "license": {
+    "name": "No license stated (UNB CIC terms)",
+    "spdx": null,
+    "url": null,
+    "source_url": "https://www.unb.ca/cic/datasets/ids-2017.html",
+    "checked_on": "2026-11-19",
+    "redistribution": "not_allowed",
+    "attribution": null,
+    "terms": "No license is stated. The provider describes the dataset as \"publicly available for researchers\" and asks users to cite the dataset paper. © University of New Brunswick. OWL does not redistribute the data."
+   },
+   "algorithm_version": "telemlebench-disk-split/2",
+   "target_fields": [
+    "Label"
+   ],
+   "feature_count": 78,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "temporal",
+    "counts": {
+     "train": 2127498,
+     "validation": 477500,
+     "test": 225745
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 338936338,
+     "sha256": "cd63b3b8273e7e5001f002c6d1c2b2486ec31261d80ce438d06f3e56f6d15e3a",
+     "download_endpoint": "/api/v1/releases/cicids2017-flow-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 6066,
+     "sha256": "1919ea852a73669b7fcb458131dd5a8a06a49854ecd0b645f5b59f9545b60613",
+     "download_endpoint": "/api/v1/releases/cicids2017-flow-classification-v1/files/task"
+    },
+    {
+     "role": "build_script",
+     "logical_path": "build_split.py",
+     "media_type": "text/x-python",
+     "byte_size": 13003,
+     "sha256": "fea28eb12b1eec11b6e9d62b567de09e11084fb781dd45089a5f9aabe1d2282a",
+     "download_endpoint": "/api/v1/releases/cicids2017-flow-classification-v1/files/build_script"
+    }
+   ],
+   "source": {
+    "format": "csv_directory",
+    "files": [
+     {
+      "name": "Monday-WorkingHours.pcap_ISCX.csv",
+      "sha256": "852c4beb34eda186f32561fa79df7a0747e92e1a6535b01270820dd9ffe17f34",
+      "byte_size": 176927918
+     },
+     {
+      "name": "Tuesday-WorkingHours.pcap_ISCX.csv",
+      "sha256": "52b8692ae8c7d2ed04671fe2b98335693c0a92c7ab157d8c8b534d6523080851",
+      "byte_size": 135078995
+     },
+     {
+      "name": "Wednesday-workingHours.pcap_ISCX.csv",
+      "sha256": "893c27dc968bf7a8adef1689f90be55ca4a4dc3088fb63d6ff247ac56856df2a",
+      "byte_size": 225166395
+     },
+     {
+      "name": "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+      "sha256": "d67066211fb1689c78406f1506f4c44704ecb92088353d5c96d96d6474eb819d",
+      "byte_size": 52023263
+     },
+     {
+      "name": "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+      "sha256": "6bcda3857c2504676034e3ea57762d38393cc734cb377a726bd5cb153961b1b5",
+      "byte_size": 83102436
+     },
+     {
+      "name": "Friday-WorkingHours-Morning.pcap_ISCX.csv",
+      "sha256": "53a41c24d570ea83b7ac55b2e94df94e7a8216aeb80a2af0246b6bc8bb543000",
+      "byte_size": 58316725
+     },
+     {
+      "name": "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+      "sha256": "ca1824c51bfbb7b3c72290a11be04366ba8815878c6a1cc5c44cb1cee269e99b",
+      "byte_size": 76906168
+     },
+     {
+      "name": "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+      "sha256": "6ff1580f5f81c0ae28a26f7631721018577f5f7c5e0feac28b795fcfe7b411ee",
+      "byte_size": 77123859
+     }
+    ]
+   },
+   "manifest_endpoint": "/api/v1/releases/cicids2017-flow-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/cicids2017-flow-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 225745,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 134217728,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "ciciot2023-attack-classification-v1",
+   "dataset_id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-iotdataset-2023-html-73dd07fac094",
+   "dataset_version_id": "dsv_a19618cffe36f58e6bb774fe",
+   "catalog_dataset_version_id": "dsv_a19618cffe36f58e6bb774fe",
+   "dataset_aliases": [
+    "ciciot2023",
+    "cic-iot-2023",
+    "curated-url-https-www-unb-ca-cic-datasets-iotdataset-2023-html-73dd07fac094"
+   ],
+   "task_id": "ciciot2023-attack-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "provider_only",
+   "provider_url": "https://www.unb.ca/cic/datasets/iotdataset-2023.html",
+   "license": {
+    "name": "No license stated (UNB CIC terms)",
+    "spdx": null,
+    "url": null,
+    "source_url": "https://www.unb.ca/cic/datasets/iotdataset-2023.html",
+    "checked_on": "2026-11-19",
+    "redistribution": "not_allowed",
+    "attribution": null,
+    "terms": "No license is stated. © University of New Brunswick; cite the dataset paper. OWL does not redistribute the data."
+   },
+   "algorithm_version": "telemlebench-disk-split/2",
+   "target_fields": [
+    "label"
+   ],
+   "feature_count": 46,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 32809764,
+     "validation": 6938316,
+     "test": 6938499
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 2072726346,
+     "sha256": "baf7bb17d71f36a634814e09fd5569924157cf4b84e3fddc10efe0235f317ad6",
+     "download_endpoint": "/api/v1/releases/ciciot2023-attack-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 16692,
+     "sha256": "d5cd94d73789e11c30ad196c8371b7391964912ee8e14f7a1668019a12edbdd1",
+     "download_endpoint": "/api/v1/releases/ciciot2023-attack-classification-v1/files/task"
+    },
+    {
+     "role": "build_script",
+     "logical_path": "build_split.py",
+     "media_type": "text/x-python",
+     "byte_size": 13003,
+     "sha256": "fea28eb12b1eec11b6e9d62b567de09e11084fb781dd45089a5f9aabe1d2282a",
+     "download_endpoint": "/api/v1/releases/ciciot2023-attack-classification-v1/files/build_script"
+    }
+   ],
+   "source": {
+    "format": "csv_zip",
+    "files": [
+     {
+      "name": "ciciot2023.zip",
+      "sha256": "781fb1e7f788d6fb5201d9a7df6147e7dacee9f10093295178f633f1e279441d",
+      "byte_size": 7772853296
+     }
+    ]
+   },
+   "manifest_endpoint": "/api/v1/releases/ciciot2023-attack-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/ciciot2023-attack-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 6938499,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 805306368,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "n-baiot-attack-classification-v1",
+   "dataset_id": "10.24432/c5rc8j",
+   "dataset_version_id": "dsv_d8d665aa98bc2aea62b619f4",
+   "catalog_dataset_version_id": "dsv_d8d665aa98bc2aea62b619f4",
+   "dataset_aliases": [
+    "n-baiot",
+    "nbaiot",
+    "10-24432__c5rc8j"
+   ],
+   "task_id": "n-baiot-attack-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://archive.ics.uci.edu/dataset/442/detection+of+iot+botnet+attacks+n+baiot",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://archive.ics.uci.edu/dataset/442/detection+of+iot+botnet+attacks+n+baiot",
+    "checked_on": "catalog",
+    "attribution": "N-BaIoT, UCI Machine Learning Repository (https://doi.org/10.24432/C5RC8J), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-disk-split-explicit-groups/1",
+   "target_fields": [
+    "__attack"
+   ],
+   "feature_count": 115,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 4945631,
+     "validation": 1098677,
+     "test": 1018298
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 857590872,
+     "sha256": "8513846d41f709888694fe99ff19cfd72341eb8f4ed46cdcc348dcc86b874b2c",
+     "download_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.csv",
+     "media_type": "text/csv",
+     "byte_size": 6009313928,
+     "sha256": "5f21926545357e1ace91b736cf7c7bd0afcdacb1788eb17d547a2ef33b02b745",
+     "download_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.csv",
+     "media_type": "text/csv",
+     "byte_size": 1387013657,
+     "sha256": "58af0d76ce7caa4ea62975a55211c9d22ad12f4270e29a69b73ac193d4220ef4",
+     "download_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.csv",
+     "media_type": "text/csv",
+     "byte_size": 1261801655,
+     "sha256": "0555b6cccac6b37678780dc08a88e3d75de6de869c0516e26157f15f6da46adb",
+     "download_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 27269,
+     "sha256": "598d8d69a3caeaea1561d188f7c1f269b5e15eb3b537b57588fe283b2e7b3ea0",
+     "download_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/n-baiot-attack-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 1018298,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 201326592,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "radioml2016-10a-modulation-classification-v1",
+   "dataset_id": "10.5281/zenodo.18397069",
+   "dataset_version_id": "dsv_765b73be81844f30db00ed66",
+   "catalog_dataset_version_id": "dsv_ebcdc40ddf743d67343b2440",
+   "dataset_aliases": [
+    "radioml2016-10a",
+    "radioml-2016.10a",
+    "radioml-2016-10a"
+   ],
+   "task_id": "radioml2016-10a-modulation-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://www.deepsig.ai/datasets/",
+   "license": {
+    "name": "CC BY-NC-SA 4.0",
+    "spdx": "CC-BY-NC-SA-4.0",
+    "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "source_url": "https://www.deepsig.ai/datasets/",
+    "checked_on": "2026-11-19",
+    "redistribution": "allowed",
+    "attribution": "RadioML 2016.10A, DeepSig Inc. (https://www.deepsig.ai/datasets/), licensed under CC BY-NC-SA 4.0. OWL changes: re-split 70/15/15 (seed 42), grouped into .npz files with sample IDs; test labels withheld for scoring.",
+    "terms": "NonCommercial: you may not use this release for commercial purposes. ShareAlike: if you remix, transform, or build upon it, you must distribute your contributions under CC BY-NC-SA 4.0."
+   },
+   "algorithm_version": "telemlebench-radioml2016-10a-split/1",
+   "target_fields": [
+    "modulation"
+   ],
+   "feature_count": null,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "stratified_group",
+    "counts": {
+     "train": 154000,
+     "validation": 33000,
+     "test": 33000
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 29821036,
+     "sha256": "68630bc6960c046970229143efb849b70f79dfe746ab261e509ee6bc0e52202d",
+     "download_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.zip",
+     "media_type": "application/zip",
+     "byte_size": 153122044,
+     "sha256": "7082d042d5f8931b2bc617bfb58fac4c99b2c250ec970153d653fd37fd3f39b5",
+     "download_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.zip",
+     "media_type": "application/zip",
+     "byte_size": 32776500,
+     "sha256": "fb48da703cbc8c1c50931b9de425cf38594522441890bdc6aa98dd6bbd58cb09",
+     "download_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.zip",
+     "media_type": "application/zip",
+     "byte_size": 32749155,
+     "sha256": "3358ee5ae47d0f141da260da68af069981aee46e1a7c7e423dfb7f46cc30b570",
+     "download_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 2546,
+     "sha256": "e8a4b7322da378101e88754f9170714744d2a35e3f68d577935bd6bdddb33f9f",
+     "download_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/radioml2016-10a-modulation-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 33000,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 33554432,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "topologybench-clustering-v1",
+   "dataset_id": "10.5281/zenodo.12593794",
+   "dataset_version_id": "dsv_2b4b6c2f2f46033eaebd4f5e",
+   "catalog_dataset_version_id": "dsv_2b4b6c2f2f46033eaebd4f5e",
+   "dataset_aliases": [
+    "topologybench",
+    "10-5281__zenodo-13921775"
+   ],
+   "task_id": "topologybench-clustering-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://zenodo.org/records/13921775",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://doi.org/10.5281/zenodo.13921775",
+    "checked_on": "2026-11-19",
+    "attribution": "TopologyBench, Zenodo (https://doi.org/10.5281/zenodo.13921775), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-topology-workbook-split/2",
+   "target_fields": [],
+   "feature_count": null,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "stratified_stable_topology",
+    "counts": {
+     "train": 189703,
+     "validation": 40651,
+     "test": 40651
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 46258222,
+     "sha256": "f1f428a6d486c3c85c65387fbc8a14dbae6d18c8e1925379a8191d6984a32a8b",
+     "download_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.zip",
+     "media_type": "application/zip",
+     "byte_size": 2027279941,
+     "sha256": "fc20139ba9349100baa8f026a3c7c3603509e6e7b1cd38ff8b9da0c7f493afea",
+     "download_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/val.zip",
+     "media_type": "application/zip",
+     "byte_size": 434041052,
+     "sha256": "8e8153768f7da8a9daf6de16529769d03567254e2f078299c4cd43b88f1fa0de",
+     "download_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test.zip",
+     "media_type": "application/zip",
+     "byte_size": 434789113,
+     "sha256": "115d183e1e6fac0160fc99f556f2c730c15f286624bab548ae2da29ec5d34eb5",
+     "download_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 2819,
+     "sha256": "bd4eb72fbfde47188e9cf22afef78040ebc0191d06c4af3a4eadfc4fc30dd4d3",
+     "download_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/topologybench-clustering-v1/manifest",
+   "task_endpoint": "/api/v1/releases/topologybench-clustering-v1/files/task",
+   "evaluation": {
+    "available": false,
+    "metric": null,
+    "expected_rows": 40651,
+    "prediction_columns": null,
+    "accepted_media_types": [],
+    "maximum_upload_bytes": 0,
+    "alignment": null,
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "ujindoorloc-floor-v1",
+   "dataset_id": "10.24432/c5ms59",
+   "dataset_version_id": "dsv_10089411a0c5dbed537ad731",
+   "catalog_dataset_version_id": "dsv_10089411a0c5dbed537ad731",
+   "dataset_aliases": [
+    "ujindoorloc",
+    "ujiindoorloc",
+    "10-24432__c5ms59"
+   ],
+   "task_id": "ujindoorloc-floor-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://archive.ics.uci.edu/dataset/310/ujindoorloc",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://archive.ics.uci.edu/dataset/310/ujindoorloc",
+    "checked_on": "catalog",
+    "attribution": "UJIIndoorLoc, UCI Machine Learning Repository (https://doi.org/10.24432/C5MS59), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-disk-split/2",
+   "target_fields": [
+    "FLOOR"
+   ],
+   "feature_count": 520,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 14741,
+     "validation": 3160,
+     "test": 3147
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 2210558,
+     "sha256": "d51d1711e920b88106feb103f6acaf0b9685f511e926f2adf44c2fca6e2c3c8d",
+     "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.csv",
+     "media_type": "text/csv",
+     "byte_size": 31652621,
+     "sha256": "59e6855557b28708c061c51fc4c9fd7b6f2dbe2041ad61e4d76a0a8527c9cdc0",
+     "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.csv",
+     "media_type": "text/csv",
+     "byte_size": 6788335,
+     "sha256": "02e51db9ae7428fd12d57cd3f71cb665c05e8e275bc45433150f7f79871655bf",
+     "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.csv",
+     "media_type": "text/csv",
+     "byte_size": 6753737,
+     "sha256": "ce88955112440222969233964ceb50f0591fa758e62d1438f0c430f66dcbf2c0",
+     "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 9701,
+     "sha256": "c31f4668d0fec3de20f589517ae4d17ac91c979ce18d31ce06c79fb2b48d9d44",
+     "download_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/manifest",
+   "task_endpoint": "/api/v1/releases/ujindoorloc-floor-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 3147,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 16777216,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "veremi-extension-misbehavior-classification-v1",
+   "dataset_id": "10.5281/zenodo.20090854",
+   "dataset_version_id": "dsv_b4b70c9e0abb5c1c91dc310f",
+   "catalog_dataset_version_id": "dsv_b4b70c9e0abb5c1c91dc310f",
+   "dataset_aliases": [
+    "veremi-extension",
+    "10-5281__zenodo-20090854"
+   ],
+   "task_id": "veremi-extension-misbehavior-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://zenodo.org/records/20090854",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://veremi-dataset.github.io/veremi-extension/",
+    "checked_on": "2026-11-19",
+    "attribution": "VeReMi Extension (https://doi.org/10.5281/zenodo.20090854), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-disk-split/2",
+   "target_fields": [
+    "attacker_type"
+   ],
+   "feature_count": 26,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 70438460,
+     "validation": 15100458,
+     "test": 15126538
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 4362660091,
+     "sha256": "d7eb997991813ce23c81a693e8c86185901f2a91cd48f8e7a1cb73b3678a6713",
+     "download_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 14088428343,
+     "sha256": "c1677af982aafd8f06eb12202bf836a7c690509588c36de28e80f4df39b25191",
+     "download_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 2966202278,
+     "sha256": "1916851b7cfde9c3aeb2929448697504b10ddbad1958d664144af78c07d61175",
+     "download_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 3014805856,
+     "sha256": "1d508afb9455e0d9b22dca7bf935a51498d1e25d15d52effe85c2fa971e239e3",
+     "download_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 25488,
+     "sha256": "04026beed79aee2bd1d9c339e35d872ca9802780f3a98d52b5ebaa3cca8b237c",
+     "download_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/veremi-extension-misbehavior-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 15126538,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 1073741824,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "veremi-misbehavior-classification-v1",
+   "dataset_id": "10.5281/zenodo.20081895",
+   "dataset_version_id": "dsv_a130fc2ac4a437717b45eb35",
+   "catalog_dataset_version_id": "dsv_a130fc2ac4a437717b45eb35",
+   "dataset_aliases": [
+    "veremi",
+    "10-5281__zenodo-20081895"
+   ],
+   "task_id": "veremi-misbehavior-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://zenodo.org/records/20081895",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://veremi-dataset.github.io/veremi/",
+    "checked_on": "2026-11-19",
+    "attribution": "VeReMi (https://doi.org/10.5281/zenodo.20081895), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-disk-split/2",
+   "target_fields": [
+    "attacker_type"
+   ],
+   "feature_count": 15,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 27395769,
+     "validation": 5868941,
+     "test": 5871581
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 1703798893,
+     "sha256": "910651c0dfdf46f9bea4de403878f0f15191070a915adfc48f8a7cc9d00422ea",
+     "download_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 2950444281,
+     "sha256": "141f65e108e0df56e61515aaf3a37b8004cd5e78fc0bdf13de787126299932f9",
+     "download_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 630992725,
+     "sha256": "2e9c7930c112b5c4e7ebf7bd228f3c235f108b6e00a84807449d596b91ce2502",
+     "download_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.csv.gz",
+     "media_type": "application/gzip",
+     "byte_size": 636129524,
+     "sha256": "9c859f3ade348e91684cd2e8e9d9e8da80ef27c0189a432ea35e2c4421e43f55",
+     "download_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 57297,
+     "sha256": "d337c0c2c7f104f8c194be1330e943d294e074c546c7a710951cad96f43be866",
+     "download_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/veremi-misbehavior-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 5871581,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 536870912,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  },
+  {
+   "id": "wisig-manysig-transmitter-classification-v1",
+   "dataset_id": "tmleb:curated-url-https-cores-ee-ucla-edu-wisig-overview-206e82c51852",
+   "dataset_version_id": "dsv_ea3c9fdcb35dd7b1770c4281",
+   "catalog_dataset_version_id": "dsv_ea3c9fdcb35dd7b1770c4281",
+   "dataset_aliases": [
+    "wisig",
+    "wisig-manysig",
+    "curated-url-https-cores-ee-ucla-edu-wisig-overview-206e82c51852"
+   ],
+   "task_id": "wisig-manysig-transmitter-classification-v1",
+   "release_version": "telemlebench-v1",
+   "status": "published",
+   "distribution": "mirrored",
+   "provider_url": "https://cores.ee.ucla.edu/wisig/overview/",
+   "license": {
+    "name": "CC BY 4.0",
+    "spdx": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "allowed",
+    "terms": null,
+    "source_url": "https://cores.ee.ucla.edu/wisig/overview/",
+    "checked_on": "catalog",
+    "attribution": "WiSig (UCLA) (https://cores.ee.ucla.edu/wisig/overview/), licensed under CC BY 4.0. OWL changes: re-split 70/15/15 (seed 42), added sample IDs, normalized column names and number formatting; test labels withheld for scoring."
+   },
+   "algorithm_version": "telemlebench-wisig-manysig-split/1",
+   "target_fields": [
+    "transmitter_id"
+   ],
+   "feature_count": null,
+   "split": {
+    "view": "telemlebench-v1",
+    "ratios": [
+     0.7,
+     0.15,
+     0.15
+    ],
+    "seed": 42,
+    "strategy": "group",
+    "counts": {
+     "train": 204000,
+     "validation": 42000,
+     "test": 42000
+    }
+   },
+   "files": [
+    {
+     "role": "split_assignment",
+     "logical_path": "assignments.csv",
+     "media_type": "text/csv",
+     "byte_size": 43554062,
+     "sha256": "993b6dab85763e7fbdc22068bbfe15371027ad3bcf6d3a1efd252df7e6199dfa",
+     "download_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/split_assignment"
+    },
+    {
+     "role": "train",
+     "logical_path": "data/train.zip",
+     "media_type": "application/zip",
+     "byte_size": 1189011850,
+     "sha256": "f5f2febe84da126dd5a32fd5d6227308a99c7624d52a6de827bb780c7ebeb37a",
+     "download_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/train"
+    },
+    {
+     "role": "validation",
+     "logical_path": "data/validation.zip",
+     "media_type": "application/zip",
+     "byte_size": 243820119,
+     "sha256": "370e1b9371f4e70080a4862744673c86d0cb7d7c02d911c5c88e868e2a880492",
+     "download_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/validation"
+    },
+    {
+     "role": "test_features",
+     "logical_path": "data/test-features.zip",
+     "media_type": "application/zip",
+     "byte_size": 244606322,
+     "sha256": "67277e4dc71fc2df47661b626d015c670584ccfd6e6701fd7c18dda9f3d53203",
+     "download_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/test_features"
+    },
+    {
+     "role": "task",
+     "logical_path": "task.json",
+     "media_type": "application/json",
+     "byte_size": 2439,
+     "sha256": "cd9de783d02fa51c4828a5b7e34667c319f1b2292d477ac2bec6300662a8a19e",
+     "download_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/task"
+    }
+   ],
+   "source": null,
+   "manifest_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/manifest",
+   "task_endpoint": "/api/v1/releases/wisig-manysig-transmitter-classification-v1/files/task",
+   "evaluation": {
+    "available": true,
+    "metric": "accuracy",
+    "expected_rows": 42000,
+    "prediction_columns": [
+     "sample_id",
+     "prediction"
+    ],
+    "accepted_media_types": [
+     "text/csv",
+     "application/csv",
+     "application/gzip",
+     "application/x-gzip"
+    ],
+    "maximum_upload_bytes": 33554432,
+    "alignment": "sample_id_in_test_order",
+    "score_publication": "private_result_only"
+   }
+  }
+ ],
+ "total": 9,
+ "errors": []
+}

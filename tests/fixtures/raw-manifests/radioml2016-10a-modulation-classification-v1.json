@@ -1,0 +1,144 @@
+{
+ "algorithm_version": "telemlebench-radioml2016-10a-split/1",
+ "artifacts": [
+  {
+   "media_type": "text/csv",
+   "path": "assignments.csv",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "68630bc6960c046970229143efb849b70f79dfe746ab261e509ee6bc0e52202d",
+   "size_bytes": 29821036
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/train.zip",
+   "public": true,
+   "role": "train",
+   "sha256": "7082d042d5f8931b2bc617bfb58fac4c99b2c250ec970153d653fd37fd3f39b5",
+   "size_bytes": 153122044
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/validation.zip",
+   "public": true,
+   "role": "validation",
+   "sha256": "fb48da703cbc8c1c50931b9de425cf38594522441890bdc6aa98dd6bbd58cb09",
+   "size_bytes": 32776500
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/test-features.zip",
+   "public": true,
+   "role": "test_features",
+   "sha256": "3358ee5ae47d0f141da260da68af069981aee46e1a7c7e423dfb7f46cc30b570",
+   "size_bytes": 32749155
+  }
+ ],
+ "assignment_sha256": "68630bc6960c046970229143efb849b70f79dfe746ab261e509ee6bc0e52202d",
+ "class_count": 11,
+ "counts": {
+  "test": 33000,
+  "train": 154000,
+  "val": 33000
+ },
+ "dataset_id": "10.5281/zenodo.18397069",
+ "dataset_version_doi": "10.5281/zenodo.18397070",
+ "dataset_version_id": "dsv_765b73be81844f30db00ed66",
+ "feature_fields": [
+  "iq",
+  "snr_db"
+ ],
+ "feature_layout": {
+  "dtype": "float32",
+  "iq": [
+   2,
+   128
+  ]
+ },
+ "label_names": [
+  "8PSK",
+  "AM-DSB",
+  "AM-SSB",
+  "BPSK",
+  "CPFSK",
+  "GFSK",
+  "PAM4",
+  "QAM16",
+  "QAM64",
+  "QPSK",
+  "WBFM"
+ ],
+ "license_expression": "CC-BY-NC-SA-4.0",
+ "sample_count": 220000,
+ "schema_version": "telemlebench-manual-rf-split/1",
+ "serialized_object_conversion": {
+  "allowed_globals": [
+   "numpy.dtype",
+   "numpy.ndarray",
+   "numpy._core.multiarray._reconstruct",
+   "numpy._core.multiarray.scalar",
+   "numpy.core.multiarray._reconstruct",
+   "numpy.core.multiarray.scalar"
+  ],
+  "array_bytes": 225280000,
+  "array_count": 220,
+  "loader": "restricted_numpy_allowlist",
+  "ordinary_worker_loaded_pickle": false
+ },
+ "shard_format": "zip_of_deterministic_npz_group_shards",
+ "snr_db": [
+  -20,
+  -18,
+  -16,
+  -14,
+  -12,
+  -10,
+  -8,
+  -6,
+  -4,
+  -2,
+  0,
+  2,
+  4,
+  6,
+  8,
+  10,
+  12,
+  14,
+  16,
+  18
+ ],
+ "source_artifacts": [
+  {
+   "md5": "ffedb2c24e33b826d3d0df4aa8f32c1b",
+   "member": "RML2016.10a_dict_optimized.pkl",
+   "path": "RML2016.10a.tar.bz2",
+   "sha256": "3ee821ca602ce84c48cd14a002fcbfdb38c69309aa5edac61425cdc08fe30d0f",
+   "size_bytes": 212669459
+  }
+ ],
+ "split": {
+  "actual_ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "dependencies_absent": false,
+  "fields": [
+   "modulation_snr_generation_key"
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "stratified_group",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [
+  "modulation"
+ ],
+ "task_id": "radioml2016-10a-modulation-classification-v1",
+ "task_type": "classification"
+}

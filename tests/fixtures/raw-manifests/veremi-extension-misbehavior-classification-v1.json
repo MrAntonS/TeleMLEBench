@@ -1,0 +1,1357 @@
+{
+ "algorithm_version": "telemlebench-disk-split/2",
+ "artifacts": [
+  {
+   "compression": {
+    "algorithm": "gzip",
+    "level": 1,
+    "mtime": 0
+   },
+   "media_type": "application/gzip",
+   "path": "assignments.csv.gz",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "d7eb997991813ce23c81a693e8c86185901f2a91cd48f8e7a1cb73b3678a6713",
+   "size_bytes": 4362660091,
+   "uncompressed": {
+    "media_type": "text/csv",
+    "path": "assignments.csv",
+    "sha256": "85cab3b625e74e1a82416ac6deb014c759aeb1b6ccdebc24347d126b95775156",
+    "size_bytes": 11216532575
+   }
+  },
+  {
+   "compression": {
+    "algorithm": "gzip",
+    "level": 1,
+    "mtime": 0
+   },
+   "media_type": "application/gzip",
+   "path": "data/train.csv.gz",
+   "public": true,
+   "role": "train",
+   "sha256": "c1677af982aafd8f06eb12202bf836a7c690509588c36de28e80f4df39b25191",
+   "size_bytes": 14088428343,
+   "uncompressed": {
+    "media_type": "text/csv",
+    "path": "data/train.csv",
+    "sha256": "f3836bfb38706d154f2df44be39505f24a55b304f927b39505e66ab48c2599cb",
+    "size_bytes": 30981491605
+   }
+  },
+  {
+   "compression": {
+    "algorithm": "gzip",
+    "level": 1,
+    "mtime": 0
+   },
+   "media_type": "application/gzip",
+   "path": "data/validation.csv.gz",
+   "public": true,
+   "role": "validation",
+   "sha256": "1916851b7cfde9c3aeb2929448697504b10ddbad1958d664144af78c07d61175",
+   "size_bytes": 2966202278,
+   "uncompressed": {
+    "media_type": "text/csv",
+    "path": "data/validation.csv",
+    "sha256": "a3a0017eb1cf5d9aac271f9250449e4858754d86361b5c59ad4f80df698ebfc2",
+    "size_bytes": 6619841920
+   }
+  },
+  {
+   "compression": {
+    "algorithm": "gzip",
+    "level": 1,
+    "mtime": 0
+   },
+   "media_type": "application/gzip",
+   "path": "data/test-features.csv.gz",
+   "public": true,
+   "role": "test_features",
+   "sha256": "1d508afb9455e0d9b22dca7bf935a51498d1e25d15d52effe85c2fa971e239e3",
+   "size_bytes": 3014805856,
+   "uncompressed": {
+    "media_type": "text/csv",
+    "path": "data/test-features.csv",
+    "sha256": "4044b1b8e433caae900e7e34abe8f40e5769d584a7120e29c9f653cd4933434a",
+    "size_bytes": 6617999044
+   }
+  }
+ ],
+ "assignment_sha256": "85cab3b625e74e1a82416ac6deb014c759aeb1b6ccdebc24347d126b95775156",
+ "counts": {
+  "test": 15126538,
+  "train": 70438460,
+  "val": 15100458
+ },
+ "dataset_id": "10.5281/zenodo.20090854",
+ "dataset_version_id": "dsv_b4b70c9e0abb5c1c91dc310f",
+ "feature_count": 26,
+ "feature_fields": [
+  "acl_noise_x",
+  "acl_noise_y",
+  "acl_noise_z",
+  "acl_x",
+  "acl_y",
+  "acl_z",
+  "hed_noise_x",
+  "hed_noise_y",
+  "hed_noise_z",
+  "hed_x",
+  "hed_y",
+  "hed_z",
+  "pos_noise_x",
+  "pos_noise_y",
+  "pos_noise_z",
+  "pos_x",
+  "pos_y",
+  "pos_z",
+  "rcv_time",
+  "send_time",
+  "spd_noise_x",
+  "spd_noise_y",
+  "spd_noise_z",
+  "spd_x",
+  "spd_y",
+  "spd_z"
+ ],
+ "packaging": {
+  "algorithm": "gzip",
+  "compressed_bytes": 25025628015,
+  "level": 1,
+  "mtime": 0,
+  "schema_version": "telemlebench-artifact-packaging/1",
+  "source_bytes": 56453685383
+ },
+ "plan_sha256": "1953e4f9219b969d152a6851f2b4a431e85072c9b24003de1b084bd2e071bc49",
+ "sample_count": 100665456,
+ "sample_id_fields": [
+  "__source_file",
+  "__source_row"
+ ],
+ "schema_version": "telemlebench-split-plan/1",
+ "source_artifacts": [
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPosOffset_0709--25200-28800.csv",
+   "sha256": "b29db16f5481ea0714749a5cf111eed1fdfd1df4c47c65d87e643f4dc7134085",
+   "size_bytes": 432487765
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPosOffset_0709--28800-32400.csv",
+   "sha256": "c2423a6d8364e7d866a410b602c55c0203e9fab3dea6af650e8c877590dbc97e",
+   "size_bytes": 679376543
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPosOffset_1416--50400-54000.csv",
+   "sha256": "8a4061cf06d5ebcd115bd990234924d54c97e43d45c0fd12aec090cbfc2dc8e4",
+   "size_bytes": 200872361
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPosOffset_1416--54000-57600.csv",
+   "sha256": "f336fd387faeba3325c4fa4ee313c94a1e45abd1b788f89cc5862243a8b57f4f",
+   "size_bytes": 88417259
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPos_0709--25200-28800.csv",
+   "sha256": "58d69902ee89362d9bea7aedcc1af121933510c589ae705089ebb3477939aeca",
+   "size_bytes": 442259708
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPos_0709--28800-32400.csv",
+   "sha256": "a34f7d853db6a13986e801b2f946115012595d84fe97f2968aa7dcd918ab9d10",
+   "size_bytes": 672653679
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPos_1416--50400-54000.csv",
+   "sha256": "f0df88808349cd5dfde6f7855d3be76fe45d6ce92a7f3a92c7b93397ea01b298",
+   "size_bytes": 200886543
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstPos_1416--54000-57600.csv",
+   "sha256": "26c026b2d1c8b191fc0e3f090174f254cbfe7712cf20587184b8ebd2b8de534e",
+   "size_bytes": 88453974
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeedOffset_0709--25200-28800.csv",
+   "sha256": "f30b7604ea971c62834c587725bac45d254c04ccbde34ec4d8f5f41ef7f411cd",
+   "size_bytes": 441540495
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeedOffset_0709--28800-32400.csv",
+   "sha256": "2f265a4e3611916d1a7b43bc1f8065f381ed4ebd40b9d71430cac8396229fcbd",
+   "size_bytes": 671520997
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeedOffset_1416--50400-54000.csv",
+   "sha256": "ff0b25699f5a1f06122f9cf1a5cbb9295aca82a5d21f4efad830d4d0ae778186",
+   "size_bytes": 200508364
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeedOffset_1416--54000-57600.csv",
+   "sha256": "88be9e7ff5c263cfca3fb8599c9b79a5c0e0f55cde9e4676541ba032ae636047",
+   "size_bytes": 88282251
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeed_0709--25200-28800.csv",
+   "sha256": "4cf7d029d2f9dbb6f703234a7a310f1127be670371d7deb9f3e13f5da132c0ec",
+   "size_bytes": 441524320
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeed_0709--28800-32400.csv",
+   "sha256": "86ca8b8fbe3040a4eb926c375f70f9eb20d23edee2dd7e6aa0a17b1a21f045c8",
+   "size_bytes": 671336298
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeed_1416--50400-54000.csv",
+   "sha256": "d7bb686f681af9dad27cba819cfe769d0db9338e54c1813da3c4d2f7d0e0ae4c",
+   "size_bytes": 200525945
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/ConstSpeed_1416--54000-57600.csv",
+   "sha256": "c1e6ed3d00fb0973cc1a39eedc1aa45fdbd630304cc3b48dd6250b764df66079",
+   "size_bytes": 88283321
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplaySybil_0709--25200-28800.csv",
+   "sha256": "163b80e6793f874c2b5d03e8665b99216f43f74dea7cc1da60416028d6327de0",
+   "size_bytes": 442911030
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplaySybil_0709--28800-32400.csv",
+   "sha256": "7ff3b322758af619c9d959b75458776f294c45495e2047272e933719b93b9c7f",
+   "size_bytes": 673460106
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplaySybil_1416--50400-54000.csv",
+   "sha256": "679c12dbd5e6632e4c34198657b1f36f935893a4269ba00f0956e49d15289f26",
+   "size_bytes": 201209811
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplaySybil_1416--54000-57600.csv",
+   "sha256": "8389a5205d5457f66768f617ac5ababe83efb382c55ac3de12d9b32a37d33795",
+   "size_bytes": 88648823
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplay_0709--25200-28800.csv",
+   "sha256": "7e6beb2ccbcb662a7cc5d350345d80c6213c124cb700718b5a41d6c796c049bb",
+   "size_bytes": 442320665
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplay_0709--28800-32400.csv",
+   "sha256": "200d310d81c9c127be8d87062ad1dfda6e386ba9864bca4ccbdddf3788af760c",
+   "size_bytes": 673032513
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplay_1416--50400-54000.csv",
+   "sha256": "617d5b9ce5def940aa65281a2ded3bf1c3c65f2c05a860d45ee0630e2e58a390",
+   "size_bytes": 201151073
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DataReplay_1416--54000-57600.csv",
+   "sha256": "f9b7c08c97609945140dee01b81bc67d070a94dbd0aed473e35fe282f88ea9bc",
+   "size_bytes": 88585741
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DelayedMessages_0709--25200-28800.csv",
+   "sha256": "2318994cd95946ad44fc54664a45a44ba67893e88c3db967203406ecd5fcb2ef",
+   "size_bytes": 395343614
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DelayedMessages_0709--28800-32400.csv",
+   "sha256": "a860b74191d5d2d9f2287ff21cc175a0c9a3288a339dd15acc17e33d7b0475b8",
+   "size_bytes": 599437952
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DelayedMessages_1416--50400-54000.csv",
+   "sha256": "dc746518acf80f26ff73d47155264d46dd62cc48b3767a7db7b322eb8c24abbd",
+   "size_bytes": 179529037
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DelayedMessages_1416--54000-57600.csv",
+   "sha256": "604d6de0d3e6798c6ce0e05fb0c9930ab352908f242d3a6c2cd0c90b8d285835",
+   "size_bytes": 78964019
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/Disruptive_0709--25200-28800.csv",
+   "sha256": "eaf1cd33211a9eb8aecf68f51d7efe3b328e94d56b0b3e4ef46d77ef3190950e",
+   "size_bytes": 442915768
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/Disruptive_0709--28800-32400.csv",
+   "sha256": "419a5d715cab88ed69a546f231610a9050de2ebe7f7a9158e99f218ae331982b",
+   "size_bytes": 673365994
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/Disruptive_1416--50400-54000.csv",
+   "sha256": "e357a2b4d02eb4bf02c0f79bc9c56ca2beb088f37251c4a4b53d0f9a78ed7908",
+   "size_bytes": 201405870
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/Disruptive_1416--54000-57600.csv",
+   "sha256": "2876681cdbe204ca987c31f317f40a2906b7ec890a40fdd0e446ef14525f134e",
+   "size_bytes": 88688864
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptiveSybil_0709--25200-28800.csv",
+   "sha256": "e81b41c210326b76cca24b4aacafe5d2250c520c03f02de8d77587c67366888e",
+   "size_bytes": 574732219
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptiveSybil_0709--28800-32400.csv",
+   "sha256": "06d147b393eabb37b6fe1b91ea0b42800daae9a3135fe98535bd9b5ceb131022",
+   "size_bytes": 871021103
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptiveSybil_1416--50400-54000.csv",
+   "sha256": "f654aff627cee9fb1f44da7e0d3317bc74b0185c40ae51c7eb3f463de75e3f3c",
+   "size_bytes": 264466498
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptiveSybil_1416--54000-57600.csv",
+   "sha256": "4899080f914a540700a8b212e410e987d30d14c3eb32474111c1926e74303877",
+   "size_bytes": 116023132
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptive_0709--25200-28800.csv",
+   "sha256": "b37eaa5119511bb88be4d649c2870366e08efbd0f418e22425e31673158e2d40",
+   "size_bytes": 703951027
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptive_0709--28800-32400.csv",
+   "sha256": "b06e7d284db09f7da281daabbe0b4f182dc719f846d4c88b7c81432a9aeff22a",
+   "size_bytes": 1063200600
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptive_1416--50400-54000.csv",
+   "sha256": "dfd43174d7755d749556ae0f237628db8cce3bfe686ccf523f7df8acf6c6e4eb",
+   "size_bytes": 321613716
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSDisruptive_1416--54000-57600.csv",
+   "sha256": "e70790d6bba64be13773b0e0edcf5bcd8ab543cc154667a97ac33c565d36433d",
+   "size_bytes": 143251700
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandomSybil_0709--25200-28800.csv",
+   "sha256": "f8bf9d376c34eb13fae867330f2c58a143cd55eb4f043ff6adcebb0dff14d502",
+   "size_bytes": 569998189
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandomSybil_0709--28800-32400.csv",
+   "sha256": "db40fec08e87299f4808f6c8868828caf7d4b43fab181bfdbed97dcd19aa5b74",
+   "size_bytes": 865673968
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandomSybil_1416--50400-54000.csv",
+   "sha256": "a8e46b819e4db8067c38e470d56641dbda967f004b093c03647be1cd8f9f5c1b",
+   "size_bytes": 262063515
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandomSybil_1416--54000-57600.csv",
+   "sha256": "75039028c025d06c8f243bffa3dfa2fd7e5594f7e9425d470a1304da68fe8922",
+   "size_bytes": 114879596
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandom_0709--25200-28800.csv",
+   "sha256": "b40c8ba977e6ecf7225fda0a2f1127d855e7487c6d13ca7eaa78f537ac349a7b",
+   "size_bytes": 698610262
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandom_0709--28800-32400.csv",
+   "sha256": "163228d628932588c298431d35dbd66c0d3a750d29da55e45730e4840171c22d",
+   "size_bytes": 1057257524
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandom_1416--50400-54000.csv",
+   "sha256": "d1044fa76993cf4336c15736f14c861c0582bd5e0f2fe9d60dccc54759f75fef",
+   "size_bytes": 317313564
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoSRandom_1416--54000-57600.csv",
+   "sha256": "7d25c26b34bcf5d54e3a8c26505a0c45a27256b210f5e1cda43f0d589c57e1b7",
+   "size_bytes": 139681818
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoS_0709--25200-28800.csv",
+   "sha256": "2558d0abe1a8298d14b09c87db247a8aaf6f32d916390e117bb0c809cc32dfe6",
+   "size_bytes": 699965010
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoS_0709--28800-32400.csv",
+   "sha256": "1a480f22a45522e43dc84a217deecf15c511c9470b2ff40723e04880770dc5db",
+   "size_bytes": 1096746396
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoS_1416--50400-54000.csv",
+   "sha256": "3c71f8daca7788607eae21ab77b3249b1b3328a46d98059e97d364de12c7fd76",
+   "size_bytes": 326030130
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/DoS_1416--54000-57600.csv",
+   "sha256": "8d97b407532341e880f105f53a6a19d52eec320f13e9d074193c3f96d2054a44",
+   "size_bytes": 142847714
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/EventualStop_0709--25200-28800.csv",
+   "sha256": "50e2d3fc1697a70d179304b80b784118d8e1b585852545c76ac96a3a50b515b0",
+   "size_bytes": 426365421
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/EventualStop_0709--28800-32400.csv",
+   "sha256": "c41606eb95b6a558b39643c28f7a67d11c6f6809294d7053115e592d5cefcbd4",
+   "size_bytes": 647870448
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/EventualStop_1416--50400-54000.csv",
+   "sha256": "0aa02d1d3e0d06be362bd4e9becf1273ff9bc2946dc0c352eb5efe87650885ca",
+   "size_bytes": 193159984
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/EventualStop_1416--54000-57600.csv",
+   "sha256": "a6480f5c2c775aee3d8a937b7b7fc40ea9e1d38dc8ee372aa6cd70291613a86c",
+   "size_bytes": 85071984
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/GridSybil_0709--25200-28800.csv",
+   "sha256": "5bec0b135b90d0a3580f0164b1e8b7f65416d4cf4c2b053793ca702c221685f1",
+   "size_bytes": 811571088
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/GridSybil_0709--28800-32400.csv",
+   "sha256": "a94f3b5b54a7bd7dd97ad4c4e0b66b52b16a34b938fa99f6cc8f59e8b74b2d08",
+   "size_bytes": 1262215852
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/GridSybil_1416--50400-54000.csv",
+   "sha256": "99ec2090d91ae1751bf3d37337454be4f043b54c822435ba2fff431a29e309ef",
+   "size_bytes": 392319889
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/GridSybil_1416--54000-57600.csv",
+   "sha256": "a711b95b21515b932b4e86c8c33b7025ce00bc33f86e21123405721498c915b9",
+   "size_bytes": 175516861
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--0-3600.csv",
+   "sha256": "0d0f284df247cbbb57e97a12f5e9e12f5a767a02eaa464cecb808b09995b4513",
+   "size_bytes": 405535
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--10800-14400.csv",
+   "sha256": "c67e1c1be9a12fbafd4380ae047cb02b8dc4e61c09524a26649b65d31c93255a",
+   "size_bytes": 496573
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--14400-18000.csv",
+   "sha256": "bf89ef6cfdf929058aae49b458a9347ce4cc3b902cd1ac96330c6491f067d548",
+   "size_bytes": 3727332
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--18000-21600.csv",
+   "sha256": "28e20a45a69b1b8fdc5f019a4dc62635ef748ce5682ebf45f83f470caa23fd89",
+   "size_bytes": 30013506
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--21600-25200.csv",
+   "sha256": "a0a8d2b2d831f7ee674d64bf9b0782f1b620423d3a2762851cd15567e83e96c7",
+   "size_bytes": 160574280
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--25200-28800.csv",
+   "sha256": "fbeb7cd517b971d1688eea4338a56d109f94f4510f4fe3a708ecaa344962bfcd",
+   "size_bytes": 500247675
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--28800-32400.csv",
+   "sha256": "f25d49bd326e47c16d014b1b61ce11b483bb30fbf318c7bbc3a1d9acaec36c18",
+   "size_bytes": 789721951
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--32400-36000.csv",
+   "sha256": "6718fea47cee749d395c4cfc18f1a03cbd64a65ecfb36724244f97446af3de15",
+   "size_bytes": 529355769
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--36000-39600.csv",
+   "sha256": "ae013359bb6092f9a79e4119046925c259f89a321c274aa2bcc6339b31c72134",
+   "size_bytes": 229815474
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--3600-7200.csv",
+   "sha256": "3569b4a15a60dbf9cc5b1b56f6b040a30aab6acf748b692f49f66ad2ec87d3db",
+   "size_bytes": 373155
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--39600-43200.csv",
+   "sha256": "940b42b26d00f56c8ce43aa62a9e38c6a18a0041b7ab311c4cc2c2e5d61b954c",
+   "size_bytes": 133646600
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--43200-46800.csv",
+   "sha256": "62f4e5a5843a4f58e0e4b80d838a026eabb088f8b090484085c6fe889be05279",
+   "size_bytes": 302887574
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--46800-50400.csv",
+   "sha256": "4783b5a0a8f80c978c54c7ee4c4b2eefa544fa35d0c5c898e78846ee53072cb1",
+   "size_bytes": 580180848
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--50400-54000.csv",
+   "sha256": "4883182cafef9c3a28d95fe9318706713aa6d4997bea1428920b9f384c8645c9",
+   "size_bytes": 238071670
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--54000-57600.csv",
+   "sha256": "4e445bb6452cd1cc5a2a302ecad4c6a4c1d8caf11d602b7c6b47644118b31c10",
+   "size_bytes": 100720777
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--57600-61200.csv",
+   "sha256": "5aefe0bc871503a048cec2df0ddee70127c7d60c93b1bae5d33fdb99540a209a",
+   "size_bytes": 359981058
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--61200-64800.csv",
+   "sha256": "7d3ef6c35776db34b6be768cb110d9e3137b8b5c5c339671251a41ad37faf7d8",
+   "size_bytes": 760184286
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--64800-68400.csv",
+   "sha256": "92ef91a699f44dd52fd084aa2d7a830d0a8a82633ce8052a81b05e366574c330",
+   "size_bytes": 858678936
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--68400-72000.csv",
+   "sha256": "57fdbaf19a6a798fe124a49e3965953e1b92fc167eeb0f3327a325078d7bf6f2",
+   "size_bytes": 792163337
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--72000-75600.csv",
+   "sha256": "1d890f2f901219ac136302e26c1527ed1d0ba792244fb33e9bf7ddc70f2163f7",
+   "size_bytes": 245019404
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--7200-10800.csv",
+   "sha256": "bd99e65793700a37daf103d069095c2bc970aa639908415f6a8ebabdfc02b62f",
+   "size_bytes": 373633
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--75600-79200.csv",
+   "sha256": "9ae647f4a0143607fc6155e4c3b50977beab189a68678c043387a616af0bbcf5",
+   "size_bytes": 70116232
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--79200-82800.csv",
+   "sha256": "c734d72189e265c25fc18e3d7d8fd16b982813308b0001331f1f5f08d8a588dc",
+   "size_bytes": 59570537
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/MixAll_0024--82800-86400.csv",
+   "sha256": "c7686c3a12a270cfca178dcc2caf2e8b29339e13383798e5783dab59a9aef4c0",
+   "size_bytes": 44202484
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPosOffset_0709--25200-28800.csv",
+   "sha256": "05b8902764c3da5e57dfc882dd08a82cb84769cd0e4fac20205a5b5b09d53e80",
+   "size_bytes": 442156756
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPosOffset_0709--28800-32400.csv",
+   "sha256": "09c8bea30636d7af320760f7fc6e60b79ed9d24c5084fce72194e2bbf4d9b69e",
+   "size_bytes": 672545952
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPosOffset_1416--50400-54000.csv",
+   "sha256": "e3e352d74d2aaf922cc53f33b564f8e6d65d0d980705343c85b9b49c391ce30d",
+   "size_bytes": 200834498
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPosOffset_1416--54000-57600.csv",
+   "sha256": "b26ca95af8e18a91ac788f1dd8f09e2fa2ae7143a9e808ff2ce4306f903e70db",
+   "size_bytes": 88450534
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPos_0709--25200-28800.csv",
+   "sha256": "4d173a11a2789daf1a780fbede47151f7993d0fa2a3656888f564c162723e12c",
+   "size_bytes": 442191900
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPos_0709--28800-32400.csv",
+   "sha256": "d15af73b39d2e418afefca35f937f06bb279298f513778068d70066140596567",
+   "size_bytes": 672782316
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPos_1416--50400-54000.csv",
+   "sha256": "f19b63caf3147925b95ace728e66eb70c30180678d2c8ecfe1a5fbe63df6e688",
+   "size_bytes": 200928653
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomPos_1416--54000-57600.csv",
+   "sha256": "ee9dbb610c1d6a92490fb0c0238da7e0406ccd20731e6d39f5722998f902b170",
+   "size_bytes": 88459467
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeedOffset_0709--25200-28800.csv",
+   "sha256": "a795c2487f19b838f8db42591e017c59f76294c337182401c257a7dd9d3c76a9",
+   "size_bytes": 441792373
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeedOffset_0709--28800-32400.csv",
+   "sha256": "bf4c41031d28dc98370bf688fadbd10736f340b8e7c4355cbf9531c9de3977dd",
+   "size_bytes": 671749606
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeedOffset_1416--50400-54000.csv",
+   "sha256": "f0e6a76f3dc60892f2324a4508b5915a97d5053899c0c00e15336cef84ad52dd",
+   "size_bytes": 86518743
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeedOffset_1416--54000-57600.csv",
+   "sha256": "f0e6a76f3dc60892f2324a4508b5915a97d5053899c0c00e15336cef84ad52dd",
+   "size_bytes": 86518743
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeed_0709--25200-28800.csv",
+   "sha256": "d88ae1c0f5ea8b7bcb35e5ada4a66d0d020f304860875bf916a98b1e35d9e700",
+   "size_bytes": 441579750
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeed_0709--28800-32400.csv",
+   "sha256": "f83f8b5eccbc332c37cc13e38220787b759d45030ba3aa9b9c01ce0e8a9deeb4",
+   "size_bytes": 671541931
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeed_1416--50400-54000.csv",
+   "sha256": "1f26cc2b9affd52b67659897abc3397690c64c61ae5685536164bcb93ac5274c",
+   "size_bytes": 200514872
+  },
+  {
+   "path": "../benchmarks/_datasets/prepared/veremi-extension/RandomSpeed_1416--54000-57600.csv",
+   "sha256": "45307ec6f108346a3cc7a6f47d95451b7e3b3d0d37d79857811453ebba0bb150",
+   "size_bytes": 88282680
+  }
+ ],
+ "source_format": "csv_directory",
+ "source_members": [
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "ConstPosOffset_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "ConstPosOffset_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "ConstPosOffset_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "ConstPosOffset_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "ConstPos_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "ConstPos_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "ConstPos_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "ConstPos_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "ConstSpeedOffset_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "ConstSpeedOffset_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "ConstSpeedOffset_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "ConstSpeedOffset_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "ConstSpeed_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "ConstSpeed_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "ConstSpeed_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "ConstSpeed_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DataReplaySybil_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DataReplaySybil_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DataReplaySybil_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DataReplaySybil_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DataReplay_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DataReplay_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DataReplay_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DataReplay_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DelayedMessages_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DelayedMessages_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DelayedMessages_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DelayedMessages_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "Disruptive_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "Disruptive_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "Disruptive_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "Disruptive_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DoSDisruptiveSybil_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DoSDisruptiveSybil_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DoSDisruptiveSybil_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DoSDisruptiveSybil_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DoSDisruptive_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DoSDisruptive_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DoSDisruptive_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DoSDisruptive_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DoSRandomSybil_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DoSRandomSybil_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DoSRandomSybil_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DoSRandomSybil_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DoSRandom_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DoSRandom_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DoSRandom_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DoSRandom_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "DoS_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "DoS_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "DoS_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "DoS_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "EventualStop_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "EventualStop_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "EventualStop_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "EventualStop_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "GridSybil_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "GridSybil_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "GridSybil_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "GridSybil_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-0-3600"
+   },
+   "name": "MixAll_0024--0-3600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-10800-14400"
+   },
+   "name": "MixAll_0024--10800-14400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-14400-18000"
+   },
+   "name": "MixAll_0024--14400-18000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-18000-21600"
+   },
+   "name": "MixAll_0024--18000-21600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-21600-25200"
+   },
+   "name": "MixAll_0024--21600-25200.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "MixAll_0024--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "MixAll_0024--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-32400-36000"
+   },
+   "name": "MixAll_0024--32400-36000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-36000-39600"
+   },
+   "name": "MixAll_0024--36000-39600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-3600-7200"
+   },
+   "name": "MixAll_0024--3600-7200.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-39600-43200"
+   },
+   "name": "MixAll_0024--39600-43200.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-43200-46800"
+   },
+   "name": "MixAll_0024--43200-46800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-46800-50400"
+   },
+   "name": "MixAll_0024--46800-50400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "MixAll_0024--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "MixAll_0024--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-57600-61200"
+   },
+   "name": "MixAll_0024--57600-61200.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-61200-64800"
+   },
+   "name": "MixAll_0024--61200-64800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-64800-68400"
+   },
+   "name": "MixAll_0024--64800-68400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-68400-72000"
+   },
+   "name": "MixAll_0024--68400-72000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-72000-75600"
+   },
+   "name": "MixAll_0024--72000-75600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-7200-10800"
+   },
+   "name": "MixAll_0024--7200-10800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-75600-79200"
+   },
+   "name": "MixAll_0024--75600-79200.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-79200-82800"
+   },
+   "name": "MixAll_0024--79200-82800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-82800-86400"
+   },
+   "name": "MixAll_0024--82800-86400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "RandomPosOffset_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "RandomPosOffset_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "RandomPosOffset_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "RandomPosOffset_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "RandomPos_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "RandomPos_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "RandomPos_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "RandomPos_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "RandomSpeedOffset_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "RandomSpeedOffset_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "RandomSpeedOffset_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "RandomSpeedOffset_1416--54000-57600.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-25200-28800"
+   },
+   "name": "RandomSpeed_0709--25200-28800.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-28800-32400"
+   },
+   "name": "RandomSpeed_0709--28800-32400.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-50400-54000"
+   },
+   "name": "RandomSpeed_1416--50400-54000.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__simulation_slice": "simulation-time-54000-57600"
+   },
+   "name": "RandomSpeed_1416--54000-57600.csv",
+   "upstream_split": null
+  }
+ ],
+ "split": {
+  "dependencies_absent": false,
+  "fields": [
+   "__simulation_slice"
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "group",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [
+  "attacker_type"
+ ],
+ "task_id": "veremi-extension-misbehavior-classification-v1",
+ "upstream_splits": {}
+}

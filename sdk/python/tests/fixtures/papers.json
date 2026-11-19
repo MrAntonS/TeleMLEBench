@@ -1,0 +1,746 @@
+{
+ "generated_at": "2026-11-19T20:30:20.901Z",
+ "source": "OWL research workbench: paper-only disclosure tables, verified claim targets, Table 4 reproduction cells",
+ "baseline_policy": "OWL baseline = Deep Agents + Gemma 4 31B given the paper and the OWL spec, when that run is valid in FINAL_CELLS.json",
+ "papers": {
+  "P31": {
+   "id": "P31",
+   "title": "CM-MAE: A Physics-Guided Cross-Modal Self-Supervised Learning Framework for Vision-Wireless Applications",
+   "authors": [
+    "Yubo Zhang",
+    "Yiyao Liu"
+   ],
+   "year": 2026,
+   "venue": "arXiv preprint",
+   "arxiv_id": "2608.15972",
+   "doi": null,
+   "url": "https://arxiv.org/abs/2608.15972v1",
+   "pdf_url": "https://arxiv.org/pdf/2608.15972v1",
+   "method": null,
+   "experiment": "deepsense-fusion-mildft-sc6-8",
+   "experiment_description": "Source-trained CM-MAE fusion transfer: pretrain on Sc1-5 unlabeled RGB plus 64-beam power vectors, supervised mild fine-tuning on Sc1-4 labels, validation Sc5, unseen test Sc6-8 with contemporaneous 64-beam vector at inference, Top-1 64-beam classification",
+   "dataset": {
+    "family": "DeepSense 6G",
+    "slug": "10-21227__wq34-a443",
+    "name": "DeepSense 6G"
+   },
+   "code_url": null,
+   "fully_reported": {
+    "k": 5,
+    "n": 10
+   },
+   "details": [
+    {
+     "key": "architecture",
+     "label": "Architecture",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "dual ViT-Base width 768 12 layers 12 heads MLP 4 plus 8-layer decoder width 768, P 196 Q max 10",
+     "explanation": "widths depths heads mask ratios stated but conv patch kernel stride padding Fourier dims and fusion attention dims absent",
+     "evidence": [
+      "p. 3, Sec IV.B Eq 13-16",
+      "p. 3, Sec IV.B decoder Eq 17"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "optimizer_lr",
+     "label": "Optimizer / LR",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "pretrain AdamW 1.2e-4, finetune eta_e 3e-6 eta_h 1e-3, full-FT 1e-5, TTA Adam 5e-4",
+     "explanation": "all rates explicitly stated for main and baseline adaptation",
+     "evidence": [
+      "p. 5, Sec VI.A Implementation",
+      "p. 5, Eq 27 Eq 28 Sec V.B-C"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "batch_size",
+     "label": "Batch size",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "pretrain 192, finetune effective 512",
+     "explanation": "both batch sizes explicitly stated",
+     "evidence": [
+      "p. 5, Sec VI.A Implementation"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "epochs",
+     "label": "Epochs",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "pretrain 160 epochs, finetune 80 epochs, TTA 30 steps",
+     "explanation": "epoch counts and TTA steps explicitly stated",
+     "evidence": [
+      "p. 5, Sec VI.A Implementation",
+      "p. 5, Eq 27 Eq 28 Sec V.B-C"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "random_seed",
+     "label": "Training seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "no RNG seed for init sampling or shuffling stated",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "dataset_version",
+     "label": "Data version",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "DeepSense 6G Sc1-8 V2I 60 GHz RGB plus 64-beam vectors",
+     "explanation": "scenario family and modality stated but exact release or download version not stated",
+     "evidence": [
+      "p. 5, Sec VI.A Dataset and protocol"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "preprocessing_augmentation",
+     "label": "Preprocessing",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "224x224 ImageNet mean std norm, beam angles to [-1,1], dB plus per-sample norm plus cluster extraction",
+     "explanation": "steps stated but ImageNet mean std numbers and interpolation not stated, no crop flip augmentation listed",
+     "evidence": [
+      "p. 5, Sec VI.A Dataset and protocol",
+      "p. 5, Sec VI.A Implementation"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "train_val_test_split",
+     "label": "Split",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "70/15/15 by seq_index, Sc1-5 pretrain Sc1-4 labels Sc5 val Sc6-8 test with counts 488 254 159 652",
+     "explanation": "splits roles and test counts fully stated for main protocol",
+     "evidence": [
+      "p. 5, Sec VI.A Dataset and protocol"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "split_seed",
+     "label": "Split seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "no seed for seq_index split stated",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "evaluation_protocol",
+     "label": "Evaluation protocol",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Top-1 on test split per scenario and Avg6-8, source-only vs transductive TTA reported separately",
+     "explanation": "metric splits and transductive marking explicitly stated with caution not proactive prediction",
+     "evidence": [
+      "p. 5, Sec VI.A Dataset and protocol",
+      "p. 6, Table I"
+     ],
+     "source": "paper"
+    }
+   ],
+   "claim": null,
+   "reproduction": null
+  },
+  "P61": {
+   "id": "P61",
+   "title": "Adopting the FAB-MAP algorithm for indoor localization with WiFi fingerprints",
+   "authors": [
+    "Jan Wietrzykowski",
+    "Michał Nowicki",
+    "Piotr Skrzypczyński"
+   ],
+   "year": 2016,
+   "venue": "arXiv preprint",
+   "arxiv_id": "1611.02054",
+   "doi": "10.1007/978-3-319-54042-9_58",
+   "url": "https://arxiv.org/abs/1611.02054v2",
+   "pdf_url": "https://arxiv.org/pdf/1611.02054v2",
+   "method": "WiFi FAB-MAP",
+   "experiment": "PE-UJI-FABMAP-WIFI",
+   "experiment_description": "WiFi FAB-MAP Chow-Liu place recognition on UJIIndoorLoc, database from training scans, test on validation set as test, building plus floor accuracy",
+   "dataset": {
+    "family": "UJIIndoorLoc",
+    "slug": "10-24432__c5ms59",
+    "name": "UJIIndoorLoc"
+   },
+   "code_url": "https://github.com/LRMPUT/WiFi-FAB-MAP",
+   "fully_reported": {
+    "k": 2,
+    "n": 7
+   },
+   "details": [
+    {
+     "key": "architecture",
+     "label": "Architecture",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "FAB-MAP-like pipeline with per-AP threshold binary vector and Chow-Liu plus database plus argmax via OpenFABMAP",
+     "explanation": "Topology and bin rule specified, but total length depends on unstated AP count and OpenFABMAP internals not detailed",
+     "evidence": [
+      "p. 4, Fig 1 caption and text",
+      "p. 5, Section 3 thresholds",
+      "p. 5, Fig 2 and Fig 3 captions plus text",
+      "p. 6, Section 3 inference plus code"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "optimizer_lr",
+     "label": "Optimizer / LR",
+     "status": "na",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No gradient optimizer used, probabilistic learning plus grid search for PzGe PzGne, so learning rate does not apply",
+     "evidence": [
+      "p. 6, Section 3 inference plus code",
+      "p. 7, Section 5 Parameter tuning"
+     ],
+     "source": null
+    },
+    {
+     "key": "batch_size",
+     "label": "Batch size",
+     "status": "na",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "Classical FAB-MAP inference has no mini-batch training, batches never mentioned",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "epochs",
+     "label": "Epochs",
+     "status": "na",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No iterative epoch training, single Chow-Liu estimation plus database build",
+     "evidence": [
+      "p. 5, Section 3 training phase"
+     ],
+     "source": null
+    },
+    {
+     "key": "random_seed",
+     "label": "Training seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "Random draws for Chow-Liu scan and 10 database scans stated without seed",
+     "evidence": [
+      "p. 5, Section 3 training phase"
+     ],
+     "source": "assumed",
+     "assumed_value": "42",
+     "assumed_where": "reproduce.py line 64"
+    },
+    {
+     "key": "dataset_version",
+     "label": "Data version",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "UJIIndoorLoc with 19937 training and 1111 validation examples, 3 buildings 13 floors",
+     "explanation": "Counts and coverage stated and cited, but exact release file version not stated",
+     "evidence": [
+      "p. 6, Section 4 Experimental data"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "preprocessing_augmentation",
+     "label": "Preprocessing",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "DBScan epsilon 1 MinPts 1 plus 1 plus 10 random scans per cluster plus RSSI binarization, no augmentation",
+     "explanation": "Operational preprocessing given in order, no data augmentation used",
+     "evidence": [
+      "p. 5, Section 3 thresholds",
+      "p. 5, Section 3 training phase"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "train_val_test_split",
+     "label": "Split",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Train part from UJIIndoorLoc training, tuning subtrain vs validation, final test is validation set",
+     "explanation": "Sources and roles stated, but subtraining vs validation counts and cluster counts not stated",
+     "evidence": [
+      "p. 5, Section 3 training phase",
+      "p. 6, Section 4 Experimental data",
+      "p. 7, Section 5 Parameter tuning"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "split_seed",
+     "label": "Split seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "Random cluster sampling and subtrain validation split have no stated seed or ratio",
+     "evidence": [
+      "p. 5, Section 3 training phase",
+      "p. 7, Section 5 Parameter tuning"
+     ],
+     "source": null
+    },
+    {
+     "key": "evaluation_protocol",
+     "label": "Evaluation protocol",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Joint building-and-floor accuracy plus ed mean error on correct only, argmax highest probability",
+     "explanation": "Decision rule and score and Eq 1 fully defined for tested configs",
+     "evidence": [
+      "p. 6, Section 3 inference plus code",
+      "p. 8, Section 6 Eq 1 and score definition"
+     ],
+     "source": "paper"
+    }
+   ],
+   "claim": {
+    "value": 92,
+    "unit": "%",
+    "metric": "building and floor accuracy (score)",
+    "dataset": "UJIIndoorLoc",
+    "description": "Building-and-floor accuracy (score = fraction of examples whose matched database location has both the correct building ID and floor number) of the proposed WiFi FAB-MAP method on the UJIIndoorLoc validation set (1,111 examples, used as test set; database/Chow-Liu tree built from the training set), configuration bin width 5 dBm, PzGe = 0.3135, PzGne = 0.0004 (best row of Table 1; PzGne lowered below the validation-selected 0.0429). Paper reports 0.92 as a fraction; expressed here in percentage points.",
+    "split": "UJIIndoorLoc validation set (1,111 examples) used as test; database from the training set",
+    "locator": "Table 1, PDF page 8",
+    "page": 8,
+    "url": "https://arxiv.org/pdf/1611.02054v2#page=8"
+   },
+   "reproduction": {
+    "run": "P61-20261118T011646Z/deepagents-gemma-4-31b-owl",
+    "harness": "Deep Agents 0.7.3",
+    "model": "Gemma 4 31B",
+    "model_id": "google/gemma-4-31b-it",
+    "condition": "Paper + OWL spec, no author code",
+    "metric": "building and floor accuracy (score)",
+    "unit": "%",
+    "score": 35.9136,
+    "agent_reported": 35.9136,
+    "rerun": 35.9136,
+    "split": "validation (1,111 examples), same set as the paper",
+    "gap": 56.09,
+    "validation": {
+     "rule": "i",
+     "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
+    },
+    "fidelity": 60.71,
+    "predictions_kept": false,
+    "agent_exit": -15,
+    "finished_at": "2026-11-18T02:04:02.646629+00:00",
+    "files": [
+     {
+      "name": "reproduce.py",
+      "label": "Agent’s final script",
+      "path": "data/owl/artifacts/P61/reproduce.py",
+      "bytes": 5156
+     },
+     {
+      "name": "config.yaml",
+      "label": "Assumed values and their source lines",
+      "path": "data/owl/artifacts/P61/config.yaml",
+      "bytes": 534
+     },
+     {
+      "name": "RESULT.json",
+      "label": "Result written by reproduce.py",
+      "path": "data/owl/artifacts/P61/RESULT.json",
+      "bytes": 261
+     },
+     {
+      "name": "rerun.log",
+      "label": "Offline re-run output",
+      "path": "data/owl/artifacts/P61/rerun.log",
+      "bytes": 131
+     }
+    ],
+    "note": "Same evaluation set as the paper. The script is a simplified FAB-MAP with a naive-Bayes observation model and no Chow-Liu tree, which the paper uses. The agent hit the 45-minute limit; its final script re-ran offline to the same score."
+   }
+  },
+  "P62": {
+   "id": "P62",
+   "title": "A Local Machine Learning Approach for Fingerprint-based Indoor Localization",
+   "authors": [
+    "Nora Agah",
+    "Brian Evans",
+    "Xiao Meng",
+    "Haiqing Xu"
+   ],
+   "year": 2023,
+   "venue": "arXiv preprint",
+   "arxiv_id": "2302.10810",
+   "doi": null,
+   "url": "https://arxiv.org/abs/2302.10810v1",
+   "pdf_url": "https://arxiv.org/pdf/2302.10810v1",
+   "method": "SCNN (sequential classification neural network)",
+   "experiment": "SCNN-UJIIndoorLoc-validation",
+   "experiment_description": "Sequential Classification neural network local approach on UJIIndoorLoc validation 1111 obs with Building then floor-group then leaf-neighborhood regression",
+   "dataset": {
+    "family": "UJIIndoorLoc",
+    "slug": "10-24432__c5ms59",
+    "name": "UJIIndoorLoc"
+   },
+   "code_url": "https://github.com/noraagah/-A-local-machine-learning-approach-for-Fingerprint-based-Indoor-Localization",
+   "fully_reported": {
+    "k": 2,
+    "n": 10
+   },
+   "details": [
+    {
+     "key": "architecture",
+     "label": "Architecture",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Sequential Building floor-group leaf neural networks with 320 inputs, no layer hyperparameters",
+     "explanation": "High-level flow specified but layer widths and activations missing",
+     "evidence": [
+      "p. 4, Algorithm 1 box",
+      "p. 4, Section II-C sequential neural network example"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "optimizer_lr",
+     "label": "Optimizer / LR",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No optimizer or learning rate stated",
+     "evidence": [],
+     "source": "assumed",
+     "assumed_value": "Adam, learning rate 1e-4",
+     "assumed_where": "reproduce.py line 31"
+    },
+    {
+     "key": "batch_size",
+     "label": "Batch size",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No batch size stated",
+     "evidence": [],
+     "source": "assumed",
+     "assumed_value": "20",
+     "assumed_where": "reproduce.py line 31"
+    },
+    {
+     "key": "epochs",
+     "label": "Epochs",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No epochs or iterations stated",
+     "evidence": [],
+     "source": "assumed",
+     "assumed_value": "50",
+     "assumed_where": "reproduce.py line 31"
+    },
+    {
+     "key": "random_seed",
+     "label": "Training seed",
+     "status": "code",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": "1000 (RandStream mt19937ar, seed + 12·(s−1) per repetition)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No training RNG seed stated",
+     "evidence": [
+      "Main_B0_NA.m lines 7–17 @ fe6c49ce: seed = 1000; jump = 12; RandStream('mt19937ar','Seed',seed+jump*(s-1))"
+     ],
+     "source": "code"
+    },
+    {
+     "key": "dataset_version",
+     "label": "Data version",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "UJIIndoorLoc 19937 train 1111 validation 25 devices 18 users as used for EvAAL 2015",
+     "explanation": "Counts and competition context given, no release identifier",
+     "evidence": [
+      "p. 2, Section II-A dataset counts"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "preprocessing_augmentation",
+     "label": "Preprocessing",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Replace plus 100 with minus 105, drop zero-variance and unstable APs, 520 to 320, no augmentation",
+     "explanation": "Three cleaning steps and result fully stated",
+     "evidence": [
+      "p. 5, Section II-D cleaning"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "train_val_test_split",
+     "label": "Split",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Train 19937 validation 1111 with 536 307 268 per building, no separate test",
+     "explanation": "Counts and reuse of validation as evaluation stated",
+     "evidence": [
+      "p. 2, Section II-A dataset counts",
+      "p. 5, Table I"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "split_seed",
+     "label": "Split seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No seed for time split stated",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "evaluation_protocol",
+     "label": "Evaluation protocol",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "EvAAL 2015 mean error plus Floor and Building hit rates on 1111 obs",
+     "explanation": "Metrics and set stated but exact distance formula not defined",
+     "evidence": [
+      "p. 5, Section III metrics",
+      "p. 5, Table I"
+     ],
+     "source": "paper"
+    }
+   ],
+   "claim": {
+    "value": 95.52,
+    "unit": "%",
+    "metric": "floor hit rate",
+    "dataset": "UJIIndoorLoc",
+    "description": "Floor hit rate of the proposed SCNN (Sequential Classification Neural Network) on the UJIIndoorLoc validation set (1,111 observations)",
+    "split": "UJIIndoorLoc validation set (1,111 observations)",
+    "locator": "Table I, PDF page 5",
+    "page": 5,
+    "url": "https://arxiv.org/pdf/2302.10810v1#page=5"
+   },
+   "reproduction": {
+    "run": "P62-20261118T011649Z/deepagents-gemma-4-31b-owl",
+    "harness": "Deep Agents 0.7.3",
+    "model": "Gemma 4 31B",
+    "model_id": "google/gemma-4-31b-it",
+    "condition": "Paper + OWL spec, no author code",
+    "metric": "floor hit rate",
+    "unit": "%",
+    "score": 89.829,
+    "agent_reported": 89.829,
+    "rerun": 89.829,
+    "split": "validation (1,111 observations), same set as the paper",
+    "gap": 5.69,
+    "validation": {
+     "rule": "i",
+     "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
+    },
+    "fidelity": 73.3,
+    "predictions_kept": false,
+    "agent_exit": 0,
+    "finished_at": "2026-11-18T01:47:42.663987+00:00",
+    "files": [
+     {
+      "name": "reproduce.py",
+      "label": "Agent’s final script",
+      "path": "data/owl/artifacts/P62/reproduce.py",
+      "bytes": 6203
+     },
+     {
+      "name": "config.yaml",
+      "label": "Assumed values and their source lines",
+      "path": "data/owl/artifacts/P62/config.yaml",
+      "bytes": 888
+     },
+     {
+      "name": "RESULT.json",
+      "label": "Result written by reproduce.py",
+      "path": "data/owl/artifacts/P62/RESULT.json",
+      "bytes": 214
+     },
+     {
+      "name": "run.log",
+      "label": "Agent run log",
+      "path": "data/owl/artifacts/P62/run.log",
+      "bytes": 1740
+     },
+     {
+      "name": "rerun.log",
+      "label": "Offline re-run output",
+      "path": "data/owl/artifacts/P62/rerun.log",
+      "bytes": 23
+     }
+    ],
+    "note": "Same 1,111-observation validation set as the paper. Optimizer, learning rate, batch size and epochs are not in the paper and were assumed by the agent. The paper gives no layer sizes, so each stage is a small MLP. The script also filters access points using training and validation data together, which the paper does not describe."
+   }
+  },
+  "P59": {
+   "id": "P59",
+   "title": "Low-effort place recognition with WiFi fingerprints using deep learning",
+   "authors": [
+    "Michał Nowicki",
+    "Jan Wietrzykowski"
+   ],
+   "year": 2016,
+   "venue": "arXiv preprint",
+   "arxiv_id": "1611.02049",
+   "doi": "10.1007/978-3-319-54042-9_57",
+   "url": "https://arxiv.org/abs/1611.02049v2",
+   "pdf_url": "https://arxiv.org/pdf/1611.02049v2",
+   "method": null,
+   "experiment": "UJIIndoorLoc-building-floor-SAE-256-128-64-clf-128-128",
+   "experiment_description": "Stacked-autoencoder plus DNN classifier for joint building and floor classification from single 520-dim WiFi RSSI scan on UJIIndoorLoc, best config SAE 256-128-64 plus Classifier 128-128 with missing as -110 dBm and joint scaling",
+   "dataset": {
+    "family": "UJIIndoorLoc",
+    "slug": "10-24432__c5ms59",
+    "name": "UJIIndoorLoc"
+   },
+   "code_url": null,
+   "fully_reported": {
+    "k": 2,
+    "n": 10
+   },
+   "details": [
+    {
+     "key": "architecture",
+     "label": "Architecture",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Input 520 SAE 256-128-64 classifier 128-128 softmax sum Mi dropout 5-20 searched hidden activations missing",
+     "explanation": "Topology and widths stated but hidden activations and exact best dropout missing",
+     "evidence": [
+      "p. 7, Section 5.1 SAE 256-128-64 sentence",
+      "p. 7, Section 5.1 classifier 128-128 sentence"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "optimizer_lr",
+     "label": "Optimizer / LR",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Adam with categorical cross entropy learning rates varied but values not reported",
+     "explanation": "Optimizer family named no LR value schedule or betas",
+     "evidence": [
+      "p. 5, Section 3 training process uses sentence",
+      "p. 7, Section 5.2 different learning rates sentence"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "batch_size",
+     "label": "Batch size",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No batch size stated in searched text",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "epochs",
+     "label": "Epochs",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No epoch count iterations or stopping rule stated",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "random_seed",
+     "label": "Training seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "No training RNG or initialization seed stated",
+     "evidence": [],
+     "source": null
+    },
+    {
+     "key": "dataset_version",
+     "label": "Data version",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Public UJIIndoorLoc 21048 scans 19937 plus 1111 Jaume I UCI link authors re-split counts unknown",
+     "explanation": "Release and source identified but authors random re-split counts missing",
+     "evidence": [
+      "p. 6, Section 4 dataset consists sentence",
+      "p. 6, Section 4 randomly divide paragraph"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "preprocessing_augmentation",
+     "label": "Preprocessing",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Best is missing as -110 dBm plus joint zero-mean unit-variance scaling alternatives tested no other augmentation",
+     "explanation": "Operational preprocessing for primary fully specified",
+     "evidence": [
+      "p. 6, Section 5.1 lack 100 or -110 dBm paragraph",
+      "p. 7, Section 5.1 scaled to mean 0 variance 1 paragraph"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "train_val_test_split",
+     "label": "Split",
+     "status": "partial",
+     "extraction_status": "SPECIFIED",
+     "value": "Random split of UJI training into train and validation plus UJI validation as test exact counts missing",
+     "explanation": "Procedure stated but resulting counts and stratification not stated",
+     "evidence": [
+      "p. 6, Section 4 randomly divide paragraph"
+     ],
+     "source": "paper"
+    },
+    {
+     "key": "split_seed",
+     "label": "Split seed",
+     "status": "absent",
+     "extraction_status": "NOT_SPECIFIED",
+     "value": null,
+     "explanation": "Random split stated without seed",
+     "evidence": [
+      "p. 6, Section 4 randomly divide paragraph"
+     ],
+     "source": null
+    },
+    {
+     "key": "evaluation_protocol",
+     "label": "Evaluation protocol",
+     "status": "full",
+     "extraction_status": "SPECIFIED",
+     "value": "Correct joint building and floor rate on validation and testing final best on testing after retraining",
+     "explanation": "Metric and test scope stated for primary experiment",
+     "evidence": [
+      "p. 7, Table 1 caption",
+      "p. 8, Section 5.2 finally architecture paragraph"
+     ],
+     "source": "paper"
+    }
+   ],
+   "claim": null,
+   "reproduction": null
+  }
+ }
+}

@@ -46,9 +46,14 @@ export const openApiDocument = {
         summary: "Download a public split artifact",
         parameters: [
           { $ref: "#/components/parameters/ReleaseId" },
-          { name: "role", in: "path", required: true, schema: { type: "string", enum: ["train", "validation", "test_features", "split_assignment"] } },
+          { name: "role", in: "path", required: true, schema: { type: "string", enum: ["train", "validation", "test_features", "split_assignment", "task", "build_script"] } },
         ],
-        responses: { "307": { description: "Redirect to the immutable public artifact" }, "404": { description: "Role or release not found" } },
+        responses: {
+          "200": { description: "task (application/json): target, feature columns, provider file checksums, reference hashes; build_script (text/x-python): builds the split from provider files" },
+          "307": { description: "Redirect to the immutable public artifact" },
+          "404": { description: "Role or release not found" },
+          "410": { description: "Provider-only release: OWL does not redistribute the data; the error data carries provider_url" },
+        },
       },
     },
     "/evaluations/uploads": {

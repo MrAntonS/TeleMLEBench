@@ -1,0 +1,128 @@
+{
+ "algorithm_version": "telemlebench-wisig-manysig-split/1",
+ "artifacts": [
+  {
+   "media_type": "text/csv",
+   "path": "assignments.csv",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "993b6dab85763e7fbdc22068bbfe15371027ad3bcf6d3a1efd252df7e6199dfa",
+   "size_bytes": 43554062
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/train.zip",
+   "public": true,
+   "role": "train",
+   "sha256": "f5f2febe84da126dd5a32fd5d6227308a99c7624d52a6de827bb780c7ebeb37a",
+   "size_bytes": 1189011850
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/validation.zip",
+   "public": true,
+   "role": "validation",
+   "sha256": "370e1b9371f4e70080a4862744673c86d0cb7d7c02d911c5c88e868e2a880492",
+   "size_bytes": 243820119
+  },
+  {
+   "media_type": "application/zip",
+   "path": "data/test-features.zip",
+   "public": true,
+   "role": "test_features",
+   "sha256": "67277e4dc71fc2df47661b626d015c670584ccfd6e6701fd7c18dda9f3d53203",
+   "size_bytes": 244606322
+  }
+ ],
+ "assignment_sha256": "993b6dab85763e7fbdc22068bbfe15371027ad3bcf6d3a1efd252df7e6199dfa",
+ "capture_days": [
+  "2021_03_01",
+  "2021_03_08",
+  "2021_03_15",
+  "2021_03_23"
+ ],
+ "class_count": 6,
+ "counts": {
+  "test": 42000,
+  "train": 204000,
+  "val": 42000
+ },
+ "dataset_id": "tmleb:curated-url-https-cores-ee-ucla-edu-wisig-overview-206e82c51852",
+ "dataset_version_id": "dsv_ea3c9fdcb35dd7b1770c4281",
+ "feature_fields": [
+  "iq",
+  "receiver_id",
+  "capture_day"
+ ],
+ "feature_layout": {
+  "dtype": "float64",
+  "iq": [
+   2,
+   256,
+   2
+  ],
+  "representation_order": [
+   "raw",
+   "equalized"
+  ]
+ },
+ "license_expression": "CC-BY-NC-SA-4.0",
+ "paired_views": {
+  "duplicate_view_leakage_prevented": true,
+  "policy": "raw and equalized arrays at the same source index form one sample"
+ },
+ "receiver_count": 12,
+ "sample_count": 288000,
+ "schema_version": "telemlebench-manual-rf-split/1",
+ "serialized_object_conversion": {
+  "allowed_globals": [
+   "numpy.dtype",
+   "numpy.ndarray",
+   "numpy._core.multiarray._reconstruct",
+   "numpy._core.multiarray.scalar",
+   "numpy.core.multiarray._reconstruct",
+   "numpy.core.multiarray.scalar"
+  ],
+  "array_bytes": 2359296000,
+  "array_count": 576,
+  "loader": "restricted_numpy_allowlist",
+  "ordinary_worker_loaded_pickle": false
+ },
+ "shard_format": "zip_of_deterministic_npz_group_shards",
+ "signals_per_transmitter_receiver_day": 1000,
+ "source_artifacts": [
+  {
+   "member": "ManySig.pkl",
+   "member_crc32": "2afc8bc9",
+   "member_size_bytes": 2359341461,
+   "path": "ManySig.pkl.zip",
+   "sha256": "5c3d6f5aece87a86ecd8cf5a0f6bdc56535f34cfd3e8a32e8ce6dbc448c85bac",
+   "size_bytes": 1454577503
+  }
+ ],
+ "split": {
+  "actual_ratios": [
+   0.7083333333333334,
+   0.14583333333333334,
+   0.14583333333333334
+  ],
+  "dependencies_absent": false,
+  "fields": [
+   "receiver_id",
+   "capture_day"
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "group",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [
+  "transmitter_id"
+ ],
+ "task_id": "wisig-manysig-transmitter-classification-v1",
+ "task_type": "classification"
+}

@@ -1,0 +1,1264 @@
+[
+ {
+  "id": "tmleb:curated-url-https-research-unsw-edu-au-projects-unsw-nb15-dataset-f20c33de0fc3",
+  "slug": "curated-url-https-research-unsw-edu-au-projects-unsw-nb15-dataset-f20c33de0fc3",
+  "title": "UNSW-NB15",
+  "concept_doi": null,
+  "paper_count": 1171,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_19eb8763fbb42c072a796336",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "academic_use",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "Network intrusion classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://research.unsw.edu.au/projects/unsw-nb15-dataset",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-ids-2017-html-ce90b96ad6f7",
+  "slug": "curated-url-https-www-unb-ca-cic-datasets-ids-2017-html-ce90b96ad6f7",
+  "title": "CICIDS2017",
+  "concept_doi": null,
+  "paper_count": 645,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_23647609e257911ae43693c0",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "UNB_CIC_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "Network intrusion detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.unb.ca/cic/datasets/ids-2017.html",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-research-unsw-edu-au-projects-bot-iot-dataset-d3ceb81b434d",
+  "slug": "curated-url-https-research-unsw-edu-au-projects-bot-iot-dataset-d3ceb81b434d",
+  "title": "Bot-IoT",
+  "concept_doi": null,
+  "paper_count": 600,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_627f468e043328fd1fb45801",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "academic_use_commercial_permission",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "IoT attack classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://research.unsw.edu.au/projects/bot-iot-dataset",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-ids-2018-html-b46a38eb7362",
+  "slug": "curated-url-https-www-unb-ca-cic-datasets-ids-2018-html-b46a38eb7362",
+  "title": "CSE-CIC-IDS2018",
+  "concept_doi": null,
+  "paper_count": 359,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_fb463ecbbdab3658104c24ff",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "UNB_CIC_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "Network intrusion classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.unb.ca/cic/datasets/ids-2018.html",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-iotdataset-2023-html-73dd07fac094",
+  "slug": "curated-url-https-www-unb-ca-cic-datasets-iotdataset-2023-html-73dd07fac094",
+  "title": "CICIoT2023",
+  "concept_doi": null,
+  "paper_count": 294,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_a19618cffe36f58e6bb774fe",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "UNB_CIC_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "IoT attack classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.unb.ca/cic/datasets/iotdataset-2023.html",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-unb-ca-cic-datasets-ddos-2019-html-fee28db52a33",
+  "slug": "curated-url-https-www-unb-ca-cic-datasets-ddos-2019-html-fee28db52a33",
+  "title": "CICDDoS2019",
+  "concept_doi": null,
+  "paper_count": 288,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_7934149b70886da8cbdbbfe8",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "UNB_CIC_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "DDoS traffic classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.unb.ca/cic/datasets/ddos-2019.html",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-research-unsw-edu-au-projects-toniot-datasets-e31be3b014ed",
+  "slug": "curated-url-https-research-unsw-edu-au-projects-toniot-datasets-e31be3b014ed",
+  "title": "TON_IoT",
+  "concept_doi": null,
+  "paper_count": 253,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_912a8917d474ca2ddea86592",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "academic_use_commercial_permission",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "multimodal"
+     ],
+     "primary_task_name": "IoT/IIoT intrusion detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://research.unsw.edu.au/projects/toniot-datasets",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-stratosphereips-org-datasets-iot23-9415d0a98c40",
+  "slug": "curated-url-https-www-stratosphereips-org-datasets-iot23-9415d0a98c40",
+  "title": "IoT-23",
+  "concept_doi": null,
+  "paper_count": 245,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_8d2c34534b3e635fde3a146c",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "provider_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "IoT malicious traffic classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.stratosphereips.org/datasets-iot23",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.24432/c5rc8j",
+  "slug": "10-24432__c5rc8j",
+  "title": "N-BaIoT",
+  "concept_doi": "10.24432/c5rc8j",
+  "paper_count": 230,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_d8d665aa98bc2aea62b619f4",
+    "license_url": null,
+    "version_doi": "10.24432/c5rc8j",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "allowed",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "tabular"
+     ],
+     "primary_task_name": "IoT botnet attack detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://archive.ics.uci.edu/dataset/442/detection+of+iot+botnet+attacks+n+baiot",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-provider-ieee-dataport-8939-8eefc3d6d18f",
+  "slug": "curated-provider-ieee-dataport-8939-8eefc3d6d18f",
+  "title": "Edge-IIoTset",
+  "concept_doi": null,
+  "paper_count": 214,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_7b7698856dffeeb9acb9e6bb",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "IEEE_DataPort_terms",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "Network attack classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://ieee-dataport.org/open-access/edge-iiotset-new-comprehensive-realistic-cyber-security-dataset-iot-and-iiot-applications",
+    "access_status": "registration"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.20081895",
+  "slug": "10-5281__zenodo-20081895",
+  "title": "VeReMi",
+  "concept_doi": "10.5281/zenodo.20081895",
+  "paper_count": 93,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_a130fc2ac4a437717b45eb35",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.20081895",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "copyright_notice",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "mobility_trace",
+      "time_series"
+     ],
+     "primary_task_name": "VANET misbehavior detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/20081895",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/20081895",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.24432/c5ms59",
+  "slug": "10-24432__c5ms59",
+  "title": "UJIIndoorLoc",
+  "concept_doi": "10.24432/c5ms59",
+  "paper_count": 87,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_10089411a0c5dbed537ad731",
+    "license_url": null,
+    "version_doi": "10.24432/c5ms59",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "allowed",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "radio_map",
+      "tabular"
+     ],
+     "primary_task_name": "WLAN fingerprint-based indoor localization",
+     "primary_task_type": "localization"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://archive.ics.uci.edu/dataset/310/ujindoorloc",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.21227/wq34-a443",
+  "slug": "10-21227__wq34-a443",
+  "title": "DeepSense 6G",
+  "concept_doi": "10.21227/wq34-a443",
+  "paper_count": 78,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_a741b62524d792c306fbf846",
+    "license_url": null,
+    "version_doi": "10.21227/wq34-a443",
+    "version_key": "10.21227/wq34-a443",
+    "license_name": "registration-required",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "multimodal"
+     ],
+     "primary_task_name": "Beam prediction",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.deepsense6g.net/",
+    "access_status": "registration"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://ieee-dataport.org/documents/deepsense-6g-large-scale-real-world-multi-modal-sensing-and-communication-dataset",
+    "access_status": "gated"
+   }
+  ]
+ },
+ {
+  "id": "10.21227/xtep-hv36",
+  "slug": "10-21227__xtep-hv36",
+  "title": "5G-NIDD",
+  "concept_doi": "10.21227/xtep-hv36",
+  "paper_count": 52,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_4a8d53ef40bc3f798cc9c76a",
+    "license_url": null,
+    "version_doi": "10.21227/xtep-hv36",
+    "version_key": "10.21227/xtep-hv36",
+    "license_name": "IEEE_DataPort_terms",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "tabular"
+     ],
+     "primary_task_name": "5G network intrusion detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://doi.org/10.21227/xtep-hv36",
+    "access_status": "registration"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://ieee-dataport.org/documents/5g-nidd-comprehensive-network-intrusion-detection-dataset-generated-over-5g-wireless",
+    "access_status": "gated"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-cores-ee-ucla-edu-wisig-overview-206e82c51852",
+  "slug": "curated-url-https-cores-ee-ucla-edu-wisig-overview-206e82c51852",
+  "title": "WiSig",
+  "concept_doi": null,
+  "paper_count": 27,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_ea3c9fdcb35dd7b1770c4281",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "allowed",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "rf_iq"
+     ],
+     "primary_task_name": "WiFi device identification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://cores.ee.ucla.edu/wisig/overview/",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.20090854",
+  "slug": "10-5281__zenodo-20090854",
+  "title": "VeReMi Extension",
+  "concept_doi": "10.5281/zenodo.20090854",
+  "paper_count": 20,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_b4b70c9e0abb5c1c91dc310f",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.20090854",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "copyright_notice",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "mobility_trace",
+      "multimodal"
+     ],
+     "primary_task_name": "V2X misbehavior and attack detection",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/20090854",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/20090854",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:radiomapseer",
+  "slug": "radiomapseer",
+  "title": "RadioMapSeer",
+  "concept_doi": "10.21227/0gtx-6v30",
+  "paper_count": 15,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_5715d7b2c484c0eee536333d",
+    "license_url": null,
+    "version_doi": "10.21227/0gtx-6v30",
+    "version_key": "10.21227/0gtx-6v30",
+    "license_name": "open",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "image",
+      "radio_map"
+     ],
+     "primary_task_name": "Pathloss radio map prediction",
+     "primary_task_type": "regression"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://doi.org/10.21227/0gtx-6v30",
+    "access_status": "registration"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://ieee-dataport.org/documents/radiomapseer",
+    "access_status": "gated"
+   }
+  ]
+ },
+ {
+  "id": "10.24432/c51880",
+  "slug": "10-24432__c51880",
+  "title": "Wireless Indoor Localization",
+  "concept_doi": "10.24432/c51880",
+  "paper_count": 11,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_2e09498aaba8c0c9398a1910",
+    "license_url": null,
+    "version_doi": "10.24432/c51880",
+    "version_key": "10.24432/c51880",
+    "license_name": "CC-BY-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "allowed",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "radio_map",
+      "tabular"
+     ],
+     "primary_task_name": "Wireless indoor room localization",
+     "primary_task_type": "localization"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://archive.ics.uci.edu/dataset/422/wireless+indoor+localization",
+    "access_status": "open"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://archive.ics.uci.edu/dataset/422",
+    "access_status": "unknown"
+   }
+  ]
+ },
+ {
+  "id": "10.21227/8k12-2g70",
+  "slug": "10-21227__8k12-2g70",
+  "title": "HisarMod2019.1",
+  "concept_doi": "10.21227/8k12-2g70",
+  "paper_count": 10,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_73b683362ae4fe2355c5a576",
+    "license_url": null,
+    "version_doi": "10.21227/8k12-2g70",
+    "version_key": "10.21227/8k12-2g70",
+    "license_name": "IEEE_DataPort_terms",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "rf_iq"
+     ],
+     "primary_task_name": "Modulation classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://doi.org/10.21227/8k12-2g70",
+    "access_status": "registration"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://ieee-dataport.org/open-access/hisarmod-new-challenging-modulated-signals-dataset",
+    "access_status": "gated"
+   }
+  ]
+ },
+ {
+  "id": "10.21227/8cj7-q373",
+  "slug": "10-21227__8cj7-q373",
+  "title": "Berlin V2X",
+  "concept_doi": "10.21227/8cj7-q373",
+  "paper_count": 7,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_648419a80659fafa2f637775",
+    "license_url": null,
+    "version_doi": "10.21227/8cj7-q373",
+    "version_key": "10.21227/8cj7-q373",
+    "license_name": "IEEE_DataPort_terms",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "multimodal"
+     ],
+     "primary_task_name": "QoS prediction",
+     "primary_task_type": "regression"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://doi.org/10.21227/8cj7-q373",
+    "access_status": "registration"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://ieee-dataport.org/open-access/berlin-v2x",
+    "access_status": "gated"
+   }
+  ]
+ },
+ {
+  "id": "10.24432/c5j60x",
+  "slug": "10-24432__c5j60x",
+  "title": "Optical Interconnection Network",
+  "concept_doi": "10.24432/c5j60x",
+  "paper_count": 6,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_b0215a1254d4597a2bf927fe",
+    "license_url": null,
+    "version_doi": "10.24432/c5j60x",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "allowed",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "other",
+      "tabular"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://archive.ics.uci.edu/dataset/449/optical+interconnection+network",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-genesys-lab-org-oracle-aa924b03ae27",
+  "slug": "curated-url-https-genesys-lab-org-oracle-aa924b03ae27",
+  "title": "ORACLE RF Fingerprinting Dataset",
+  "concept_doi": null,
+  "paper_count": 5,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_6676e1eb772b5ca02f2f0705",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "research_use_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "rf_iq"
+     ],
+     "primary_task_name": "RF device fingerprinting",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://genesys-lab.org/oracle",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.17800058",
+  "slug": "10-5281__zenodo-17800058",
+  "title": "RML24",
+  "concept_doi": "10.5281/zenodo.17800058",
+  "paper_count": 3,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_131ca3517b9a4637ae512062",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.17800058",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "rf_iq"
+     ],
+     "primary_task_name": "Satellite modulation classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/17800058",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/17800058",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.8224890",
+  "slug": "10-5281__zenodo-8224890",
+  "title": "A Large-Scale Dataset of 4G, NB-IoT, and 5G Non-Standalone Network Measurements",
+  "concept_doi": "10.5281/zenodo.8224890",
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_a6ac9ec87d334411e0a8e426",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.8224890",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "tabular",
+      "time_series"
+     ],
+     "primary_task_name": "Mobile network optimization",
+     "primary_task_type": "optimization"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/8224890",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/8224890",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.4121430",
+  "slug": "10-5281__zenodo-4121430",
+  "title": "LoED",
+  "concept_doi": "10.5281/zenodo.4121430",
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_4a7140ede8ed798fce82e4bf",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.4121430",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "pcap",
+      "time_series"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/4121430",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/4121430",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-netmob2023challenge-networks-imdea-org-e88c81e9ba80",
+  "slug": "curated-url-https-netmob2023challenge-networks-imdea-org-e88c81e9ba80",
+  "title": "NetMob23 Dataset",
+  "concept_doi": null,
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_bea96022eee03410f1f60316",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "custom_challenge_license",
+    "access_status": "registration",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "link_only",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "time_series"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://netmob2023challenge.networks.imdea.org/",
+    "access_status": "registration"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-deepsig-ai-datasets-2016-10a-204d0801b1c4",
+  "slug": "radioml-2016-10a",
+  "title": "RadioML 2016.10A",
+  "concept_doi": null,
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_ebcdc40ddf743d67343b2440",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-NC-SA-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "rf_iq"
+     ],
+     "primary_task_name": "RF modulation classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.deepsig.ai/datasets/",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-deepsig-ai-datasets-2018-01a-abd4e88296a0",
+  "slug": "radioml-2018-01a",
+  "title": "RadioML 2018.01A",
+  "concept_doi": null,
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_e747d7f0b6ec4a77ef6d5601",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-NC-SA-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "rf_iq"
+     ],
+     "primary_task_name": "Radio modulation classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.deepsig.ai/datasets/",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.13921775",
+  "slug": "10-5281__zenodo-13921775",
+  "title": "TopologyBench",
+  "concept_doi": "10.5281/zenodo.13921775",
+  "paper_count": 2,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_2b4b6c2f2f46033eaebd4f5e",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.13921775",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "graph"
+     ],
+     "primary_task_name": "Optical network topology clustering",
+     "primary_task_type": "clustering"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/13921775",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/13921775",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.3751187",
+  "slug": "10-5281__zenodo-3751187",
+  "title": "5G Dataset for Beyond Throughput Mobile Network Experience",
+  "concept_doi": "10.5281/zenodo.3751187",
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_f15f32e8d678baa3156cc498",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.3751187",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "GPL-3.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "tabular"
+     ],
+     "primary_task_name": "DASH video QoE prediction",
+     "primary_task_type": "regression"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://github.com/uccmisl/5Gdataset",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/3751187",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:portal-openran-gym-colosseum-coloran-dataset-b0a33017d6ba",
+  "slug": "portal-openran-gym-colosseum-coloran-dataset-b0a33017d6ba",
+  "title": "Colosseum ColO-RAN Dataset",
+  "concept_doi": null,
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_6904adc17cde4afb82bb6566",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "GPL-3.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "time_series"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://openrangym.com/datasets/colosseum-coloran-dataset",
+    "access_status": "open"
+   },
+   {
+    "provider": "portals",
+    "landing_url": "https://github.com/wineslab/colosseum-oran-coloran-dataset",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:deepbeam",
+  "slug": "deepbeam",
+  "title": "DeepBeam Dataset",
+  "concept_doi": null,
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_4174b79a0d9ccecdb07724ed",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "time_series"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://openrangym.com/datasets/deepbeam",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.5281/zenodo.1309317",
+  "slug": "10-5281__zenodo-1309317",
+  "title": "Long-Term Wi-Fi Fingerprinting Dataset",
+  "concept_doi": "10.5281/zenodo.1309317",
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_5ef4ee441633a69a4d77ba2b",
+    "license_url": null,
+    "version_doi": "10.5281/zenodo.1309317",
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "repository_record",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "radio_map",
+      "time_series"
+     ],
+     "primary_task_name": "Robust indoor positioning from Wi-Fi fingerprints",
+     "primary_task_type": "localization"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://zenodo.org/records/1309317",
+    "access_status": "open"
+   },
+   {
+    "provider": "zenodo",
+    "landing_url": "https://zenodo.org/records/1309317",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "tmleb:curated-url-https-www-deepsig-ai-datasets-2016-04c-407fc8473fac",
+  "slug": "curated-url-https-www-deepsig-ai-datasets-2016-04c-407fc8473fac",
+  "title": "RadioML 2016.04C",
+  "concept_doi": null,
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_2e19af9c2f0cd273551dd559",
+    "license_url": null,
+    "version_doi": null,
+    "version_key": "telecom-ml-gold-v0.1",
+    "license_name": "CC-BY-NC-SA-4.0",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "rf_iq",
+      "spectrum"
+     ],
+     "primary_task_name": "Radio modulation classification",
+     "primary_task_type": "classification"
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://www.deepsig.ai/datasets/",
+    "access_status": "open"
+   }
+  ]
+ },
+ {
+  "id": "10.7910/dvn/egzhfv",
+  "slug": "10-7910__dvn__egzhfv",
+  "title": "Telecom Italia Mobile Phone Activity in Milan",
+  "concept_doi": "10.7910/dvn/egzhfv",
+  "paper_count": 1,
+  "tmlb_dataset_versions": [
+   {
+    "id": "dsv_1c194720cdae8b1c7fcfd39a",
+    "license_url": null,
+    "version_doi": "10.7910/dvn/egzhfv",
+    "version_key": "1.3",
+    "license_name": "repository_terms",
+    "access_status": "open",
+    "version_label": "telecom-ml-gold-v0.1",
+    "redistribution_status": "unknown",
+    "tmlb_dataset_profiles": {
+     "modalities": [
+      "radio_map",
+      "time_series"
+     ],
+     "primary_task_name": null,
+     "primary_task_type": null
+    }
+   }
+  ],
+  "tmlb_dataset_sources": [
+   {
+    "provider": "curated",
+    "landing_url": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EGZHFV",
+    "access_status": "open"
+   },
+   {
+    "provider": "datacite",
+    "landing_url": "https://dataverse.harvard.edu/citation?persistentId=doi:10.7910/DVN/EGZHFV",
+    "access_status": "open"
+   },
+   {
+    "provider": "dataverse",
+    "landing_url": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/EGZHFV",
+    "access_status": "open"
+   }
+  ]
+ }
+]

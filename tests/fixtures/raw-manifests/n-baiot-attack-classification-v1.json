@@ -1,0 +1,1407 @@
+{
+ "algorithm_version": "telemlebench-disk-split-explicit-groups/1",
+ "artifacts": [
+  {
+   "media_type": "text/csv",
+   "path": "assignments.csv",
+   "public": true,
+   "role": "split_assignment",
+   "sha256": "8513846d41f709888694fe99ff19cfd72341eb8f4ed46cdcc348dcc86b874b2c",
+   "size_bytes": 857590872
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/train.csv",
+   "public": true,
+   "role": "train",
+   "sha256": "5f21926545357e1ace91b736cf7c7bd0afcdacb1788eb17d547a2ef33b02b745",
+   "size_bytes": 6009313928
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/validation.csv",
+   "public": true,
+   "role": "validation",
+   "sha256": "58af0d76ce7caa4ea62975a55211c9d22ad12f4270e29a69b73ac193d4220ef4",
+   "size_bytes": 1387013657
+  },
+  {
+   "media_type": "text/csv",
+   "path": "data/test-features.csv",
+   "public": true,
+   "role": "test_features",
+   "sha256": "0555b6cccac6b37678780dc08a88e3d75de6de869c0516e26157f15f6da46adb",
+   "size_bytes": 1261801655
+  }
+ ],
+ "assignment_sha256": "8513846d41f709888694fe99ff19cfd72341eb8f4ed46cdcc348dcc86b874b2c",
+ "counts": {
+  "test": 1018298,
+  "train": 4945631,
+  "val": 1098677
+ },
+ "dataset_id": "10.24432/c5rc8j",
+ "dataset_version_id": "dsv_d8d665aa98bc2aea62b619f4",
+ "feature_count": 115,
+ "feature_fields": [
+  "HH_L0.01_covariance",
+  "HH_L0.01_magnitude",
+  "HH_L0.01_mean",
+  "HH_L0.01_pcc",
+  "HH_L0.01_radius",
+  "HH_L0.01_std",
+  "HH_L0.01_weight",
+  "HH_L0.1_covariance",
+  "HH_L0.1_magnitude",
+  "HH_L0.1_mean",
+  "HH_L0.1_pcc",
+  "HH_L0.1_radius",
+  "HH_L0.1_std",
+  "HH_L0.1_weight",
+  "HH_L1_covariance",
+  "HH_L1_magnitude",
+  "HH_L1_mean",
+  "HH_L1_pcc",
+  "HH_L1_radius",
+  "HH_L1_std",
+  "HH_L1_weight",
+  "HH_L3_covariance",
+  "HH_L3_magnitude",
+  "HH_L3_mean",
+  "HH_L3_pcc",
+  "HH_L3_radius",
+  "HH_L3_std",
+  "HH_L3_weight",
+  "HH_L5_covariance",
+  "HH_L5_magnitude",
+  "HH_L5_mean",
+  "HH_L5_pcc",
+  "HH_L5_radius",
+  "HH_L5_std",
+  "HH_L5_weight",
+  "HH_jit_L0.01_mean",
+  "HH_jit_L0.01_variance",
+  "HH_jit_L0.01_weight",
+  "HH_jit_L0.1_mean",
+  "HH_jit_L0.1_variance",
+  "HH_jit_L0.1_weight",
+  "HH_jit_L1_mean",
+  "HH_jit_L1_variance",
+  "HH_jit_L1_weight",
+  "HH_jit_L3_mean",
+  "HH_jit_L3_variance",
+  "HH_jit_L3_weight",
+  "HH_jit_L5_mean",
+  "HH_jit_L5_variance",
+  "HH_jit_L5_weight",
+  "H_L0.01_mean",
+  "H_L0.01_variance",
+  "H_L0.01_weight",
+  "H_L0.1_mean",
+  "H_L0.1_variance",
+  "H_L0.1_weight",
+  "H_L1_mean",
+  "H_L1_variance",
+  "H_L1_weight",
+  "H_L3_mean",
+  "H_L3_variance",
+  "H_L3_weight",
+  "H_L5_mean",
+  "H_L5_variance",
+  "H_L5_weight",
+  "HpHp_L0.01_covariance",
+  "HpHp_L0.01_magnitude",
+  "HpHp_L0.01_mean",
+  "HpHp_L0.01_pcc",
+  "HpHp_L0.01_radius",
+  "HpHp_L0.01_std",
+  "HpHp_L0.01_weight",
+  "HpHp_L0.1_covariance",
+  "HpHp_L0.1_magnitude",
+  "HpHp_L0.1_mean",
+  "HpHp_L0.1_pcc",
+  "HpHp_L0.1_radius",
+  "HpHp_L0.1_std",
+  "HpHp_L0.1_weight",
+  "HpHp_L1_covariance",
+  "HpHp_L1_magnitude",
+  "HpHp_L1_mean",
+  "HpHp_L1_pcc",
+  "HpHp_L1_radius",
+  "HpHp_L1_std",
+  "HpHp_L1_weight",
+  "HpHp_L3_covariance",
+  "HpHp_L3_magnitude",
+  "HpHp_L3_mean",
+  "HpHp_L3_pcc",
+  "HpHp_L3_radius",
+  "HpHp_L3_std",
+  "HpHp_L3_weight",
+  "HpHp_L5_covariance",
+  "HpHp_L5_magnitude",
+  "HpHp_L5_mean",
+  "HpHp_L5_pcc",
+  "HpHp_L5_radius",
+  "HpHp_L5_std",
+  "HpHp_L5_weight",
+  "MI_dir_L0.01_mean",
+  "MI_dir_L0.01_variance",
+  "MI_dir_L0.01_weight",
+  "MI_dir_L0.1_mean",
+  "MI_dir_L0.1_variance",
+  "MI_dir_L0.1_weight",
+  "MI_dir_L1_mean",
+  "MI_dir_L1_variance",
+  "MI_dir_L1_weight",
+  "MI_dir_L3_mean",
+  "MI_dir_L3_variance",
+  "MI_dir_L3_weight",
+  "MI_dir_L5_mean",
+  "MI_dir_L5_variance",
+  "MI_dir_L5_weight"
+ ],
+ "plan_sha256": "fd83e7a12e4fbae5258a715aad495f052cba0d5888cb700eb2ff3e58462c6e07",
+ "sample_count": 7062606,
+ "sample_id_fields": [
+  "__source_file",
+  "__source_row"
+ ],
+ "schema_version": "telemlebench-split-plan/1",
+ "source_artifacts": [
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__benign.csv",
+   "sha256": "866083fd18f52b6ddde94e47b4d27925432bb83d5f547868f143d87c50354650",
+   "size_bytes": 46537568
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__mirai.ack.csv",
+   "sha256": "ef411d0b9d9021c209e3c52cf83e3dd628ee3137c370c0a73c741dd3b0375483",
+   "size_bytes": 135498914
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__mirai.scan.csv",
+   "sha256": "33184b64cf3edc279bd8001301409afb1f3b137f380cabf6d8519ee0343d085e",
+   "size_bytes": 107510905
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__mirai.syn.csv",
+   "sha256": "58d4a359b9d0b1bd7f0ce49ba239e18fc0b27a361e8386413a61faec9d99c3e7",
+   "size_bytes": 164633193
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__mirai.udp.csv",
+   "sha256": "bfc623dc77506276ff2af501ce02ecb40f6a6d812c3908fbab0a77776b29a490",
+   "size_bytes": 315304260
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__mirai.udpplain.csv",
+   "sha256": "1f888f66c06dde773e1534cbcf35920717fbf35593583373b365c9b859afff2d",
+   "size_bytes": 120365536
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__gafgyt.combo.csv",
+   "sha256": "99755635b255c1b05f1605259dbbf3f77200fc284930be888d4c3423a95815d9",
+   "size_bytes": 105833909
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__gafgyt.junk.csv",
+   "sha256": "aafbfc32aef267dee69d9937a69e9561a636762a02a19bcbf437812325863842",
+   "size_bytes": 49322665
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__gafgyt.scan.csv",
+   "sha256": "cca1095c1872c20a299fa522987f50bf9ec9828e2bd6983aef604ddc8a8eb2b5",
+   "size_bytes": 40177901
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__gafgyt.tcp.csv",
+   "sha256": "deb5e28f12424c4b8b5fd62706b7609bdaacf38a380b5eb3aa01e292f00af7c1",
+   "size_bytes": 51866227
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Danmini_Doorbell__gafgyt.udp.csv",
+   "sha256": "10f3cfff3c04016668a3a4904722bd9a9930bb17fbebaaf3b2dcd4df2b6e7fec",
+   "size_bytes": 59597256
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__benign.csv",
+   "sha256": "87cc2a3d516491e92314d8a515dd2335cfe18c5dbef8a67328d78aed01f4dcfc",
+   "size_bytes": 13953719
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__mirai.ack.csv",
+   "sha256": "1bed3daa5688fcc5ebf3d6b67c51cff43165d45bb97fab76eef0460d3fce5706",
+   "size_bytes": 155635866
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__mirai.scan.csv",
+   "sha256": "504328ca668a7c762f756702f2498f6f6b9c70f68d690454f6198945454da8a0",
+   "size_bytes": 43078827
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__mirai.syn.csv",
+   "sha256": "c7cec6b498eab4a99ff63b4f6ca80fc8a4be433f0a9d282ff9dcb03f1b284cac",
+   "size_bytes": 161570382
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__mirai.udp.csv",
+   "sha256": "db06c4cbdc550727c9f2886767123b3551a41fb85181a264a6193cf49a695e52",
+   "size_bytes": 207783110
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__mirai.udpplain.csv",
+   "sha256": "3654c1188fbc2b4c7b59fcc2d06a39042edce949396b2b098f968aadd1b9f341",
+   "size_bytes": 138671843
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__gafgyt.combo.csv",
+   "sha256": "2d2e95bd76c31d6efc17b47bde802ae711358df6d41e0ba9c19965f6f6dab14f",
+   "size_bytes": 94251568
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__gafgyt.junk.csv",
+   "sha256": "f530a9c8c3582499121595c6bcfd04228dd807e1a20a3a5dcb7ab7c42fd4a258",
+   "size_bytes": 51673314
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__gafgyt.scan.csv",
+   "sha256": "2f4f304637155627a083637e0a0b97dc7077f7ed810fb6f0a93874c629a086a7",
+   "size_bytes": 37108696
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__gafgyt.tcp.csv",
+   "sha256": "0283467266ee6d46d8a9208102246ab48783f47ef9878e5d5a7eb9bcb0a53c3d",
+   "size_bytes": 53485288
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ecobee_Thermostat__gafgyt.udp.csv",
+   "sha256": "b03f41406c92f655b517e6839a5dc4036bfd5206a5ee30cb0366cd1f624890a1",
+   "size_bytes": 58988910
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__benign.csv",
+   "sha256": "75cc608d3196950ad1cb14fc050babb96098128106b55ed84226e3ea97dba821",
+   "size_bytes": 37135498
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__gafgyt.combo.csv",
+   "sha256": "8d943d53ba021d56721134b0582c9f3ddd2484c8bd7645230abd5a72df29290e",
+   "size_bytes": 94030426
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__gafgyt.junk.csv",
+   "sha256": "5cc1a8a1615a30de172aaa0443d992a93bb32b30e38798a74968c152a8fffc75",
+   "size_bytes": 50828262
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__gafgyt.scan.csv",
+   "sha256": "52e0f81933a4672251a7c62c6bdb67fe49c156245acd4b4ee15f9f2ec06838ae",
+   "size_bytes": 37971404
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__gafgyt.tcp.csv",
+   "sha256": "aebe5ac63d59408112bc292a5480617c02d815723201c94f7b9dad43dce5cf01",
+   "size_bytes": 57149667
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Ennio_Doorbell__gafgyt.udp.csv",
+   "sha256": "cd4777ed44ff01eff437dcb3458bec2b8ddb86db58879c32781bcffa384bcd64",
+   "size_bytes": 58507137
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__benign.csv",
+   "sha256": "10a3508cbbbcd6b3e7647e570f0ab9c72f01f05c32660d2f25f537f9d4efe151",
+   "size_bytes": 214374672
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__mirai.ack.csv",
+   "sha256": "f78ec751df687bcba48ed79b30b4d945eeeb1d40de6fdf10bd05cbd0a29a4ee9",
+   "size_bytes": 120882839
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__mirai.scan.csv",
+   "sha256": "4ed36577a5e0db1d31b8621dbf3227ae59ce8e674a8d852386e74abbef442513",
+   "size_bytes": 103452295
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__mirai.syn.csv",
+   "sha256": "e715fb18f8d6279dab93760ab30587a595b2f99344fb55d754f250cf48715112",
+   "size_bytes": 158976651
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__mirai.udp.csv",
+   "sha256": "cc1558f17896514d52ac9f23856a9beac0cec8369a2d93d58be99360599455f0",
+   "size_bytes": 287994126
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__mirai.udpplain.csv",
+   "sha256": "8562521c9e85353dd32bb1fa616ce4d908a0f4231006c1955cf5a9df0ec195a6",
+   "size_bytes": 118674570
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__gafgyt.combo.csv",
+   "sha256": "923377bf736a67973fc4cd6b36455a44d07932b1b3a825d7ac5063069c8227b5",
+   "size_bytes": 103451636
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__gafgyt.junk.csv",
+   "sha256": "3347890c08b2610e8dca0bb58d9406e9727520eb5308af35f1f84e392da7f746",
+   "size_bytes": 48260845
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__gafgyt.scan.csv",
+   "sha256": "8eb3c88639feb9882126097cc743959e20ba59f25a3cdec079159364884bd792",
+   "size_bytes": 37535324
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__gafgyt.tcp.csv",
+   "sha256": "2eca9dc174682ba154b8c311b705b4acf2b0af82ff9c05f51b735416f3e7a315",
+   "size_bytes": 52113658
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Philips_B120N10_Baby_Monitor__gafgyt.udp.csv",
+   "sha256": "76cceeac5043ca45939381a8d5c97dbcb8bac00d3293408a7cdf5b1cd908b7aa",
+   "size_bytes": 59545509
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__benign.csv",
+   "sha256": "521cd6f18ecb53dee6c750b6139a035179109988f75aeb81fa26f549a8084ae8",
+   "size_bytes": 64576152
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__mirai.ack.csv",
+   "sha256": "3e38fe04f99c69cf7fd24b4ccb0cfa7c411b56cabfbb0d505fe13ce0506c9374",
+   "size_bytes": 76849640
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__mirai.scan.csv",
+   "sha256": "2dcfcad287eff7ce72cc61a2c45e7f0d6888cbfd3eb8d177f59f15360f3e30c5",
+   "size_bytes": 96028732
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__mirai.syn.csv",
+   "sha256": "d49b750bfa9c0178da5c517d180509bdc6a890485c11dbba8029e424ac1869cd",
+   "size_bytes": 83285871
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__mirai.udp.csv",
+   "sha256": "568fc142fd90176ccde0953bc5c272499cf01bf0c268425c18a56591dedac978",
+   "size_bytes": 200357797
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__mirai.udpplain.csv",
+   "sha256": "32ed5a5e34515d33a42f51132c1e5c03edf08b956f447ce68a7ddc92b5960597",
+   "size_bytes": 79817584
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__gafgyt.combo.csv",
+   "sha256": "836bd15576c15b64fcfca36720ec3e3929328d6d362cc3cd829336b65aec92e7",
+   "size_bytes": 109076363
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__gafgyt.junk.csv",
+   "sha256": "043ce520adc36255d4f36bde7b243fdf07f2171443c4b11d44ec9894f7ed9dcb",
+   "size_bytes": 52629481
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__gafgyt.scan.csv",
+   "sha256": "7946a18b9336cc719e1658e568b470f46f243a2ec4fafcb2477f23afc76e57a1",
+   "size_bytes": 39580175
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__gafgyt.tcp.csv",
+   "sha256": "bb9233efb3497494fcb71f19199d49ce18b7013f2aa371b92b8d86d91388298a",
+   "size_bytes": 58822798
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_737E_Security_Camera__gafgyt.udp.csv",
+   "sha256": "bd9107b757128091288af71a69453136710907cc29f27313801274a0fc79eeaa",
+   "size_bytes": 58550975
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__benign.csv",
+   "sha256": "f897d6e347bd2cee9518c8aa6cdf873a793d505b341169383b52c7b1402affd3",
+   "size_bytes": 103620766
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__mirai.ack.csv",
+   "sha256": "3c514a706e57eae295d23d2cff00f895af9f2148f2f7214578f55b24078c56f9",
+   "size_bytes": 73553957
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__mirai.scan.csv",
+   "sha256": "316919fe2550ffd8fbd1cf9312478f830a34437dae29dd2097cddf5466ab94fb",
+   "size_bytes": 96333715
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__mirai.syn.csv",
+   "sha256": "5c0f18df7d4e50eb72c46bc0ad86d9d0b17cff3daa9c0458003e2f40f1a866c6",
+   "size_bytes": 78548822
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__mirai.udp.csv",
+   "sha256": "c5fe69868536d87b5422e0c04d6f300f026adbb16c6a6797f3dae649a708883d",
+   "size_bytes": 203388721
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__mirai.udpplain.csv",
+   "sha256": "6bfdf6d88ceeb1a397ab51afad0a372c0c2ac1e7937870946aa1e94e80328562",
+   "size_bytes": 75727146
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__gafgyt.combo.csv",
+   "sha256": "55f4a7c419113e0acd426ae7e5242725b5031e481af2eed9c815bb3be406a666",
+   "size_bytes": 102197160
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__gafgyt.junk.csv",
+   "sha256": "c0b932340fb605b9e50f3d9acd1662995e81c2af127a141e911ee6509d495cad",
+   "size_bytes": 49536332
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__gafgyt.scan.csv",
+   "sha256": "386b1753a817e3fd2241d005a3231703e5494d76e901b5f62f969c6a18ec24d2",
+   "size_bytes": 38452514
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__gafgyt.tcp.csv",
+   "sha256": "311c7d6d76284e3f7767656e9fe44291a6112dc64524c2c0b79475bfa73c1295",
+   "size_bytes": 50316596
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Provision_PT_838_Security_Camera__gafgyt.udp.csv",
+   "sha256": "04b0cba05d2971df748ec742cbdd7dd1969172910cb86aece78fa1dd4f19cfe7",
+   "size_bytes": 58912912
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__benign.csv",
+   "sha256": "b2f63cf6a42061de8d44f6d23be92a7e27c8ebb71edda80424b1897de304372f",
+   "size_bytes": 54969458
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__gafgyt.combo.csv",
+   "sha256": "6571ae13c9eede42ca9f74f552c4599ce8003f37b18018dbd32cbce53a758748",
+   "size_bytes": 104015943
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__gafgyt.junk.csv",
+   "sha256": "afd30eb66d4a82735a93b3a195412ffcf347710eb6463002984d8d75e4027d3d",
+   "size_bytes": 48261599
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__gafgyt.scan.csv",
+   "sha256": "7660dca4cbc510a92ae7698b0321bbdd8e7b97eb0f70596291c9ba2f6c302921",
+   "size_bytes": 37441442
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__gafgyt.tcp.csv",
+   "sha256": "030c8ecec1525308aa533784d8035168b9a136e08e11fbcc104236ee5b2c0c7e",
+   "size_bytes": 55038941
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/Samsung_SNH_1011_N_Webcam__gafgyt.udp.csv",
+   "sha256": "921beb8b9bf270614089eee524d21745787552010e7671330636955923f39aa4",
+   "size_bytes": 62265519
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__benign.csv",
+   "sha256": "6ec7c1a83e1aa0ec510e63721e3e52d5f307b939c3807cd6accd284e8f6f6c43",
+   "size_bytes": 47616941
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.ack.csv",
+   "sha256": "30d66df604c4b46b417547d64e9f7e6fb9a1fa04cc4936aa4c2cf56ac9c78273",
+   "size_bytes": 153189923
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.scan.csv",
+   "sha256": "17c6f5c00cadae95a55fca1a9e2829f3830b1cd8a14970c817a778f4e312a6a8",
+   "size_bytes": 45823393
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.syn.csv",
+   "sha256": "d233b084dc3d9e508b4302a62094859985300a8dd2f99c41a53414e3ea757171",
+   "size_bytes": 173607186
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.udp.csv",
+   "sha256": "d79e3ceb3a93bdf758852d2e497128cbe342f3474090b5abfe508dcebdbacbd5",
+   "size_bytes": 208331925
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.udpplain.csv",
+   "sha256": "d5427a26d670848be77e1ae9ceeb5aa27e2920c958a9795001887bf3bc7cfcbb",
+   "size_bytes": 124485105
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.combo.csv",
+   "sha256": "36114961849a84f39f5e0935f97ea67e8e69ccb1da3e01d13cc4cc6ca583215f",
+   "size_bytes": 96595924
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.junk.csv",
+   "sha256": "4b55b24c90399fb51d0578bdc21de6183502b3903f5a215e158e2d1288e6d74b",
+   "size_bytes": 48585877
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.scan.csv",
+   "sha256": "204fadeb472d67e47ecdcad0ad7faf317ef0037ed431cfcd19664704fe575068",
+   "size_bytes": 37511054
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.tcp.csv",
+   "sha256": "8d22555dd7db69573f62f71628b38670df3fb144219d51d97119a82b10235d96",
+   "size_bytes": 49995960
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.udp.csv",
+   "sha256": "83c3ea1de563b44d28c19309928039426b71c26a438c8e571b1281a5c32decfe",
+   "size_bytes": 58385654
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__benign.csv",
+   "sha256": "0e0f9c19bce92b3ebbf3173baff120d9ac99ffafb207618cbaea3eba53bcfac3",
+   "size_bytes": 17632741
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.ack.csv",
+   "sha256": "67434b1b64e3e27fa3415732f749e4b1c4c099485c156f5aca3c7c0790cf4ff9",
+   "size_bytes": 147187372
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.scan.csv",
+   "sha256": "bc15d2a4833b9f12f51837c6581fb55c6cf8ed13bc8699c77dcd29c3988b359d",
+   "size_bytes": 43554193
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.syn.csv",
+   "sha256": "9545795b938ef0ad6744154dd47fe7245e16f45aaebb4fa5ed5196859f035498",
+   "size_bytes": 169089092
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.udp.csv",
+   "sha256": "bb6f6958b74be6a4055f8795950deefcfd41e4447c04ca48555d2adeae5418a3",
+   "size_bytes": 215629797
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.udpplain.csv",
+   "sha256": "606bb98a6ffd746e2a33dffc373e8910762f81a90048d2d497a7e0734ed594fb",
+   "size_bytes": 133920179
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.combo.csv",
+   "sha256": "3b0e8d6ecfe610a953d700da0e4b170b3a552513ace8c08d5d038169625acee4",
+   "size_bytes": 105589038
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.junk.csv",
+   "sha256": "204e0933db90873f91954de666894a27c78c07d103fba2d1faa1d62d4fc1090f",
+   "size_bytes": 46573306
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.scan.csv",
+   "sha256": "309d2d47b1360589bd3457b1d73033a2b4eeab275599363be01bf0eba909fdd6",
+   "size_bytes": 38455148
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.tcp.csv",
+   "sha256": "22608905531b663482dc45c66d95199a879e006cd171284bf16f7a72bdaf634e",
+   "size_bytes": 55203340
+  },
+  {
+   "path": "../benchmarks/_datasets/downloads/n-baiot-prepared/SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.udp.csv",
+   "sha256": "0905dbd1ff34eaad2b4e977fe58ffe0e3aab81e79b2499cc295f2cd5e327d607",
+   "size_bytes": 57969199
+  }
+ ],
+ "source_format": "csv_directory",
+ "source_members": [
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Danmini_Doorbell"
+   },
+   "name": "Danmini_Doorbell__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Ecobee_Thermostat"
+   },
+   "name": "Ecobee_Thermostat__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Ennio_Doorbell"
+   },
+   "name": "Ennio_Doorbell__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Philips_B120N10_Baby_Monitor"
+   },
+   "name": "Philips_B120N10_Baby_Monitor__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Provision_PT_737E_Security_Camera"
+   },
+   "name": "Provision_PT_737E_Security_Camera__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Provision_PT_838_Security_Camera"
+   },
+   "name": "Provision_PT_838_Security_Camera__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "Samsung_SNH_1011_N_Webcam"
+   },
+   "name": "Samsung_SNH_1011_N_Webcam__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "SimpleHome_XCS7_1002_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1002_WHT_Security_Camera__gafgyt.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "benign",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__benign.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.ack",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.ack.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.scan",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.syn",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.syn.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udp",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.udp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "mirai.udpplain",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__mirai.udpplain.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.combo",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.combo.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.junk",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.junk.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.scan",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.scan.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.tcp",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.tcp.csv",
+   "upstream_split": null
+  },
+  {
+   "fields": {
+    "__attack": "gafgyt.udp",
+    "__device": "SimpleHome_XCS7_1003_WHT_Security_Camera"
+   },
+   "name": "SimpleHome_XCS7_1003_WHT_Security_Camera__gafgyt.udp.csv",
+   "upstream_split": null
+  }
+ ],
+ "split": {
+  "dependencies_absent": false,
+  "fields": [
+   "__device"
+  ],
+  "group_assignments": [
+   {
+    "split": "test",
+    "values": [
+     "Danmini_Doorbell"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "Ecobee_Thermostat"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "Ennio_Doorbell"
+    ]
+   },
+   {
+    "split": "val",
+    "values": [
+     "Philips_B120N10_Baby_Monitor"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "Provision_PT_737E_Security_Camera"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "Provision_PT_838_Security_Camera"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "Samsung_SNH_1011_N_Webcam"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "SimpleHome_XCS7_1002_WHT_Security_Camera"
+    ]
+   },
+   {
+    "split": "train",
+    "values": [
+     "SimpleHome_XCS7_1003_WHT_Security_Camera"
+    ]
+   }
+  ],
+  "ratios": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "seed": 42,
+  "strategy": "group",
+  "view": "telemlebench-v1"
+ },
+ "target_fields": [
+  "__attack"
+ ],
+ "task_id": "n-baiot-attack-classification-v1",
+ "upstream_splits": {}
+}

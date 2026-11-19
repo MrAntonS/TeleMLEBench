@@ -26,7 +26,25 @@ GET /api/v1/releases/{releaseId}/files/test_features
 ```
 
 Only manifest entries marked `public: true` are returned by this API. Private
-evaluator repository paths are never included.
+evaluator repository paths are never included: anything under `private/` or with a
+label role is dropped even if mis-flagged (`isPrivateEntry` in
+`server/lib/releases.ts`, tested by `tests/unit/public-manifest-privacy.test.mjs`).
+Label checksums live only in the private evaluator manifest.
+
+Every release also carries `distribution`, `license` (name, URL, where it was
+checked, attribution, extra terms), `provider_url` and `catalog_dataset_version_id`
+(the `tmlb_dataset_versions` record it was cut from), plus two generated files:
+
+```http
+GET /api/v1/releases/{releaseId}/files/task          # task.json: target, features, provider file SHA-256
+GET /api/v1/releases/{releaseId}/files/build_script  # provider-only releases: build_split.py
+```
+
+`distribution: "provider_only"` releases (CICIDS2017, CICIoT2023) are split
+definitions: `train`, `validation` and `test_features` answer `410` with the
+provider link, and users build the split from the provider's files with the build
+script or `owl_wireless.dataset(...).load(source_dir=...)`. Hidden-label scoring
+is unchanged.
 
 ## Prediction format
 
@@ -63,6 +81,11 @@ Automated clients and the future SDK use:
 ```http
 Authorization: Bearer $TELEMLEBENCH_EVALUATION_KEY
 ```
+
+The Python client (`sdk/python`, `pip install owl-wireless`) sends this key from
+the `OWL_TOKEN` environment variable: `owl_wireless.score(...)` or `owl score preds.csv
+--dataset ...`. Generate a key with `scripts/evaluation-key.sh --generate`, give
+the plaintext token to the user, and add only its digest below.
 
 The key itself is not stored in the repository or browser storage. Vercel keeps
 only comma-separated SHA-256 digests in
