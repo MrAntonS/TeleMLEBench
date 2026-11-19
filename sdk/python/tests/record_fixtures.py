@@ -13,7 +13,7 @@ from owl_wireless.datasets import _DATASET_SELECT
 
 OUT = Path(__file__).parent / "fixtures"
 UJI = "10.24432/c5ms59"
-KEEP_PAPERS = ["P31", "P61", "P62", "P59"]
+KEEP_PAPERS = ["P31", "P61", "P62", "P59", "P96"]
 
 
 def save(name, payload):

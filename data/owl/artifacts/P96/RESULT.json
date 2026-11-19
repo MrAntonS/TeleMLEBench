@@ -1,1 +1,7 @@
-{"metric": "classification accuracy at 12 dB SNR", "value": 33.45434743147577, "unit": "%", "split": "50/50 random train/test split", "notes": "Simplified Dense ResNet-68 C architecture; trained for 5 epochs due to time limit."}
+{
+  "metric": "classification accuracy at 12 dB SNR",
+  "value": 82.60007212405337,
+  "unit": "%",
+  "split": "50/50 random train/test split",
+  "notes": "Implemented ResNet-50 with complex convolutions as approximation of DenseResNet-68 C. Trained for 20 epochs. Used Adam optimizer."
+}

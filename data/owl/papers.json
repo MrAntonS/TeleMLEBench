@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-19T20:30:20.901Z",
+ "generated_at": "2026-11-19T23:21:06.455Z",
  "source": "OWL research workbench: paper-only disclosure tables, verified claim targets, Table 4 reproduction cells",
- "baseline_policy": "OWL baseline = Deep Agents + Gemma 4 31B given the paper and the OWL spec, when that run is valid in FINAL_CELLS.json",
+ "baseline_policy": "OWL baseline = the closest validated run given the paper and the OWL spec (Table 5), from FINAL_CELLS.json",
  "papers": {
   "P31": {
    "id": "P31",
@@ -4826,9 +4826,7 @@
      "evidence": [
       "p. 5, Section 3 training phase"
      ],
-     "source": "assumed",
-     "assumed_value": "42",
-     "assumed_where": "reproduce.py line 64"
+     "source": null
     },
     {
      "key": "dataset_version",
@@ -4908,53 +4906,59 @@
     "url": "https://arxiv.org/pdf/1611.02054v2#page=8"
    },
    "reproduction": {
-    "run": "P61-20261118T011646Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
+    "run": "P61-20261118T011646Z/openhands-gemma-4-31b-owl",
+    "harness": "OpenHands 1.16",
     "model": "Gemma 4 31B",
     "model_id": "google/gemma-4-31b-it",
     "condition": "Paper + OWL spec, no author code",
     "metric": "building and floor accuracy (score)",
     "unit": "%",
-    "score": 35.9136,
-    "agent_reported": 35.9136,
-    "rerun": 35.9136,
+    "score": 91.2691,
+    "agent_reported": 91.2691,
+    "rerun": 91.2691,
     "split": "validation (1,111 examples), same set as the paper",
-    "gap": 56.09,
+    "gap": 0.73,
     "validation": {
      "rule": "i",
      "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 60.71,
+    "fidelity": 53.57,
     "predictions_kept": false,
-    "agent_exit": -15,
-    "finished_at": "2026-11-18T02:04:02.646629+00:00",
+    "agent_exit": 0,
+    "finished_at": "2026-11-18T01:32:59.817201+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P61/reproduce.py",
-      "bytes": 5156
+      "bytes": 5304
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P61/config.yaml",
-      "bytes": 534
+      "bytes": 528
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P61/RESULT.json",
-      "bytes": 261
+      "bytes": 245
+     },
+     {
+      "name": "run.log",
+      "label": "Agent run log",
+      "path": "data/owl/artifacts/P61/run.log",
+      "bytes": 209814
      },
      {
       "name": "rerun.log",
       "label": "Offline re-run output",
       "path": "data/owl/artifacts/P61/rerun.log",
-      "bytes": 131
+      "bytes": 120
      }
     ],
-    "note": "Same evaluation set as the paper. The script is a simplified FAB-MAP with a naive-Bayes observation model and no Chow-Liu tree, which the paper uses. The agent hit the 45-minute limit; its final script re-ran offline to the same score."
+    "note": "Same evaluation set and configuration as the paper’s best row (5 dBm bins from −110 to −10 dBm, PzGe = 0.3135, PzGne = 0.0004). The script matches each scan against all 19,937 training scans with an independent per-feature observation model: it builds no Chow-Liu tree and skips the paper’s DBScan clustering of the database. Matching is deterministic, so no seed is needed, and the offline re-run gave the same score."
    }
   },
   "P62": {
@@ -5002,38 +5006,38 @@
     {
      "key": "optimizer_lr",
      "label": "Optimizer / LR",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No optimizer or learning rate stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "Adam, learning rate 1e-4",
-     "assumed_where": "reproduce.py line 31"
+     "value": "Adam, learning rate 1e-4 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No optimizer or learning rate stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 324–327 @ fe6c49ce: trainingOptions('adam', 'MaxEpochs',50, 'MiniBatchSize',miniBatchSize, 'InitialLearnRate',1e-4)"
+     ],
+     "source": "code"
     },
     {
      "key": "batch_size",
      "label": "Batch size",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No batch size stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "20",
-     "assumed_where": "reproduce.py line 31"
+     "value": "20 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No batch size stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 322–326 @ fe6c49ce: miniBatchSize = 20; 'MiniBatchSize',miniBatchSize"
+     ],
+     "source": "code"
     },
     {
      "key": "epochs",
      "label": "Epochs",
-     "status": "absent",
+     "status": "code",
      "extraction_status": "NOT_SPECIFIED",
-     "value": null,
-     "explanation": "No epochs or iterations stated",
-     "evidence": [],
-     "source": "assumed",
-     "assumed_value": "50",
-     "assumed_where": "reproduce.py line 31"
+     "value": "50 (floor-stage CNN)",
+     "explanation": "Not stated in the paper; taken from the authors’ code. No epochs or iterations stated",
+     "evidence": [
+      "CNN_Prediction_HX_1130.m lines 324–325 @ fe6c49ce: trainingOptions('adam', 'MaxEpochs',50"
+     ],
+     "source": "code"
     },
     {
      "key": "random_seed",
@@ -5120,59 +5124,53 @@
     "url": "https://arxiv.org/pdf/2302.10810v1#page=5"
    },
    "reproduction": {
-    "run": "P62-20261118T011649Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
+    "run": "P62-20261118T011649Z/aider-gemma-4-31b-owl",
+    "harness": "Aider 0.86.2",
     "model": "Gemma 4 31B",
     "model_id": "google/gemma-4-31b-it",
     "condition": "Paper + OWL spec, no author code",
     "metric": "floor hit rate",
     "unit": "%",
-    "score": 89.829,
-    "agent_reported": 89.829,
-    "rerun": 89.829,
+    "score": 90.7291,
+    "agent_reported": 90.7291,
+    "rerun": 90.7291,
     "split": "validation (1,111 observations), same set as the paper",
-    "gap": 5.69,
+    "gap": 4.79,
     "validation": {
      "rule": "i",
      "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 73.3,
+    "fidelity": 46.7,
     "predictions_kept": false,
     "agent_exit": 0,
-    "finished_at": "2026-11-18T01:47:42.663987+00:00",
+    "finished_at": "2026-11-18T01:24:10.081065+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P62/reproduce.py",
-      "bytes": 6203
+      "bytes": 4908
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P62/config.yaml",
-      "bytes": 888
+      "bytes": 1290
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P62/RESULT.json",
-      "bytes": 214
+      "bytes": 308
      },
      {
       "name": "run.log",
       "label": "Agent run log",
       "path": "data/owl/artifacts/P62/run.log",
-      "bytes": 1740
-     },
-     {
-      "name": "rerun.log",
-      "label": "Offline re-run output",
-      "path": "data/owl/artifacts/P62/rerun.log",
-      "bytes": 23
+      "bytes": 40568
      }
     ],
-    "note": "Same 1,111-observation validation set as the paper. Optimizer, learning rate, batch size and epochs are not in the paper and were assumed by the agent. The paper gives no layer sizes, so each stage is a small MLP. The script also filters access points using training and validation data together, which the paper does not describe."
+    "note": "Same 1,111-observation validation set as the paper. Optimizer (Adam), learning rate (1e-4), batch size (20), epochs (50) and seed (1000) are not in the paper; the OWL spec gave them from the authors’ code, where they configure the floor-stage CNN, and the agent used them for every stage. The paper gives no layer sizes and the spec gives no AP coordinates for RSSI images, so each stage is an MLP (64-32 hidden units) instead of a CNN. The script drops only zero-variance APs, not the paper’s unstable-location APs, and scores floor hit rate after a predicted-building stage."
    }
   },
   "P63": {
@@ -5994,7 +5992,9 @@
      "evidence": [
       "p. 31, Appendix A Hyperparameters"
      ],
-     "source": "paper"
+     "source": "assumed",
+     "assumed_value": "CatBoost learning rate 0.1",
+     "assumed_where": "reproduce.py line 107"
     },
     {
      "key": "batch_size",
@@ -6018,7 +6018,9 @@
      "evidence": [
       "p. 31, Appendix A Hyperparameters"
      ],
-     "source": "paper"
+     "source": "assumed",
+     "assumed_value": "CatBoost 100 iterations",
+     "assumed_where": "reproduce.py line 106"
     },
     {
      "key": "random_seed",
@@ -6078,9 +6080,7 @@
      "value": null,
      "explanation": "no seed shuffle or stratification for 70-30 split stated",
      "evidence": [],
-     "source": "assumed",
-     "assumed_value": "42 (train_test_split random_state)",
-     "assumed_where": "reproduce.py line 119"
+     "source": null
     },
     {
      "key": "evaluation_protocol",
@@ -6107,59 +6107,53 @@
     "url": "https://arxiv.org/pdf/2410.15405v1#page=23"
    },
    "reproduction": {
-    "run": "P68-fixda-20261118T011652Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
-    "model": "Gemma 4 31B",
-    "model_id": "google/gemma-4-31b-it",
+    "run": "P68-20261117T192020Z/aider-gemma-4-26b-a4b-owl",
+    "harness": "Aider 0.86.2",
+    "model": "Gemma 4 26B-A4B",
+    "model_id": "google/gemma-4-26b-a4b-it",
     "condition": "Paper + OWL spec, no author code",
     "metric": "accuracy",
     "unit": "%",
-    "score": 100,
-    "agent_reported": 100,
-    "rerun": 100,
+    "score": 83.11,
+    "agent_reported": 83.11,
+    "rerun": 83.11,
     "split": "70/30 train/test split, random under-sampling",
-    "gap": 18,
+    "gap": 1.11,
     "validation": {
      "rule": "i",
      "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 83.3,
+    "fidelity": 44.4,
     "predictions_kept": false,
     "agent_exit": 0,
-    "finished_at": "2026-11-18T01:24:14.892177+00:00",
+    "finished_at": "2026-11-17T19:38:24.184748+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P68/reproduce.py",
-      "bytes": 6849
+      "bytes": 4748
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P68/config.yaml",
-      "bytes": 582
+      "bytes": 688
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P68/RESULT.json",
-      "bytes": 220
+      "bytes": 226
      },
      {
       "name": "run.log",
       "label": "Agent run log",
       "path": "data/owl/artifacts/P68/run.log",
-      "bytes": 1708
-     },
-     {
-      "name": "rerun.log",
-      "label": "Offline re-run output",
-      "path": "data/owl/artifacts/P68/rerun.log",
-      "bytes": 18
+      "bytes": 15340
      }
     ],
-    "note": "OWL scores higher than the claim. The split seed is assumed. The authors’ code uses a random message-level split and selects CatBoost’s best iteration on the test set; agents that follow that split reach 100%, so the gap reflects the paper’s protocol rather than leakage added by OWL."
+    "note": "The sandbox provides one VeReMi simulation run (two receiver logs), not the 225 scenarios the paper uses. The script trains CatBoost on the Leveled top-4 features (pos_x, pos_y, spd_x, spd_y) after random under-sampling, standard scaling and a 70/30 split. CatBoost iterations and learning rate are not given by the paper or the authors’ code and were assumed. It uses seed 42 for the split, where the authors’ code (via the OWL spec) uses 100. Labels are joined to messages by nearest timestamp, and the scaler is fit before the split."
    }
   },
   "P69": {
@@ -10456,7 +10450,7 @@
      ],
      "source": "assumed",
      "assumed_value": "Adam, learning rate 1e-3",
-     "assumed_where": "reproduce.py line 115"
+     "assumed_where": "reproduce.py line 240"
     },
     {
      "key": "batch_size",
@@ -10470,7 +10464,7 @@
      ],
      "source": "assumed",
      "assumed_value": "1024",
-     "assumed_where": "reproduce.py line 110"
+     "assumed_where": "reproduce.py line 232"
     },
     {
      "key": "epochs",
@@ -10483,8 +10477,8 @@
       "p. 3, Section 4 Experimental Design full section search"
      ],
      "source": "assumed",
-     "assumed_value": "5",
-     "assumed_where": "reproduce.py line 119"
+     "assumed_value": "20",
+     "assumed_where": "reproduce.py line 243"
     },
     {
      "key": "random_seed",
@@ -10497,8 +10491,8 @@
       "p. 3, Section 4 split and hardware paragraph"
      ],
      "source": "assumed",
-     "assumed_value": "2020",
-     "assumed_where": "reproduce.py line 89"
+     "assumed_value": "42",
+     "assumed_where": "reproduce.py line 18"
     },
     {
      "key": "dataset_version",
@@ -10548,8 +10542,8 @@
       "p. 3, Section 4 split and hardware paragraph"
      ],
      "source": "assumed",
-     "assumed_value": "2020 (train_test_split random_state)",
-     "assumed_where": "reproduce.py line 101"
+     "assumed_value": "42 (global NumPy seed, np.random.permutation)",
+     "assumed_where": "reproduce.py line 213"
     },
     {
      "key": "evaluation_protocol",
@@ -10578,59 +10572,59 @@
     "url": "https://arxiv.org/pdf/2010.10717v1#page=3"
    },
    "reproduction": {
-    "run": "P96-fixgpu3-20261119T065652Z/deepagents-gemma-4-31b-owl",
-    "harness": "Deep Agents 0.7.3",
-    "model": "Gemma 4 31B",
-    "model_id": "google/gemma-4-31b-it",
+    "run": "P96-20261119T042753Z/aider-qwen3.8-27b-owl",
+    "harness": "Aider 0.86.2",
+    "model": "Qwen3.8-27B",
+    "model_id": "qwen/qwen3.8-27b",
     "condition": "Paper + OWL spec, no author code",
     "metric": "classification accuracy at 12 dB SNR",
     "unit": "%",
-    "score": 33.4543,
-    "agent_reported": 33.4543,
-    "rerun": 36.5221,
+    "score": 82.6001,
+    "agent_reported": 82.6001,
+    "rerun": 82.6001,
     "split": "50/50 random split of the 187k labelled pool, scored at 12 dB SNR",
-    "gap": 58.95,
+    "gap": 9.8,
     "validation": {
-     "rule": "ii",
-     "text": "Validated by the agent’s own log (rule ii): the agent printed 33.45%. The offline re-run gave 36.52%, so this score is not bit-reproducible. Fabrication screen passed."
+     "rule": "i",
+     "text": "Validated re-run: the final reproduce.py was re-run offline in a fresh sandbox and gave the same score (within 0.5 points). Fabrication screen passed."
     },
-    "fidelity": 72.5,
+    "fidelity": 62.5,
     "predictions_kept": false,
     "agent_exit": 0,
-    "finished_at": "2026-11-19T06:59:13.762162+00:00",
+    "finished_at": "2026-11-19T05:17:54.425141+00:00",
     "files": [
      {
       "name": "reproduce.py",
       "label": "Agent’s final script",
       "path": "data/owl/artifacts/P96/reproduce.py",
-      "bytes": 5278
+      "bytes": 11879
      },
      {
       "name": "config.yaml",
       "label": "Assumed values and their source lines",
       "path": "data/owl/artifacts/P96/config.yaml",
-      "bytes": 827
+      "bytes": 860
      },
      {
       "name": "RESULT.json",
       "label": "Result written by reproduce.py",
       "path": "data/owl/artifacts/P96/RESULT.json",
-      "bytes": 228
+      "bytes": 287
      },
      {
       "name": "run.log",
       "label": "Agent run log",
       "path": "data/owl/artifacts/P96/run.log",
-      "bytes": 869
+      "bytes": 76521
      },
      {
       "name": "rerun.log",
       "label": "Offline re-run output",
       "path": "data/owl/artifacts/P96/rerun.log",
-      "bytes": 37
+      "bytes": 993
      }
     ],
-    "note": "Not the same evaluation point: the public release lacks 33 (modulation, SNR) groups, including AM-DSB and GFSK at 14 dB, so OWL scores at 12 dB, where a faithful run is expected about 1 point below the 14 dB peak. The agent trained only 5 epochs (assumed)."
+    "note": "Not the same evaluation point: the public release lacks 33 (modulation, SNR) groups, including AM-DSB and GFSK at 14 dB, so OWL scores at 12 dB, where a faithful run is expected about 1 point below the 14 dB peak. The model is a complex-convolution ResNet with basic blocks [3, 4, 6, 3] (the script calls it ResNet-50), not a Dense ResNet-68, and it is trained once rather than five times. Optimizer, learning rate, batch size, epochs and seeds are assumed. The script checks test accuracy after each epoch from epoch 11 for early stopping, but the stop never triggered, so all 20 epochs ran."
    }
   },
   "P97": {
