@@ -15,6 +15,8 @@
     detail: null,
     papers: [],
     paperDetail: null,
+    owlPapers: null,
+    owlPaper: null,
     reproductions: [],
     reproductionDetail: null,
     baselineGuide: null,
@@ -821,7 +823,20 @@
     }
     if (datasetMatch) return catalogDetail(decodeURIComponent(datasetMatch[1]));
     if (paperMatch) {
-      return catalogPapers({ id: 'eq.' + decodeURIComponent(paperMatch[1]), limit: '1' })
+      // Scores rows link by catalog id, arXiv id or DOI; try each in turn.
+      var paperKey = decodeURIComponent(paperMatch[1]);
+      var paperBy = function (field) {
+        var query = { limit: '1' };
+        query[field] = 'eq.' + paperKey;
+        return catalogPapers(query);
+      };
+      return paperBy('id')
+        .then(function (items) {
+          if (items.length) return items;
+          if (/^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(paperKey)) return paperBy('arxiv_id');
+          if (/^10\.[0-9]{4,9}\//.test(paperKey)) return paperBy('doi');
+          return items;
+        })
         .then(function (items) {
           if (items.length) return items[0];
           var err = new Error('Paper not found.');
@@ -1371,7 +1386,8 @@
       optional('/reproductions?dataset=' + encodeURIComponent(slug) + '&limit=100'),
       optional('/datasets/' + encodeURIComponent(slug) + '/baselines?limit=100'),
       loadPublicBaselinesForDataset(slug),
-      loadPublicReleaseForDataset(slug)
+      loadPublicReleaseForDataset(slug),
+      loadOwlPapers()
     ]).then(function (values) {
       var raw = values[0] || {};
       var dataset = normalizeDataset(raw);
@@ -1414,7 +1430,8 @@
         papers: detailPapers,
         reproductions: reproductionItems,
         baselines: publicItems.concat(legacyBaselines),
-        publicRelease: values[5] || null
+        publicRelease: values[5] || null,
+        owlPapers: owlPapersForSlug(values[6], slug)
       };
     }).catch(function (err) {
       state.error = err.message || 'The dataset could not be loaded.';
@@ -1436,6 +1453,51 @@
     }).finally(function () {
       state.loading = false;
       render();
+    });
+  }
+
+  // Paper pages (#/papers/<id>) read a static data layer built by
+  // scripts/build-owl-papers.mjs from the OWL research workbench: paper-only
+  // disclosure tables, verified claims and validated reproduction runs. Ids
+  // without an OWL record fall back to the catalog's dataset-use evidence page.
+  var owlPapersPromise = null;
+  function loadOwlPapers() {
+    if (!owlPapersPromise) {
+      owlPapersPromise = fetch('data/owl/papers.json', { cache: 'no-store' }).then(function (res) {
+        if (!res.ok) throw new Error('OWL paper data is unavailable (' + res.status + ').');
+        return res.json();
+      }).then(function (payload) {
+        state.owlPapers = (payload && payload.papers) || {};
+        return state.owlPapers;
+      }).catch(function () {
+        owlPapersPromise = null;
+        return {};
+      });
+    }
+    return owlPapersPromise;
+  }
+
+  function owlPapersForSlug(map, slug) {
+    return Object.keys(map || {}).map(function (id) { return map[id]; }).filter(function (p) {
+      return p.dataset && p.dataset.slug === slug;
+    });
+  }
+
+  function loadOwlPaper(id) {
+    state.loading = true;
+    state.error = '';
+    state.owlPaper = null;
+    render();
+    loadOwlPapers().then(function (map) {
+      if (state.route.name !== 'owlpaper' || state.route.id !== id) return;
+      if (map[id]) {
+        state.owlPaper = map[id];
+        state.loading = false;
+        render();
+        return;
+      }
+      state.route = { name: 'paper', id: id };
+      loadPaperDetail(id);
     });
   }
 
@@ -1535,7 +1597,7 @@
   }
   function navLink(route, label) {
     var active = state.route.name === route ||
-      (route === 'datasets' && state.route.name === 'dataset');
+      (route === 'datasets' && (state.route.name === 'dataset' || state.route.name === 'owlpaper'));
     return '<a class="tml-navlink' + (active ? ' active' : '') + '" href="#/' + route + '"' +
       (active ? ' aria-current="page"' : '') + '>' + esc(label) + '</a>';
   }
@@ -2367,8 +2429,48 @@
   }
 
   function paperTableUrl(p) {
-    if (p.id) return '#/paper/' + encodeURIComponent(p.id);
+    if (p.id) return '#/papers/' + encodeURIComponent(p.id);
     return p.url || '';
+  }
+
+  function owlTitleKey(title) {
+    return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  // Reproduced papers first, then papers with a verified claim, then by id.
+  function owlRowOrder(a, b) {
+    var rank = function (p) { return p.reproduction ? 0 : (p.claim ? 1 : 2); };
+    return rank(a) - rank(b) || Number(a.id.slice(1)) - Number(b.id.slice(1));
+  }
+
+  function owlScore(value, unit) {
+    if (value == null || !isFinite(Number(value))) return '';
+    var out = String(Number(Number(value).toFixed(2)));
+    if (!unit) return out;
+    return unit === '%' ? out + '%' : out + ' ' + unit;
+  }
+
+  function owlAuthorsShort(authors) {
+    if (!authors || !authors.length) return '';
+    var last = function (name) { return String(name).trim().split(/\s+/).pop(); };
+    if (authors.length === 1) return authors[0];
+    if (authors.length === 2) return last(authors[0]) + ' & ' + last(authors[1]);
+    return last(authors[0]) + ' et al.';
+  }
+
+  function owlScoreRow(op, n) {
+    var href = '#/papers/' + encodeURIComponent(op.id);
+    var r = op.reproduction;
+    var c = op.claim;
+    var meta = [op.id, owlAuthorsShort(op.authors), op.year].filter(Boolean);
+    if (c) meta.push(c.metric);
+    if (c && c.split) meta.push(c.split);
+    return '<tr><td class="mono">' + n + '</td>' +
+      '<td><strong><a href="' + href + '">' + esc(op.title) + '</a></strong>' +
+      '<div class="row-meta">' + meta.map(esc).join(' · ') + '</div></td>' +
+      '<td class="mono">' + (c ? esc(owlScore(c.value, c.unit)) : '&mdash;') + '</td>' +
+      '<td class="mono">' + (r ? '<a href="' + href + '"><strong>' + esc(owlScore(r.score, r.unit)) + '</strong></a>' : '&mdash;') + '</td>' +
+      '<td>' + (r ? '<span class="tag-owl">Reproduced by OWL</span>' : '<span class="tag-soon">Not reproduced yet</span>') + '</td></tr>';
   }
 
   function scoresLeaderboard(detail) {
@@ -2405,7 +2507,10 @@
         link: r.id ? '#/reproduction/' + encodeURIComponent(r.id) : ''
       });
     });
-    if (!entries.length && !claims.rows.length && !papers.length) {
+    var owlPapers = Array.isArray(detail.owlPapers) ? detail.owlPapers.slice() : [];
+    var owlTitles = {};
+    owlPapers.forEach(function (op) { owlTitles[owlTitleKey(op.title)] = op; });
+    if (!entries.length && !claims.rows.length && !papers.length && !owlPapers.length) {
       return '<div class="empty"><h3>No published scores yet</h3><p class="muted">Scores appear here after trusted server evaluation. Self-reported numbers are never shown.</p></div>';
     }
     entries.sort(function (a, b) { return b.score - a.score; });
@@ -2441,10 +2546,12 @@
     }
     claims.rows.forEach(function (claim) {
       n += 1;
+      // arXiv ids resolve to a catalog paper page; a DOI-only claim may have no
+      // catalog record yet, so it links to the DOI instead of a dead page.
       var isArxiv = /^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$/.test(claim.paperId);
       var title = isArxiv
-        ? '<a href="https://arxiv.org/abs/' + encodeURIComponent(claim.paperId) + '" target="_blank" rel="noopener">' + esc(claim.title) + '</a>'
-        : esc(claim.title);
+        ? '<a href="#/papers/' + encodeURIComponent(claim.paperId) + '">' + esc(claim.title) + '</a>'
+        : '<a href="https://doi.org/' + esc(claim.paperId) + '" target="_blank" rel="noopener">' + esc(claim.title) + '</a>';
       var ow = harnessBest(claim.paperId);
       var verifiedCell = ow
         ? '<a href="#/reproduction/' + encodeURIComponent(ow.id) + '"><strong>' + esc(ow.value.toFixed(4)) + '</strong></a>'
@@ -2460,9 +2567,14 @@
         '<td class="mono">' + verifiedCell + '</td>' +
         '<td>' + statusCell + '</td></tr>');
     });
+    owlPapers.sort(owlRowOrder).forEach(function (op) {
+      n += 1;
+      rows.push(owlScoreRow(op, n));
+    });
     papers.forEach(function (p) {
       var display = paperDisplay(p);
       if (claims.seen[p.id] || (display.arxiv && claims.seen[display.arxiv])) return;
+      if (owlTitles[owlTitleKey(display.title)]) return;
       n += 1;
       var url = p.pending && p.url ? p.url
         : ((display.generic && display.arxiv)
@@ -2475,7 +2587,7 @@
       var action = p.pending
         ? '<span class="tag-soon">Catalog entry pending</span>'
         : (p.id
-          ? '<a class="evlink" href="#/paper/' + encodeURIComponent(p.id) + '">Read evidence →</a>'
+          ? '<a class="evlink" href="#/papers/' + encodeURIComponent(p.id) + '">Read evidence →</a>'
           : '<span class="row-meta">No recorded claim</span>');
       rows.push('<tr><td class="mono">' + n + '</td>' +
         '<td><strong>' + name + '</strong>' +
@@ -2791,6 +2903,162 @@
       '</dl></section></aside></div></div></section></main>';
   }
 
+  var OWL_STATUS = {
+    full: { icon: '✓', label: 'Reported' },
+    partial: { icon: '', label: 'Partly reported' },
+    absent: { icon: '✗', label: 'Not reported' },
+    code: { icon: 'C', label: 'Taken from the authors’ code' },
+    na: { icon: '–', label: 'Not applicable' }
+  };
+  var OWL_SHORT_VALUE = 60;
+
+  function owlShort(value) {
+    var s = String(value || '').replace(/\s+/g, ' ').trim();
+    if (s.length <= OWL_SHORT_VALUE) return s;
+    var cut = s.slice(0, OWL_SHORT_VALUE - 1);
+    var space = cut.lastIndexOf(' ');
+    return (space > 40 ? cut.slice(0, space) : cut).replace(/[\s,;:.]+$/, '') + '…';
+  }
+
+  function owlStatusIcon(status) {
+    var meta = OWL_STATUS[status] || OWL_STATUS.absent;
+    return '<span class="pp-ico ' + esc(status) + '" role="img" aria-label="' + esc(meta.label) + '" title="' + esc(meta.label) + '">' + meta.icon + '</span>';
+  }
+
+  function owlDetailRow(d) {
+    var assumed = d.source === 'assumed';
+    var shown = assumed ? d.assumed_value : d.value;
+    var valueText = shown
+      ? esc(owlShort(shown))
+      : '<span class="pp-none">' + (d.status === 'na' ? 'not applicable' : 'not given') + '</span>';
+    var more = [];
+    if (assumed) {
+      more.push('<p><strong>Not in the paper.</strong> The reproduction agent chose ' +
+        '<span class="mono">' + esc(d.assumed_value) + '</span> (' + esc(d.assumed_where) + '); recorded in config.yaml.</p>');
+    } else if (shown && owlShort(shown) !== String(shown).trim()) {
+      more.push('<p>' + esc(shown) + '</p>');
+    }
+    if (d.explanation) more.push('<p class="muted">' + esc(d.explanation) + '</p>');
+    if (d.evidence && d.evidence.length) {
+      more.push('<p class="pp-ev">' + d.evidence.map(esc).join(' · ') + '</p>');
+    }
+    var cell = more.length
+      ? '<details class="pp-more"><summary title="' + esc(shown || '') + '">' + valueText + '</summary>' + more.join('') + '</details>'
+      : valueText;
+    var source = d.source
+      ? '<span class="pp-src ' + esc(d.source.replace('+', '-')) + '">' + esc(d.source) + '</span>'
+      : '<span class="pp-none">—</span>';
+    return '<tr' + (assumed ? ' class="pp-assumed"' : '') + '><td class="pp-st">' + owlStatusIcon(d.status) + '</td>' +
+      '<th scope="row">' + esc(d.label) + '</th><td class="pp-val">' + cell + '</td><td>' + source + '</td></tr>';
+  }
+
+  function owlResultBlock(label, value, lines, extra) {
+    return '<div class="pp-result"><div class="pp-result-label">' + label + '</div>' +
+      '<div class="pp-result-value' + (value ? '' : ' none') + '">' + (value || (label === 'Gap' ? 'not available' : 'not given')) + '</div>' +
+      lines.filter(Boolean).map(function (line) { return '<div class="pp-result-line">' + line + '</div>'; }).join('') +
+      (extra || '') + '</div>';
+  }
+
+  function owlPaperPage() {
+    if (state.loading) return '<main id="main" class="page"><div class="container">' + loading('Loading the paper record…') + '</div></main>';
+    var p = state.owlPaper;
+    if (state.error || !p) return '<main id="main" class="page"><div class="container">' + errorBox() + '</div></main>';
+    var c = p.claim;
+    var r = p.reproduction;
+    var ds = p.dataset || {};
+    var crumbs = '<a href="#/datasets">Datasets</a><span>/</span>' +
+      (ds.slug ? '<a href="#/dataset/' + encodeURIComponent(ds.slug) + '">' + esc(ds.name) + '</a>'
+        : '<span title="No catalog page for this dataset yet">' + esc(ds.name || 'Dataset') + '</span>') +
+      '<span>/</span><span>Papers</span>';
+    var paperLink = p.arxiv_id
+      ? '<a href="https://arxiv.org/abs/' + encodeURIComponent(p.arxiv_id) + '" target="_blank" rel="noopener">arXiv:' + esc(p.arxiv_id) + ' ↗</a>'
+      : (p.url ? '<a href="' + esc(safeUrl(p.url)) + '" target="_blank" rel="noopener">' + esc(p.doi ? 'doi:' + p.doi : 'Paper') + ' ↗</a>' : '');
+    var venue = p.venue && !(p.arxiv_id && /^arxiv/i.test(p.venue)) ? esc(p.venue) : '';
+    var byline = [esc(p.authors.join(', ')), esc(p.year || ''), venue, paperLink].filter(Boolean).join(' · ');
+    var chips = (p.code_url
+      ? '<a class="pp-chip" href="' + esc(safeUrl(p.code_url)) + '" target="_blank" rel="noopener">Author code ↗</a>'
+      : '<span class="pp-chip muted">No author code found</span>') +
+      '<span class="pp-chip" title="Details fully reported in the paper text">Fully reported: ' +
+      esc(p.fully_reported.k) + '/' + esc(p.fully_reported.n) + '</span>';
+    var assumedCount = p.details.filter(function (d) { return d.source === 'assumed'; }).length;
+
+    var detailsCard = '<section class="card panel"><div class="panel-head"><h2>Reproduction details</h2>' +
+      '<span class="id">Extracted from the paper' + (p.details.some(function (d) { return d.source === 'code'; }) ? ' and the authors’ code' : '') + '</span></div>' +
+      '<div class="pp-table-wrap"><table class="repro-table pp-details"><thead><tr><th><span class="sr-only">Status</span></th><th>Detail</th><th>Value</th><th>Source</th></tr></thead><tbody>' +
+      p.details.map(owlDetailRow).join('') + '</tbody></table></div>' +
+      '<div class="pp-legend">' +
+        ['full', 'partial', 'absent', 'code', 'na'].map(function (k) {
+          return '<span>' + owlStatusIcon(k) + ' ' + esc(OWL_STATUS[k].label.replace('Taken from the authors’ code', 'from authors’ code').toLowerCase()) + '</span>';
+        }).join('') +
+      '</div>' +
+      '<p class="pp-fine">Source: <b>paper</b> = stated in the paper; <b>code</b> = authors’ code; <b>paper+code</b> = both; ' +
+      '<b class="pp-src-text">assumed</b> = not given, chosen by the reproduction agent' +
+      (assumedCount ? ' and recorded in <span class="mono">config.yaml</span>' : '') + '. Click a value for the full text and its location in the paper.</p>' +
+      '</section>';
+
+    var claimLines = c ? [
+      esc(c.metric),
+      c.split ? esc(c.split) : '<span class="pp-desc">' + esc(c.description) + '</span>',
+      'Paper’s own evaluation · ' + (c.url
+        ? '<a href="' + esc(safeUrl(c.url)) + '" target="_blank" rel="noopener">' + esc(c.locator) + ' ↗</a>'
+        : esc(c.locator))
+    ] : ['No verified claim recorded for this paper yet.'];
+    var owlLines = r ? [
+      esc(r.metric),
+      esc(r.split),
+      r.validation.rule === 'i' ? 'Validated re-run' : 'Validated by agent log; re-run gave ' + esc(owlScore(r.rerun, r.unit))
+    ] : ['No validated OWL run for this paper.'];
+    var badge = r ? '<span class="tag-owl">Reproduced by OWL</span>' : '<span class="tag-soon">Not reproduced yet</span>';
+    var gapBlock;
+    if (c && r) {
+      var diff = Number(r.score) - Number(c.value);
+      gapBlock = owlResultBlock('Gap', esc(Number(Math.abs(diff).toFixed(2))) + (c.unit === '%' ? ' <small>pts</small>' : ''),
+        [diff < 0 ? 'OWL below the claim' : (diff > 0 ? 'OWL above the claim' : 'Same as the claim'),
+          c.unit === '%' ? '' : esc(c.unit)]);
+    } else {
+      gapBlock = owlResultBlock('Gap', '', [r ? 'No claim to compare with.' : 'Needs an OWL run.']);
+    }
+    var resultsCard = '<section class="card panel"><div class="panel-head"><h2>Results</h2>' + badge + '</div>' +
+      '<div class="pp-results">' +
+        owlResultBlock('Claimed', c ? esc(owlScore(c.value, c.unit)) : '', claimLines) +
+        owlResultBlock('OWL baseline', r ? esc(owlScore(r.score, r.unit)) : '<span class="pp-none">not reproduced yet</span>', owlLines) +
+        gapBlock +
+      '</div>' +
+      (r && r.note ? '<div class="pp-note"><strong>Note.</strong> ' + esc(r.note) + '</div>' : '') +
+      (!r && c ? '<div class="pp-note"><strong>Note.</strong> The claim is the paper’s own number on its own split. No OWL score exists to compare it with yet.</div>' : '') +
+      '</section>';
+
+    var artifactCard = '<section class="card panel"><div class="panel-head"><h2>Artifact</h2>' +
+      (r ? '<span class="id mono">' + esc(r.run) + '</span>' : '') + '</div>' +
+      (r
+        ? '<dl class="kv pp-kv">' +
+            '<dt>Validation</dt><dd>' + esc(r.validation.text) + '</dd>' +
+            '<dt>Agent</dt><dd>' + esc(r.harness) + ' + ' + esc(r.model) + ' <span class="mono pp-dim">(' + esc(r.model_id) + ')</span></dd>' +
+            '<dt>Inputs</dt><dd>' + esc(r.condition) + '</dd>' +
+            '<dt>Assumed values</dt><dd>' + esc(assumedCount) + (assumedCount ? ', recorded in <span class="mono">config.yaml</span>' : '') + '</dd>' +
+            '<dt>Predictions</dt><dd>' + (r.predictions_kept ? 'kept' : 'not kept') + '</dd>' +
+          '</dl>' +
+          '<ul class="pp-files">' + r.files.map(function (f) {
+            return '<li><a href="' + esc(f.path) + '" download="' + esc(p.id + '-' + f.name) + '" class="mono">' + esc(f.name) + '</a>' +
+              '<span>' + esc(f.label) + '</span><span class="mono pp-dim">' + esc(f.bytes < 1024 ? f.bytes + ' B' : (f.bytes / 1024).toFixed(1) + ' KB') + '</span></li>';
+          }).join('') + '</ul>'
+        : '<p class="muted">No artifact yet. This paper has not been reproduced by OWL.</p>') +
+      '</section>';
+
+    return '<main id="main" class="pp-main"><section class="detail-hero pp-hero"><div class="container pp-wrap">' +
+      '<div class="breadcrumbs">' + crumbs + '</div>' +
+      '<div class="eyebrow">Paper · ' + esc(p.id) + '</div>' +
+      '<h1 class="pp-title">' + esc(p.title) + '</h1>' +
+      '<p class="pp-byline">' + byline + '</p>' +
+      '<p class="pp-method"><span>Method</span>' + esc(p.method || p.experiment || 'not given') +
+        (p.method && p.experiment ? ' <span class="mono pp-dim">' + esc(p.experiment) + '</span>' : '') + '</p>' +
+      '<div class="pp-chips">' + chips + '</div>' +
+      '</div></section>' +
+      '<section class="page pp-page"><div class="container pp-wrap">' +
+        detailsCard + resultsCard + artifactCard +
+      '</div></section></main>';
+  }
+
   function harnessRunDetailPage(report) {
     return '<main id="main"><section class="detail-hero"><div class="container narrow-center">' +
       '<div class="breadcrumbs"><a href="#/datasets">Datasets</a><span>/</span><span>' + esc(report.id) + '</span></div>' +
@@ -2978,6 +3246,7 @@
     if (state.route.name === 'dataset') return detailPage();
     if (state.route.name === 'baseline') return baselinePage();
     if (state.route.name === 'paper') return paperDetailPage();
+    if (state.route.name === 'owlpaper') return owlPaperPage();
     if (state.route.name === 'reproduction') return reproductionDetailPage();
     if (state.route.name === 'methodology') return methodologyPage();
     if (state.route.name === 'coverage') return coveragePage();
@@ -3035,6 +3304,7 @@
     var allowed = ['home','datasets','methodology','coverage','contribute'];
     if (parts[0] === 'dataset' && parts[1]) return { name:'dataset', slug:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'paper' && parts[1]) return { name:'paper', id:decodeURIComponent(parts.slice(1).join('/')) };
+    if (parts[0] === 'papers' && parts[1]) return { name:'owlpaper', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'reproduction' && parts[1]) return { name:'reproduction', id:decodeURIComponent(parts.slice(1).join('/')) };
     if (parts[0] === 'baseline' && parts[1]) return { name:'baseline', releaseId:decodeURIComponent(parts.slice(1).join('/')) };
     var name = allowed.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
@@ -3075,6 +3345,7 @@
     else if (state.route.name === 'dataset') loadDetail(state.route.slug);
     else if (state.route.name === 'baseline') loadBaselineGuide(state.route.releaseId);
     else if (state.route.name === 'paper') loadPaperDetail(state.route.id);
+    else if (state.route.name === 'owlpaper') loadOwlPaper(state.route.id);
     else if (state.route.name === 'reproduction') loadReproductionDetail(state.route.id);
     else if (state.route.name === 'coverage') loadCoverage();
     else render();
@@ -3106,6 +3377,7 @@
     state.error = '';
     if (state.route.name === 'dataset') loadDetail(state.route.slug);
     else if (state.route.name === 'paper') loadPaperDetail(state.route.id);
+    else if (state.route.name === 'owlpaper') loadOwlPaper(state.route.id);
     else if (state.route.name === 'reproduction') loadReproductionDetail(state.route.id);
     else if (state.route.name === 'coverage') loadCoverage();
     else { state.datasetsLoaded = false; loadCore(); }

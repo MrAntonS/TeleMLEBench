@@ -1,0 +1,1 @@
+{"metric": "floor hit rate", "value": 89.82898289828984, "unit": "%", "split": "validation", "notes": "Implemented SCNN with simple NN for each stage. Used combined training/validation for AP variation filtering."}

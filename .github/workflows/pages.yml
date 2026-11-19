@@ -57,6 +57,8 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html app.js config.js dist/
+          # Paper pages (#/papers/<id>) read data/owl/papers.json and link to run artifacts.
+          cp -r data dist/
           touch dist/.nojekyll
       - uses: actions/configure-pages@v5
         with:

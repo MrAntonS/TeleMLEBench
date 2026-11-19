@@ -336,7 +336,8 @@ test('dataset scores table lists author claims after verified rows without sorti
   // claim row, clearly marked as an open run rather than a verified score.
   await expect(claimRow.getByText('0.7700', { exact: true })).toBeVisible();
   await expect(claimRow.getByText('Reproduced by OWL', { exact: true })).toBeVisible();
-  await expect(table.getByRole('link', { name: /Convolutional Radio/ })).toHaveAttribute('href', 'https://arxiv.org/abs/1602.04105');
+  // Every Scores row links to its paper page (#/papers/<id>), not off-site.
+  await expect(table.getByRole('link', { name: /Convolutional Radio/ })).toHaveAttribute('href', '#/papers/1602.04105');
   await expect(page.getByText('2 scores verified · 1 claims · 1 linked papers', { exact: true })).toBeVisible();
   await expect(page.getByText(/not comparable to server scores/)).toBeVisible();
   assertNoClientErrors();

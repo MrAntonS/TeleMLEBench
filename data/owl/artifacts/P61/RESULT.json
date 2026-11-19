@@ -1,0 +1,1 @@
+{"metric": "building and floor accuracy (score)", "value": 35.913591359135914, "unit": "%", "split": "validation", "notes": "Implemented simplified FAB-MAP using Naive Bayes assumption (no Chow-Liu tree for feature dependencies). Used provided PzGe and PzGne."}

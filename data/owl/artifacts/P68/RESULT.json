@@ -1,0 +1,1 @@
+{"metric": "accuracy", "value": 100.0, "unit": "%", "split": "70/30 train/test split", "notes": "Used top k=4 features from XAI ensemble. Random under-sampling for balance. DAlex replaced by feature_importances_ proxy."}

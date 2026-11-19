@@ -24,7 +24,8 @@ const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml'
+  '.svg': 'image/svg+xml',
+  '.json': 'application/json; charset=utf-8'
 };
 
 function json(response, status, payload) {
@@ -164,7 +165,9 @@ function serveStatic(response, pathname) {
   const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
   const target = path.resolve(root, relative);
   const allowed = new Set(['index.html', 'app.js', 'config.js']);
-  if (!target.startsWith(root + path.sep) || !allowed.has(relative)) {
+  // data/owl/ holds the static paper-page records and run artifacts.
+  const servable = allowed.has(relative) || relative.startsWith('data/owl/');
+  if (!target.startsWith(root + path.sep) || !servable) {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     response.end('Not found');
     return;
