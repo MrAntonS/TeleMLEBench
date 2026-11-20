@@ -1,0 +1,9 @@
+device: cuda
+train 6000 val 1000
+params: 454527
+ep 1: tr_loss 2.1771 tr_acc 0.2000 va_loss 2.4997 va_acc 0.0000 [0.0min]
+ep 2: tr_loss 1.8696 tr_acc 0.3032 va_loss 2.7605 va_acc 0.0000 [0.0min]
+ep 3: tr_loss 1.7527 tr_acc 0.3417 va_loss 2.4491 va_acc 0.0000 [0.0min]
+ep 4: tr_loss 1.6528 tr_acc 0.3932 va_loss 2.5187 va_acc 0.0000 [0.0min]
+ep 5: tr_loss 1.4844 tr_acc 0.4565 va_loss 2.8553 va_acc 0.0000 [0.1min]
+done. best: 3 2.449115037918091

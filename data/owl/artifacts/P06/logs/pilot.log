@@ -1,0 +1,10 @@
+device cuda
+split sizes 154000 44000 22000 sha a8912f3ef14bdba2
+params 273159
+forward shape torch.Size([4, 11])
+ep 1 tr_loss 2.2001 tr_acc 0.1422 va_loss 2.5873 va_acc 0.0923 lr 5.00e-04 p 0.60
+ep 2 tr_loss 1.9289 tr_acc 0.2268 va_loss 1.7884 va_acc 0.3141 lr 5.00e-04 p 0.60
+ep 3 tr_loss 1.7016 tr_acc 0.3457 va_loss 1.5918 va_acc 0.4009 lr 5.00e-04 p 0.60
+ep 4 tr_loss 1.5459 tr_acc 0.4109 va_loss 1.4374 va_acc 0.4523 lr 5.00e-04 p 0.60
+ep 5 tr_loss 1.4257 tr_acc 0.4512 va_loss 1.3974 va_acc 0.4505 lr 5.00e-04 p 0.60
+done best_val 1.3974275142496282

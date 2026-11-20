@@ -1,0 +1,37 @@
+params 112619
+ep 1 tr_loss=1.3312 tr_acc=0.4920 val_tot=1.3934 val_ce=1.3870 val_acc=0.4597
+ep 2 tr_loss=1.1832 tr_acc=0.5466 val_tot=1.5425 val_ce=1.5360 val_acc=0.4319
+ep 3 tr_loss=1.1606 tr_acc=0.5580 val_tot=1.2858 val_ce=1.2792 val_acc=0.5108
+ep 4 tr_loss=1.1468 tr_acc=0.5670 val_tot=1.4422 val_ce=1.4362 val_acc=0.4898
+ep 5 tr_loss=1.1349 tr_acc=0.5749 val_tot=1.3577 val_ce=1.3520 val_acc=0.4945
+ep 6 tr_loss=1.1232 tr_acc=0.5812 val_tot=1.3492 val_ce=1.3423 val_acc=0.4891
+ep 7 tr_loss=1.1120 tr_acc=0.5873 val_tot=1.3841 val_ce=1.3784 val_acc=0.5075
+ep 8 tr_loss=1.1005 tr_acc=0.5945 val_tot=1.5961 val_ce=1.5897 val_acc=0.4434
+ep 9 tr_loss=1.0937 tr_acc=0.5963 val_tot=1.4863 val_ce=1.4813 val_acc=0.5000
+ep 10 tr_loss=1.0858 tr_acc=0.6001 val_tot=1.4578 val_ce=1.4527 val_acc=0.4955
+ep 11 tr_loss=1.0803 tr_acc=0.6031 val_tot=1.5150 val_ce=1.5079 val_acc=0.4472
+ep 12 tr_loss=1.0757 tr_acc=0.6048 val_tot=1.2334 val_ce=1.2277 val_acc=0.5401
+ep 13 tr_loss=1.0695 tr_acc=0.6077 val_tot=1.1596 val_ce=1.1547 val_acc=0.5839
+ep 14 tr_loss=1.0660 tr_acc=0.6095 val_tot=1.3841 val_ce=1.3784 val_acc=0.5026
+ep 15 tr_loss=1.0610 tr_acc=0.6113 val_tot=1.1311 val_ce=1.1261 val_acc=0.5822
+ep 16 tr_loss=1.0560 tr_acc=0.6139 val_tot=1.3387 val_ce=1.3333 val_acc=0.5144
+ep 17 tr_loss=1.0511 tr_acc=0.6155 val_tot=1.9147 val_ce=1.9096 val_acc=0.4234
+ep 18 tr_loss=1.0479 tr_acc=0.6173 val_tot=1.1742 val_ce=1.1692 val_acc=0.5667
+ep 19 tr_loss=1.0418 tr_acc=0.6202 val_tot=1.2061 val_ce=1.2011 val_acc=0.5614
+ep 20 tr_loss=1.0390 tr_acc=0.6207 val_tot=1.4536 val_ce=1.4482 val_acc=0.4963
+ep 21 tr_loss=1.0367 tr_acc=0.6222 val_tot=1.2675 val_ce=1.2629 val_acc=0.5536
+ep 22 tr_loss=1.0304 tr_acc=0.6243 val_tot=1.2075 val_ce=1.2024 val_acc=0.5587
+ep 23 tr_loss=1.0295 tr_acc=0.6250 val_tot=1.3900 val_ce=1.3849 val_acc=0.5167
+ep 24 tr_loss=1.0223 tr_acc=0.6280 val_tot=1.1282 val_ce=1.1232 val_acc=0.5942
+ep 25 tr_loss=1.0203 tr_acc=0.6298 val_tot=1.2043 val_ce=1.1993 val_acc=0.5644
+ep 26 tr_loss=1.0160 tr_acc=0.6314 val_tot=1.1648 val_ce=1.1599 val_acc=0.5857
+ep 27 tr_loss=1.0149 tr_acc=0.6311 val_tot=1.6850 val_ce=1.6799 val_acc=0.4908
+ep 28 tr_loss=1.0094 tr_acc=0.6332 val_tot=1.3407 val_ce=1.3362 val_acc=0.5405
+ep 29 tr_loss=1.0073 tr_acc=0.6349 val_tot=3.5993 val_ce=3.5941 val_acc=0.2810
+ep 30 tr_loss=1.0022 tr_acc=0.6363 val_tot=1.3000 val_ce=1.2952 val_acc=0.5525
+ep 31 tr_loss=1.0011 tr_acc=0.6370 val_tot=1.5191 val_ce=1.5141 val_acc=0.5169
+ep 32 tr_loss=0.9950 tr_acc=0.6381 val_tot=1.1988 val_ce=1.1939 val_acc=0.5705
+ep 33 tr_loss=0.9913 tr_acc=0.6402 val_tot=1.5066 val_ce=1.5018 val_acc=0.4965
+ep 34 tr_loss=0.9885 tr_acc=0.6418 val_tot=1.2380 val_ce=1.2335 val_acc=0.5684
+early stop ep 34 best_ce=1.1232
+saved checkpoints/awn.pt

@@ -1,0 +1,98 @@
+{
+  "model": "MCDformer",
+  "paper": "IJCNN2024-10650112",
+  "hyperparameters": {
+    "L": {
+      "value": 128,
+      "source": "paper"
+    },
+    "n_heads": {
+      "value": 2,
+      "source": "paper"
+    },
+    "fddm_hidden": {
+      "value": 32,
+      "source": "paper"
+    },
+    "clf_hidden": {
+      "value": 256,
+      "source": "paper"
+    },
+    "dropout": {
+      "value": 0.5,
+      "source": "paper"
+    },
+    "optimizer": {
+      "value": "Adam",
+      "source": "paper"
+    },
+    "lr": {
+      "value": 0.0005,
+      "source": "paper"
+    },
+    "batch_size": {
+      "value": 32,
+      "source": "paper"
+    },
+    "loss": {
+      "value": "CrossEntropyLoss",
+      "source": "inferred"
+    },
+    "split": {
+      "value": "stratified-(mod,snr) 60/20/20",
+      "source": "inferred"
+    },
+    "split_seed": {
+      "value": 0,
+      "source": "inferred"
+    },
+    "max_epochs": {
+      "value": 30,
+      "source": "inferred"
+    },
+    "early_stop": {
+      "value": "val-acc patience 6 (budget-stopped after ep14, best ep14)",
+      "source": "inferred"
+    },
+    "cnn_padding": {
+      "value": "(0,1)",
+      "source": "inferred"
+    },
+    "ffn_mult": {
+      "value": 4,
+      "source": "inferred"
+    },
+    "classifier_pooling": {
+      "value": "last time-step",
+      "source": "inferred"
+    },
+    "fddm_gate": {
+      "value": "sigmoid on magnitude, shared MLP",
+      "source": "inferred"
+    },
+    "seed": {
+      "value": 0,
+      "source": "inferred"
+    }
+  },
+  "split_seed": 0,
+  "split_sha256": "fe6db4b057c0c5da98e606beeeaa406b6c11456149f2ed947463355e0b8c02ef",
+  "best_epoch": 14,
+  "best_val_acc": 0.6318181818181818,
+  "source_files": [
+    "dataset.py",
+    "final_evaluate.py",
+    "model.py",
+    "train.py",
+    "verify.py"
+  ],
+  "source_hashes": {
+    "dataset.py": "dbaa3565b4ebaf3198ed2b5df2dc79a505eff148bf247905454ff97d15fd689e",
+    "final_evaluate.py": "ac0e4a8f7a704abb67d2f095cb23f4a4c35bc707f9c15b067e560c8323fda1f0",
+    "model.py": "d486dc74791910338f5aa034719a04911641353e47aa66f191ec4311dc0ecfdb",
+    "train.py": "31af0f064edfa7000c7ec00e06b2c5367c484d424e653b20a39ed9096248b223",
+    "verify.py": "459e6e09545674f34b1c9bd00b3ccca1ad1a156273fb8b446deede0c2afe5524"
+  },
+  "source_sha256": "429b7203deb54fc2a55da63eeea9a3e0d787b1a18c755b3ee831d31a861983ae",
+  "note": "re-frozen: fixed dict-unpack bug in interval metrics (crash before any result written); no tuning on test"
+}

@@ -1,0 +1,7 @@
+split sha 77f8a4f5001846b6b5ee10f569f53e50991988279ecf7c708637e1ec7a555434
+params 0.335M
+ep0 train_loss=0.5715 acc=0.7589 val_loss=9.1671 acc=0.0909 lr=0.000976
+ep1 train_loss=0.3240 acc=0.8196 val_loss=7.9523 acc=0.0973 lr=0.000905
+ep2 train_loss=0.3069 acc=0.8362 val_loss=7.7555 acc=0.0946 lr=0.000794
+ep3 train_loss=0.2948 acc=0.8455 val_loss=7.9633 acc=0.1017 lr=0.000655
+BEST ep2 val_loss 7.7555

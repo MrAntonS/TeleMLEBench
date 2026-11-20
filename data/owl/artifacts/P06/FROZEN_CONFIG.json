@@ -1,0 +1,92 @@
+{
+  "batch_size": {
+    "source": "paper",
+    "value": 128
+  },
+  "checkpoint": {
+    "source": "inferred",
+    "value": "checkpoints/mccfn_best.pt"
+  },
+  "data_path": {
+    "source": "paper",
+    "value": "/data/RML2016.10a_dict.pkl"
+  },
+  "dropout_init": {
+    "source": "paper",
+    "value": 0.5
+  },
+  "dropout_pmax": {
+    "source": "paper",
+    "value": 0.6
+  },
+  "dropout_step": {
+    "source": "paper",
+    "value": 0.1
+  },
+  "dk": {
+    "source": "inferred",
+    "value": 64
+  },
+  "dv": {
+    "source": "inferred",
+    "value": 64
+  },
+  "epochs": {
+    "source": "inferred",
+    "value": 50
+  },
+  "final_dropout_p": {
+    "source": "paper",
+    "value": 0.6
+  },
+  "heads": {
+    "source": "paper",
+    "value": 2
+  },
+  "initial_lr": {
+    "source": "paper",
+    "value": 0.001
+  },
+  "loss": {
+    "source": "paper",
+    "value": "cross_entropy"
+  },
+  "lr_cycle_M": {
+    "source": "paper",
+    "value": 4
+  },
+  "lr_patience_P": {
+    "source": "paper",
+    "value": 4
+  },
+  "lr_threshold": {
+    "source": "paper",
+    "value": 0.01
+  },
+  "n_runs_or_seeds": {
+    "source": "inferred",
+    "value": 1
+  },
+  "optimizer": {
+    "source": "paper",
+    "value": "adam"
+  },
+  "paper_reported": {
+    "accuracy_2016_10a": 0.6341,
+    "f1_2016_10a": 0.6569,
+    "location": "Table 1 p.236 (Abstract: 63.415%)"
+  },
+  "seed": {
+    "source": "inferred",
+    "value": 42
+  },
+  "source_files": {
+    "data.py": "022a67ca9fb07fa6fe0571258212f6a368651b80e68af859220eed19a79bb21a",
+    "final_evaluate.py": "cbefcc66b92153aa89b545b22a324b1a4c93653e138fcc79e44cad07adea25c9",
+    "model.py": "a721dba0c45d4496c99824dba2ea6652af93904df84cd619e6d02ff234dd50d5",
+    "train.py": "7b747ed40103e6efe35e586bc5ec10798b8889cbd8d4fbc92828954958f68fc8"
+  },
+  "source_sha256": "18cce68fedb5c410af44dbfc08b531da953663c0f2b3126ee48d28f8fe04ac71",
+  "split_description": "stratified per-(mod,SNR) 700/200/100, seed 42 (train/val/test 7:2:1)",
+  "split_sha256": "a8912f3ef14bdba2dd4ad5b80368b836a6b1f56a925c859a9fdf9e90ae20ba4e"
+}

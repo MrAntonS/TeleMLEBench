@@ -1,0 +1,87 @@
+{
+  "paper": "Xiao et al. CDSCNN, IEEE TIM 72 (2023), art. 2522310",
+  "task": "RadioML2016.10a intra-dataset (OA test)",
+  "split": {
+    "scheme": "per (mod,SNR) cell 800/100/100",
+    "paper": "paper",
+    "seed": {
+      "value": 12345,
+      "tag": "inferred"
+    },
+    "split_sha256": {
+      "value": "77f8a4f5001846b6b5ee10f569f53e50991988279ecf7c708637e1ec7a555434",
+      "tag": "computed"
+    }
+  },
+  "model": {
+    "n_cdsc_blocks": {
+      "value": 7,
+      "tag": "paper"
+    },
+    "channels": {
+      "value": "8/16/32/64/128/256 (Fig.3 reading)",
+      "tag": "inferred"
+    },
+    "kernels": {
+      "value": "1x3, 1x1 PWC/proj",
+      "tag": "paper"
+    },
+    "param_count_M": {
+      "value": 0.335,
+      "tag": "computed"
+    },
+    "paper_param_count_M": 0.33
+  },
+  "training": {
+    "optimizer": {
+      "value": "Adam",
+      "tag": "paper"
+    },
+    "loss": {
+      "value": "CrossEntropy",
+      "tag": "paper"
+    },
+    "lr_init": {
+      "value": 0.001,
+      "tag": "paper"
+    },
+    "schedule": {
+      "value": "CosineAnnealingWarmRestarts T0=10",
+      "tag": "inferred"
+    },
+    "batch_size": {
+      "value": "1024(seed0)/512(seed1)",
+      "tag": "inferred"
+    },
+    "early_stopping_patience": {
+      "value": 10,
+      "tag": "paper"
+    },
+    "max_epochs": {
+      "value": 35,
+      "tag": "inferred"
+    },
+    "seeds": {
+      "value": [
+        0,
+        1
+      ],
+      "tag": "inferred"
+    }
+  },
+  "checkpoints": [
+    "full_seed0_best.pt",
+    "full_seed1_best.pt"
+  ],
+  "n_cdsc_blocks": 7,
+  "split_seed": 12345,
+  "source_files": {
+    "complex_nn.py": "768b442ac23afb15281f99bcd1132428724c0dd0b7e414f1c641b06020672800",
+    "data.py": "6dc06399e99627b528f87f673a608718b1cf0141035d39921dde2b76f0b74bb9",
+    "final_evaluate.py": "34b5a1caca710fb8cabbdb91d785f540be00e1d93df75886230da663a96b584f",
+    "model.py": "e657db7b4eadaa5cd0dd965e79a214c590b6eec7be23eff8de8409f40a4cb92d",
+    "train.py": "22420ccb26d459171150d7a01d11fb7b72be2173a5e6a64e2b08d212fa9b1e99"
+  },
+  "source_sha256": "9ffdc845c4b162ba1e943e5b2ef05380b2c702a74c4737f0ba9eb319bd65235b",
+  "source_hash_scheme": "sha256 over concatenated raw file bytes, filenames sorted ascending"
+}

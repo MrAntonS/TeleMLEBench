@@ -1,0 +1,74 @@
+{
+  "attention_dropout": {
+    "source": "paper",
+    "value": 0.1
+  },
+  "batch_size": {
+    "source": "inferred",
+    "value": 128
+  },
+  "best_checkpoint": "checkpoints/best.pt",
+  "best_epoch": {
+    "source": "observed-val",
+    "value": 26
+  },
+  "cnn": {
+    "source": "paper",
+    "value": "Conv1d(2->64,k3,pad1)+BN+ReLU, Conv1d(64->128,k3,pad1)+BN+ReLU, MaxPool1d(2), Dropout(0.3)"
+  },
+  "dnn": {
+    "source": "paper",
+    "value": "Dense 256->128 ReLU+BN+Drop0.3, 128->64 ReLU+BN+Drop0.3, Linear 64->11 softmax"
+  },
+  "dropout_rate": {
+    "source": "paper",
+    "value": 0.3
+  },
+  "early_stopping_note": "run capped at 26/58 epochs by wall-clock budget + GPU contention (see MISSING_PARAMETERS); best-val checkpoint used per ModelCheckpoint protocol",
+  "epochs_run": {
+    "source": "inferred",
+    "value": 26
+  },
+  "epochs_target": {
+    "source": "paper",
+    "value": 58
+  },
+  "l2_weight_decay": {
+    "source": "paper",
+    "value": 0.0001
+  },
+  "loss": {
+    "source": "inferred",
+    "value": "cross_entropy"
+  },
+  "lstm": {
+    "source": "paper",
+    "value": "2x BiLSTM(128 units/dir, return-sequences)+BN+Dropout(0.3)"
+  },
+  "lr_schedule": {
+    "source": "paper",
+    "value": "ReduceLROnPlateau(factor=0.2, patience=5, min_lr=1e-6), init 0.001"
+  },
+  "model": "ICRNNA",
+  "n_params": 794699,
+  "normalization": {
+    "source": "inferred",
+    "value": "global standardization with train mean/std"
+  },
+  "optimizer": {
+    "source": "inferred",
+    "value": "adam"
+  },
+  "split_seed": 42,
+  "split_test_size": 0.15,
+  "split_train_size": 0.7,
+  "split_val_size": 0.15,
+  "source_files": {
+    "dataset.py": "94306522f2d9c6f95e92ff63f350976596adcc64328a6284a1e13b76eaf41166",
+    "final_evaluate.py": "0de2ea385c2246483013ef263a3d0381b649db12ece39564a1016353f6efa5af",
+    "metrics.py": "98c612017fc587d27ca70e74da15aa293f7cef5cf8245c79a339e8a8eff7e6c7",
+    "model.py": "ca46515c163ee78026122529539b647baf92d6c0cccc929681b33692b0bac149",
+    "train.py": "f755f15e679d628be49db8e330ca024e6d51b9a6d3516201f22a3d8ec73ef8d2"
+  },
+  "source_sha256": "a4c07fac94118d7daee67dbe2986ed4915ab88b8bd543a243cb74ba6a58a4ee7"
+}
