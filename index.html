@@ -1550,6 +1550,7 @@
   .pp-ico.absent{color:var(--red);}
   .pp-ico.code{color:var(--cyan);}
   .pp-ico.na{color:var(--subtle);border-style:dashed;}
+  .pp-hand{display:block;margin-top:4px;font:500 9px/1.2 var(--mono);color:var(--subtle);white-space:normal;max-width:84px;}
   .pp-none{color:var(--subtle);font-style:italic;}
   .pp-more summary{cursor:pointer;list-style:none;}
   .pp-more summary::-webkit-details-marker{display:none;}
@@ -1584,7 +1585,7 @@
   .pp-kv dt,.pp-kv dd{padding:9px 0;}
   .pp-kv dd{font-size:12.5px;line-height:1.55;}
   .pp-files{display:grid;gap:0;margin:14px 0 0;padding:0;list-style:none;border:1px solid rgba(144,144,150,.22);}
-  .pp-files li{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(144,144,150,.16);font-size:12px;color:#aeb3b8;}
+  .pp-files li{display:grid;grid-template-columns:minmax(120px,max-content) 1fr auto;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(144,144,150,.16);font-size:12px;color:#aeb3b8;}
   .pp-files li:last-child{border-bottom:0;}
   .pp-files a{font-size:12px;}
   @media (max-width:640px){

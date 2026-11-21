@@ -2925,6 +2925,11 @@
     na: { icon: '–', label: 'Not applicable' }
   };
   var OWL_SHORT_VALUE = 60;
+  // Hand-audit marks (papers P01-P30): what a person found when reading the paper and its code.
+  var OWL_HAND = {
+    full: 'reported', partial: 'partly', absent: 'not reported', code: 'in code',
+    'partial+code': 'partly + code', not_applicable: 'n/a'
+  };
 
   function owlShort(value) {
     var s = String(value || '').replace(/\s+/g, ' ').trim();
@@ -2962,7 +2967,10 @@
     var source = d.source
       ? '<span class="pp-src ' + esc(d.source.replace('+', '-')) + '">' + esc(d.source) + '</span>'
       : '<span class="pp-none">—</span>';
-    return '<tr' + (assumed ? ' class="pp-assumed"' : '') + '><td class="pp-st">' + owlStatusIcon(d.status) + '</td>' +
+    var hand = d.hand_audit
+      ? '<span class="pp-hand" title="Checked by hand against the paper and its code: ' + esc(OWL_HAND[d.hand_audit] || d.hand_audit) + '">checked by hand: ' + esc(OWL_HAND[d.hand_audit] || d.hand_audit) + '</span>'
+      : '';
+    return '<tr' + (assumed ? ' class="pp-assumed"' : '') + '><td class="pp-st">' + owlStatusIcon(d.status) + hand + '</td>' +
       '<th scope="row">' + esc(d.label) + '</th><td class="pp-val">' + cell + '</td><td>' + source + '</td></tr>';
   }
 
@@ -2992,12 +3000,13 @@
     var chips = (p.code_url
       ? '<a class="pp-chip" href="' + esc(safeUrl(p.code_url)) + '" target="_blank" rel="noopener">Author code ↗</a>'
       : '<span class="pp-chip muted">No author code found</span>') +
-      '<span class="pp-chip" title="Details fully reported in the paper text">Fully reported: ' +
+      '<span class="pp-chip" title="' + (p.hand_audit ? 'Details fully reported in the paper text, counted by hand' : 'Details fully reported in the paper text') + '">Fully reported: ' +
       esc(p.fully_reported.k) + '/' + esc(p.fully_reported.n) + '</span>';
     var assumedCount = p.details.filter(function (d) { return d.source === 'assumed'; }).length;
+    var assumedRecord = (r && r.assumed_record) || 'config.yaml';
 
     var detailsCard = '<section class="card panel"><div class="panel-head"><h2>Reproduction details</h2>' +
-      '<span class="id">Extracted from the paper' + (p.details.some(function (d) { return d.source === 'code'; }) ? ' and the authors’ code' : '') + '</span></div>' +
+      '<span class="id">' + (p.hand_audit ? 'Extracted by a model from the paper' : 'Extracted from the paper') + (p.details.some(function (d) { return d.source === 'code'; }) ? ' and the authors’ code' : '') + '</span></div>' +
       '<div class="pp-table-wrap"><table class="repro-table pp-details"><thead><tr><th><span class="sr-only">Status</span></th><th>Detail</th><th>Value</th><th>Source</th></tr></thead><tbody>' +
       p.details.map(owlDetailRow).join('') + '</tbody></table></div>' +
       '<div class="pp-legend">' +
@@ -3007,7 +3016,8 @@
       '</div>' +
       '<p class="pp-fine">Source: <b>paper</b> = stated in the paper; <b>code</b> = authors’ code; <b>paper+code</b> = both; ' +
       '<b class="pp-src-text">assumed</b> = not given, chosen by the reproduction agent' +
-      (assumedCount ? ' and recorded in <span class="mono">config.yaml</span>' : '') + '. Click a value for the full text and its location in the paper.</p>' +
+      (assumedCount ? ' and recorded in <span class="mono">' + esc(assumedRecord) + '</span>' : '') + '. Click a value for the full text and its location in the paper.' +
+      (p.hand_audit ? ' <b>checked by hand</b> = what a person found reading the paper and its code; it is shown next to the extracted value and never replaces it.' : '') + '</p>' +
       '</section>';
 
     var claimLines = c ? [
@@ -3020,7 +3030,10 @@
     var owlLines = r ? [
       esc(r.metric),
       esc(r.split),
-      r.validation.rule === 'i' ? 'Validated re-run' : 'Validated by agent log; re-run gave ' + esc(owlScore(r.rerun, r.unit))
+      r.validation.rule === 'i' ? 'Validated re-run'
+        : r.validation.rule === 'p' ? 'Saved test predictions re-scored to the same accuracy'
+        : r.validation.rule === 'o' ? 'Score from the run’s own evaluation'
+        : 'Validated by agent log; re-run gave ' + esc(owlScore(r.rerun, r.unit))
     ] : ['No validated OWL run for this paper.'];
     var badge = r ? '<span class="tag-owl">Reproduced by OWL</span>' : '<span class="tag-soon">Not reproduced yet</span>';
     var gapBlock;
@@ -3049,11 +3062,11 @@
             '<dt>Validation</dt><dd>' + esc(r.validation.text) + '</dd>' +
             '<dt>Agent</dt><dd>' + esc(r.harness) + ' + ' + esc(r.model) + ' <span class="mono pp-dim">(' + esc(r.model_id) + ')</span></dd>' +
             '<dt>Inputs</dt><dd>' + esc(r.condition) + '</dd>' +
-            '<dt>Assumed values</dt><dd>' + esc(assumedCount) + (assumedCount ? ', recorded in <span class="mono">config.yaml</span>' : '') + '</dd>' +
+            '<dt>Assumed values</dt><dd>' + esc(assumedCount) + (assumedCount ? ', recorded in <span class="mono">' + esc(assumedRecord) + '</span>' : '') + '</dd>' +
             '<dt>Predictions</dt><dd>' + (r.predictions_kept ? 'kept' : 'not kept') + '</dd>' +
           '</dl>' +
           '<ul class="pp-files">' + r.files.map(function (f) {
-            return '<li><a href="' + esc(f.path) + '" download="' + esc(p.id + '-' + f.name) + '" class="mono">' + esc(f.name) + '</a>' +
+            return '<li><a href="' + esc(f.path) + '" download="' + esc(p.id + '-' + f.name.replace(/\//g, '_')) + '" class="mono">' + esc(f.name) + '</a>' +
               '<span>' + esc(f.label) + '</span><span class="mono pp-dim">' + esc(f.bytes < 1024 ? f.bytes + ' B' : (f.bytes / 1024).toFixed(1) + ' KB') + '</span></li>';
           }).join('') + '</ul>'
         : '<p class="muted">No artifact yet. This paper has not been reproduced by OWL.</p>') +

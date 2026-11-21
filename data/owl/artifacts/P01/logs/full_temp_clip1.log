@@ -1,0 +1,25 @@
+device: cuda
+train 132000 val 44000
+params: 454527
+ep 1: tr_loss 1.4373 tr_acc 0.4489 va_loss 1.8226 va_acc 0.3849 [0.1min]
+ep 2: tr_loss 1.2049 tr_acc 0.5406 va_loss 1.8830 va_acc 0.3757 [0.2min]
+ep 3: tr_loss 1.1583 tr_acc 0.5619 va_loss 1.9138 va_acc 0.3799 [0.2min]
+ep 4: tr_loss 1.1356 tr_acc 0.5718 va_loss 2.5994 va_acc 0.3212 [0.3min]
+ep 5: tr_loss 1.1169 tr_acc 0.5811 va_loss 1.5501 va_acc 0.4367 [0.4min]
+ep 6: tr_loss 1.1029 tr_acc 0.5885 va_loss 1.7897 va_acc 0.4371 [0.5min]
+ep 7: tr_loss 1.0917 tr_acc 0.5941 va_loss 2.0464 va_acc 0.3824 [0.6min]
+ep 8: tr_loss 1.0800 tr_acc 0.6002 va_loss 1.6765 va_acc 0.4317 [0.7min]
+ep 9: tr_loss 1.0677 tr_acc 0.6060 va_loss 2.1733 va_acc 0.4430 [0.7min]
+ep 10: tr_loss 1.0584 tr_acc 0.6107 va_loss 1.3449 va_acc 0.5258 [0.8min]
+ep 11: tr_loss 1.0470 tr_acc 0.6154 va_loss 1.9229 va_acc 0.3774 [0.9min]
+ep 12: tr_loss 1.0378 tr_acc 0.6202 va_loss 1.5541 va_acc 0.4933 [1.0min]
+ep 13: tr_loss 1.0276 tr_acc 0.6245 va_loss 1.4628 va_acc 0.4991 [1.1min]
+ep 14: tr_loss 1.0202 tr_acc 0.6277 va_loss 2.1334 va_acc 0.4257 [1.2min]
+ep 15: tr_loss 1.0096 tr_acc 0.6321 va_loss 2.8794 va_acc 0.3502 [1.3min]
+ep 16: tr_loss 1.0032 tr_acc 0.6343 va_loss 3.1739 va_acc 0.3193 [1.3min]
+ep 17: tr_loss 0.9945 tr_acc 0.6385 va_loss 1.6993 va_acc 0.4754 [1.4min]
+ep 18: tr_loss 0.9874 tr_acc 0.6418 va_loss 1.8258 va_acc 0.4398 [1.5min]
+ep 19: tr_loss 0.9754 tr_acc 0.6452 va_loss 3.7105 va_acc 0.2795 [1.6min]
+ep 20: tr_loss 0.9689 tr_acc 0.6481 va_loss 1.7308 va_acc 0.4758 [1.7min]
+early stop at ep 20 (best ep 10 val_loss 1.3449)
+done. best: 10 1.344936462098902

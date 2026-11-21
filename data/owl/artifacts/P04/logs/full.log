@@ -1,0 +1,19 @@
+params: 660867
+~/workspace/src/train.py:24: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dev.type=='cuda'))
+~/workspace/src/train.py:31: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(enabled=(dev.type=='cuda')):
+ep1/30 tr_loss=1.3111 tr_acc=0.5009 val_loss=1.1480 val_acc=0.5610 lr=0.0005 80.0s
+ep2/30 tr_loss=1.1644 tr_acc=0.5566 val_loss=1.1240 val_acc=0.5716 lr=0.0005 62.9s
+ep3/30 tr_loss=1.1350 tr_acc=0.5677 val_loss=1.1031 val_acc=0.5836 lr=0.0005 75.9s
+ep4/30 tr_loss=1.1133 tr_acc=0.5810 val_loss=1.1163 val_acc=0.5742 lr=0.0005 88.1s
+ep5/30 tr_loss=1.0842 tr_acc=0.6020 val_loss=1.0657 val_acc=0.6052 lr=0.0005 96.3s
+ep6/30 tr_loss=1.0607 tr_acc=0.6143 val_loss=1.0610 val_acc=0.6177 lr=0.0005 91.3s
+ep7/30 tr_loss=1.0428 tr_acc=0.6217 val_loss=1.0633 val_acc=0.6174 lr=0.0005 109.0s
+ep8/30 tr_loss=1.0321 tr_acc=0.6265 val_loss=1.0280 val_acc=0.6294 lr=0.0005 108.9s
+ep9/30 tr_loss=1.0214 tr_acc=0.6296 val_loss=1.0282 val_acc=0.6300 lr=0.0005 105.4s
+ep10/30 tr_loss=1.0129 tr_acc=0.6338 val_loss=1.0393 val_acc=0.6265 lr=0.0005 94.2s
+ep11/30 tr_loss=1.0051 tr_acc=0.6362 val_loss=1.0418 val_acc=0.6265 lr=0.0005 102.6s
+ep12/30 tr_loss=0.9973 tr_acc=0.6399 val_loss=1.0436 val_acc=0.6260 lr=0.0005 108.0s
+ep13/30 tr_loss=0.9910 tr_acc=0.6416 val_loss=1.0387 val_acc=0.6300 lr=0.0005 108.2s
+ep14/30 tr_loss=0.9829 tr_acc=0.6448 val_loss=1.0271 val_acc=0.6318 lr=0.0005 113.5s

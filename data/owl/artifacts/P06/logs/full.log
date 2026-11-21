@@ -1,0 +1,55 @@
+device cuda
+split sizes 154000 44000 22000 sha a8912f3ef14bdba2
+params 273159
+forward shape torch.Size([4, 11])
+ep 1 tr_loss 1.2870 tr_acc 0.5096 va_loss 1.1789 va_acc 0.5577 lr 1.00e-03 p 0.50
+ep 2 tr_loss 1.1482 tr_acc 0.5728 va_loss 1.1130 va_acc 0.5864 lr 1.00e-03 p 0.50
+ep 3 tr_loss 1.1247 tr_acc 0.5857 va_loss 1.0989 va_acc 0.5971 lr 1.00e-03 p 0.50
+ep 4 tr_loss 1.1109 tr_acc 0.5915 va_loss 1.0871 va_acc 0.6040 lr 1.00e-03 p 0.50
+ep 5 tr_loss 1.0980 tr_acc 0.5971 va_loss 1.0872 va_acc 0.5994 lr 1.00e-03 p 0.50
+ep 6 tr_loss 1.0899 tr_acc 0.5995 va_loss 1.0789 va_acc 0.6054 lr 1.00e-03 p 0.50
+ep 7 tr_loss 1.0822 tr_acc 0.6030 va_loss 1.0688 va_acc 0.6088 lr 1.00e-03 p 0.50
+ep 8 tr_loss 1.0750 tr_acc 0.6051 va_loss 1.0646 va_acc 0.6093 lr 1.00e-03 p 0.50
+ep 9 tr_loss 1.0704 tr_acc 0.6086 va_loss 1.0608 va_acc 0.6071 lr 1.00e-03 p 0.50
+ep 10 tr_loss 1.0636 tr_acc 0.6119 va_loss 1.0599 va_acc 0.6136 lr 1.00e-03 p 0.50
+ep 11 tr_loss 1.0599 tr_acc 0.6127 va_loss 1.0664 va_acc 0.6105 lr 1.00e-03 p 0.50
+ep 12 tr_loss 1.0562 tr_acc 0.6136 va_loss 1.0608 va_acc 0.6128 lr 1.00e-03 p 0.50
+ep 13 tr_loss 1.0507 tr_acc 0.6170 va_loss 1.0524 va_acc 0.6177 lr 1.00e-03 p 0.50
+ep 14 tr_loss 1.0487 tr_acc 0.6173 va_loss 1.0527 va_acc 0.6137 lr 5.00e-04 p 0.60
+ep 15 tr_loss 1.0338 tr_acc 0.6237 va_loss 1.0446 va_acc 0.6200 lr 5.00e-04 p 0.60
+ep 16 tr_loss 1.0267 tr_acc 0.6266 va_loss 1.0441 va_acc 0.6226 lr 5.00e-04 p 0.60
+ep 17 tr_loss 1.0234 tr_acc 0.6284 va_loss 1.0477 va_acc 0.6198 lr 5.00e-04 p 0.60
+ep 18 tr_loss 1.0219 tr_acc 0.6293 va_loss 1.0449 va_acc 0.6221 lr 5.00e-04 p 0.60
+ep 19 tr_loss 1.0177 tr_acc 0.6302 va_loss 1.0467 va_acc 0.6208 lr 5.00e-04 p 0.60
+ep 20 tr_loss 1.0143 tr_acc 0.6314 va_loss 1.0512 va_acc 0.6196 lr 1.25e-04 p 0.60
+ep 21 tr_loss 0.9993 tr_acc 0.6385 va_loss 1.0474 va_acc 0.6225 lr 1.25e-04 p 0.60
+ep 22 tr_loss 0.9944 tr_acc 0.6399 va_loss 1.0496 va_acc 0.6224 lr 6.25e-05 p 0.60
+ep 23 tr_loss 0.9893 tr_acc 0.6415 va_loss 1.0487 va_acc 0.6230 lr 6.25e-05 p 0.60
+ep 24 tr_loss 0.9874 tr_acc 0.6428 va_loss 1.0503 va_acc 0.6235 lr 1.56e-05 p 0.60
+ep 25 tr_loss 0.9846 tr_acc 0.6438 va_loss 1.0508 va_acc 0.6232 lr 7.81e-06 p 0.60
+ep 26 tr_loss 0.9834 tr_acc 0.6441 va_loss 1.0515 va_acc 0.6237 lr 7.81e-06 p 0.60
+ep 27 tr_loss 0.9844 tr_acc 0.6439 va_loss 1.0527 va_acc 0.6221 lr 3.91e-06 p 0.60
+ep 28 tr_loss 0.9833 tr_acc 0.6442 va_loss 1.0503 va_acc 0.6224 lr 1.95e-06 p 0.60
+ep 29 tr_loss 0.9829 tr_acc 0.6440 va_loss 1.0497 va_acc 0.6228 lr 9.77e-07 p 0.60
+ep 30 tr_loss 0.9833 tr_acc 0.6445 va_loss 1.0516 va_acc 0.6226 lr 4.88e-07 p 0.60
+ep 31 tr_loss 0.9832 tr_acc 0.6448 va_loss 1.0534 va_acc 0.6231 lr 4.88e-07 p 0.60
+ep 32 tr_loss 0.9834 tr_acc 0.6445 va_loss 1.0511 va_acc 0.6230 lr 1.22e-07 p 0.60
+ep 33 tr_loss 0.9841 tr_acc 0.6440 va_loss 1.0522 va_acc 0.6218 lr 1.22e-07 p 0.60
+ep 34 tr_loss 0.9826 tr_acc 0.6443 va_loss 1.0526 va_acc 0.6229 lr 1.22e-07 p 0.60
+ep 35 tr_loss 0.9829 tr_acc 0.6435 va_loss 1.0525 va_acc 0.6229 lr 6.10e-08 p 0.60
+ep 36 tr_loss 0.9834 tr_acc 0.6446 va_loss 1.0523 va_acc 0.6230 lr 1.53e-08 p 0.60
+ep 37 tr_loss 0.9824 tr_acc 0.6440 va_loss 1.0521 va_acc 0.6234 lr 7.63e-09 p 0.60
+ep 38 tr_loss 0.9824 tr_acc 0.6447 va_loss 1.0543 va_acc 0.6228 lr 3.81e-09 p 0.60
+ep 39 tr_loss 0.9828 tr_acc 0.6446 va_loss 1.0511 va_acc 0.6235 lr 3.81e-09 p 0.60
+ep 40 tr_loss 0.9826 tr_acc 0.6437 va_loss 1.0516 va_acc 0.6232 lr 9.54e-10 p 0.60
+ep 41 tr_loss 0.9819 tr_acc 0.6446 va_loss 1.0519 va_acc 0.6222 lr 9.54e-10 p 0.60
+ep 42 tr_loss 0.9822 tr_acc 0.6438 va_loss 1.0543 va_acc 0.6234 lr 9.54e-10 p 0.60
+ep 43 tr_loss 0.9822 tr_acc 0.6444 va_loss 1.0515 va_acc 0.6232 lr 4.77e-10 p 0.60
+ep 44 tr_loss 0.9830 tr_acc 0.6438 va_loss 1.0524 va_acc 0.6231 lr 2.38e-10 p 0.60
+ep 45 tr_loss 0.9830 tr_acc 0.6442 va_loss 1.0527 va_acc 0.6226 lr 2.38e-10 p 0.60
+ep 46 tr_loss 0.9826 tr_acc 0.6447 va_loss 1.0506 va_acc 0.6231 lr 1.19e-10 p 0.60
+ep 47 tr_loss 0.9822 tr_acc 0.6445 va_loss 1.0518 va_acc 0.6231 lr 5.96e-11 p 0.60
+ep 48 tr_loss 0.9826 tr_acc 0.6441 va_loss 1.0523 va_acc 0.6225 lr 2.98e-11 p 0.60
+ep 49 tr_loss 0.9829 tr_acc 0.6440 va_loss 1.0538 va_acc 0.6218 lr 2.98e-11 p 0.60
+ep 50 tr_loss 0.9832 tr_acc 0.6434 va_loss 1.0545 va_acc 0.6225 lr 1.49e-11 p 0.60
+done best_val 1.044094799561934

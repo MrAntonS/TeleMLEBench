@@ -1,0 +1,23 @@
+split sha 77f8a4f5001846b6b5ee10f569f53e50991988279ecf7c708637e1ec7a555434
+params 0.335M
+ep0 train_loss=1.3019 acc=0.5080 val_loss=1.2502 acc=0.5238 lr=0.000976
+ep1 train_loss=1.1489 acc=0.5698 val_loss=2.0140 acc=0.3539 lr=0.000905
+ep2 train_loss=1.1099 acc=0.5898 val_loss=1.6193 acc=0.4168 lr=0.000794
+ep3 train_loss=1.0820 acc=0.6031 val_loss=1.2605 acc=0.5335 lr=0.000655
+ep4 train_loss=1.0587 acc=0.6143 val_loss=1.1737 acc=0.5687 lr=0.000500
+ep5 train_loss=1.0319 acc=0.6253 val_loss=1.1600 acc=0.5762 lr=0.000345
+ep6 train_loss=1.0023 acc=0.6390 val_loss=1.1562 acc=0.5870 lr=0.000206
+ep7 train_loss=0.9657 acc=0.6538 val_loss=1.1662 acc=0.5805 lr=0.000095
+ep8 train_loss=0.9310 acc=0.6687 val_loss=1.1358 acc=0.5984 lr=0.000024
+ep9 train_loss=0.9065 acc=0.6793 val_loss=1.1369 acc=0.5996 lr=0.001000
+ep10 train_loss=1.0353 acc=0.6235 val_loss=1.6362 acc=0.4610 lr=0.000976
+ep11 train_loss=1.0225 acc=0.6289 val_loss=1.5329 acc=0.4949 lr=0.000905
+ep12 train_loss=1.0090 acc=0.6354 val_loss=1.2653 acc=0.5465 lr=0.000794
+ep13 train_loss=0.9911 acc=0.6424 val_loss=1.3047 acc=0.5380 lr=0.000655
+ep14 train_loss=0.9663 acc=0.6532 val_loss=1.1955 acc=0.5748 lr=0.000500
+ep15 train_loss=0.9347 acc=0.6637 val_loss=1.2683 acc=0.5534 lr=0.000345
+ep16 train_loss=0.8939 acc=0.6794 val_loss=1.2602 acc=0.5650 lr=0.000206
+ep17 train_loss=0.8441 acc=0.6988 val_loss=1.2149 acc=0.5921 lr=0.000095
+ep18 train_loss=0.7964 acc=0.7170 val_loss=1.2739 acc=0.5882 lr=0.000024
+early stop
+BEST ep8 val_loss 1.1358

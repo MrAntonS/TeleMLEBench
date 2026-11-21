@@ -1,0 +1,7 @@
+device cuda
+norm mean=-0.000252 std=0.006046 ntrain=7700 nval=2000
+params 794699
+ep 1/3 tr_loss=2.0780 tr_acc=0.2775 va_loss=1.8322 va_acc=0.3245 lr=1.00e-03 (2s)
+ep 2/3 tr_loss=1.7000 tr_acc=0.4027 va_loss=1.4756 va_acc=0.4535 lr=1.00e-03 (3s)
+ep 3/3 tr_loss=1.5262 tr_acc=0.4471 va_loss=1.3877 va_acc=0.4785 lr=1.00e-03 (4s)
+BEST ep=3 va_acc=0.4785

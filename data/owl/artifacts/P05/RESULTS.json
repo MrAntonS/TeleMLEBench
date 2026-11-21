@@ -1,0 +1,43 @@
+{
+  "overall_accuracy": 59.11,
+  "per_run_accuracy": [
+    58.22,
+    60.0
+  ],
+  "per_snr_accuracy": {
+    "-20": 9.77,
+    "-18": 9.64,
+    "-16": 10.27,
+    "-14": 14.64,
+    "-12": 15.86,
+    "-10": 24.36,
+    "-8": 37.68,
+    "-6": 50.73,
+    "-4": 64.64,
+    "-2": 75.23,
+    "0": 82.86,
+    "2": 85.64,
+    "4": 86.73,
+    "6": 88.0,
+    "8": 88.14,
+    "10": 87.64,
+    "12": 88.09,
+    "14": 87.77,
+    "16": 87.09,
+    "18": 87.41
+  },
+  "avg_accuracy_0_to_18": 86.94,
+  "macro_f1": 0.6077,
+  "kappa": 0.5502,
+  "n_test": 22000,
+  "split_description": "per (modulation,SNR) cell: 800 train / 100 val / 100 test, seed 12345",
+  "split_sha256": "77f8a4f5001846b6b5ee10f569f53e50991988279ecf7c708637e1ec7a555434",
+  "n_runs_or_seeds": 2,
+  "source_sha256": "9ffdc845c4b162ba1e943e5b2ef05380b2c702a74c4737f0ba9eb319bd65235b",
+  "paper_reported": {
+    "overall_accuracy": 62.63,
+    "location": "Table II, Sec. III-F, abstract (RadioML2016.10a test set)"
+  },
+  "difference_pp": -3.52,
+  "final_eval_timestamp": "2026-10-27T20:12:02.212240+00:00"
+}

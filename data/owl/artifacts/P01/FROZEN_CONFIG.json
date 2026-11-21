@@ -1,0 +1,133 @@
+{
+  "checkpoint": "checkpoints/frozen.pt",
+  "hyperparameters": {
+    "L": {
+      "source": "paper",
+      "value": 128
+    },
+    "acm_hidden": {
+      "source": "paper",
+      "value": 48
+    },
+    "adam_betas": {
+      "source": "inferred",
+      "value": [
+        0.9,
+        0.999
+      ]
+    },
+    "adam_eps": {
+      "source": "inferred",
+      "value": 1e-08
+    },
+    "backbone": {
+      "source": "paper",
+      "value": "Conv1d(36->64,3)+ReLU, Conv1d(64->128,3)+ReLU, Conv1d(128->256,3)+ReLU; same padding; no BN/pooling/dropout stated"
+    },
+    "batch_size": {
+      "source": "inferred",
+      "value": 256
+    },
+    "classifier": {
+      "source": "paper",
+      "value": "Linear(128->512)+ReLU, Linear(512->256)+ReLU, Linear(256->11); GAP over time before FC"
+    },
+    "early_stopping": {
+      "source": "paper/patience; inferred/max_epochs",
+      "value": "val cross-entropy, patience 10, min-delta 0.0, restore best, max 100 epochs"
+    },
+    "ffm_dk": {
+      "note": "heads=2 per paper; dk=64 chosen so params match reported 0.47M (454527 vs 0.47M, -3.3%)",
+      "source": "inferred",
+      "value": 64
+    },
+    "ffm_heads": {
+      "source": "paper",
+      "value": 2
+    },
+    "ffm_mode": {
+      "note": "temporal self-attention over L positions; literal Eq.5 shapes give a channel map but text/figure describe sequence-wide temporal fusion; full-run comparison showed identical val acc",
+      "source": "inferred",
+      "value": "temporal"
+    },
+    "gradient_clip": {
+      "source": "inferred",
+      "value": 1.0
+    },
+    "init": {
+      "source": "paper",
+      "value": "Xavier-uniform weights, zero bias (BN weight 1/bias 0)"
+    },
+    "label_order": {
+      "source": "inferred",
+      "value": [
+        "8PSK",
+        "AM-DSB",
+        "AM-SSB",
+        "BPSK",
+        "CPFSK",
+        "GFSK",
+        "PAM4",
+        "QAM16",
+        "QAM64",
+        "QPSK",
+        "WBFM"
+      ]
+    },
+    "loss": {
+      "source": "paper",
+      "value": "cross-entropy"
+    },
+    "lr": {
+      "note": "paper states 1e-3 but it is unstable in faithful implementation (val oscillation 1.2<->4.0 in 3 runs); 3e-4 stable, 5e-4 worse",
+      "source": "inferred (DEVIATION)",
+      "value": 0.0003
+    },
+    "max_epochs": {
+      "source": "inferred",
+      "value": 100
+    },
+    "msm": {
+      "source": "paper",
+      "value": "3 branches Conv2d(1->12, (2,3)/(2,5)/(2,7)) same-pad + BN2d + ReLU, concat -> 36ch"
+    },
+    "optimizer": {
+      "source": "paper",
+      "value": "Adam"
+    },
+    "split_ratio": {
+      "source": "paper",
+      "value": "6:2:2"
+    },
+    "use_acm": {
+      "source": "paper",
+      "value": true
+    },
+    "weight_decay": {
+      "source": "inferred",
+      "value": 0
+    }
+  },
+  "n_params": 454527,
+  "n_runs_or_seeds": 1,
+  "paper_reported": {
+    "rml2016_10a": {
+      "location": "Table 1, p.4",
+      "macro_f1": 0.6483,
+      "overall_accuracy_pct": 62.51,
+      "per_snr": "Fig.2(a) curve only, no table",
+      "source_kappa": 0.5885
+    }
+  },
+  "source_files_sha256": {
+    "common.py": "1134f1988996ecc294f7120cda6d5868f7c07bbea96f205753993e3e7b910da4",
+    "dataset.py": "8ebebfe30844e996108ae51f28eb7dd9aa52150244cb7d7b5e0be1a3bbdc677b",
+    "final_evaluate.py": "59447518593cbddb543f2e9a68c49aaef4f404eb86ab6e29ad87a35a5bd2b1f1",
+    "metrics.py": "03d05d1a9d2ef608f28e676c2e50d35f33ed021d1d3e43ff92c722e2a2d9b7d1",
+    "model.py": "5625ab6276c58dbd77d9921664e30895bccbd233a5686db9e42fccf81e3ff341",
+    "train.py": "79766a64e5029c9a54d09a326789a9cea02128bcc6a09366cebc5b75705dcf3d"
+  },
+  "source_sha256": "0a403e231edeb77fddca7057bde86c773efd5ae47a6736822fa813056ac755ca",
+  "split_seed": 0,
+  "split_sha256": "ada29821e275c254c41105b669804d2a7199c6cdc4d1496ab80e5cd638997b07"
+}
